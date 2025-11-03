@@ -9,7 +9,7 @@ export default function AppHeader() {
   return (
     <Appbar.Header style={styles.header}>
       <View style={styles.brandRow}>
-        <Image source={require("../../assets/logo.png")} style={styles.logo} />
+        <Image source={require("../../assets/icon.png")} style={styles.logo} />
         <Text style={styles.brandText}>HomeLens</Text>
       </View>
       <View style={styles.flexFill} />

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { View, StyleSheet, Keyboard, Platform } from "react-native";
-import { TextInput, HelperText, useTheme, Button } from "react-native-paper";
+import { TextInput, useTheme } from "react-native-paper";
 import { spacing } from "../../theme/spacing";
 import { formatCurrency, parseNumber } from "../../utils/parser";
 import NativeSelectModal, { Option } from "../primitives/NativeSelectModal";
@@ -18,7 +18,6 @@ export default function DepositInput({
   deposit,
   onChange,
 }: DepositInputProps) {
-  const theme = useTheme();
   const [percentOpen, setPercentOpen] = useState(false);
   const [percentText, setPercentText] = useState<string>("");
   const [currencyText, setCurrencyText] = useState<string>(

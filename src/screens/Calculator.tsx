@@ -6,14 +6,13 @@ import DepositInput from "../components/inputs/DepositInput";
 
 import { formatCurrency } from "../utils/parser";
 import { StyleSheet, View } from "react-native";
-import { Button, HelperText, Text, useTheme } from "react-native-paper";
+import { Button, Text, useTheme } from "react-native-paper";
 import ScreenContainer from "../components/primitives/ScreenContainer";
 import SectionTitle from "../components/primitives/SectionTitle";
 import { useMortgageCalculator } from "../state/MortgageCalculatorContext";
 import { spacing } from "../theme/spacing";
 
 const CURRENCY_PRESETS = [400000, 600000, 800000, 1000000, 1200000];
-const DEPOSIT_PRESETS = [20000, 50000, 100000, 150000, 200000];
 
 export default function CalculatorScreen() {
   const theme = useTheme();

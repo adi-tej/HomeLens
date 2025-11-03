@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useReducer } from "react";
+import React, { createContext, useContext, useMemo } from "react";
 
 export type AmountMode = "select" | "enter";
 export type Occupancy = "" | "owner" | "investment";
