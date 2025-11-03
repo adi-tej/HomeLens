@@ -101,8 +101,9 @@ const styles = StyleSheet.create({
   option: {
     padding: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
+    alignItems: "center",
   },
-  optionText: { fontSize: 16 },
+  optionText: { fontSize: 16, textAlign: "center" },
   cancelButton: { padding: 16, alignItems: "center" },
   cancelText: { fontWeight: "600" },
 });

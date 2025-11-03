@@ -1,6 +1,6 @@
 import React from "react";
 import CurrencySelect from "../components/inputs/CurrencySelect";
-import TextSelect from "../components/inputs/TextSelect";
+import Select from "../components/inputs/Select";
 import Toggle from "../components/inputs/Toggle";
 import DepositInput from "../components/inputs/DepositInput";
 
@@ -12,7 +12,6 @@ import SectionTitle from "../components/primitives/SectionTitle";
 import { useMortgageCalculator } from "../state/MortgageCalculatorContext";
 import { spacing } from "../theme/spacing";
 
-const CURRENCY_PRESETS = [400000, 600000, 800000, 1000000, 1200000];
 
 export default function CalculatorScreen() {
   const theme = useTheme();
@@ -49,10 +48,6 @@ export default function CalculatorScreen() {
           label="Property value"
           value={propertyValue}
           onChange={setPropertyValue}
-          options={CURRENCY_PRESETS.map((n) => ({
-            value: n,
-            label: formatCurrency(n),
-          }))}
         />
 
         {/* Deposit */}
@@ -63,7 +58,7 @@ export default function CalculatorScreen() {
         />
 
         {/* Occupancy */}
-        <TextSelect
+        <Select
           label="Occupancy"
           value={occupancy}
           onChange={(v) => {
@@ -77,7 +72,7 @@ export default function CalculatorScreen() {
         />
 
         {/* Property Type */}
-        <TextSelect
+        <Select
           label="Property type"
           value={propertyType}
           onChange={(v) => {
