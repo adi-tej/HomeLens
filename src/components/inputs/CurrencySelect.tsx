@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Keyboard, Platform } from "react-native";
-import { TextInput } from "react-native-paper";
+import { TextInput, useTheme } from "react-native-paper";
 import NativeSelectModal, { Option } from "../primitives/NativeSelectModal";
 import { formatCurrency, parseNumber } from "../../utils/parser";
 
@@ -22,14 +22,19 @@ export default function CurrencySelect({
   allowPresets = true,
 }: CurrencySelectProps) {
   const [open, setOpen] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [text, setText] = useState(value != null ? formatCurrency(value) : "");
+  const theme = useTheme();
 
   useEffect(() => {
     setText(value != null ? formatCurrency(value) : "");
   }, [value]);
 
   const options: Option[] = useMemo(() => {
-    const list = (presets ?? DEFAULT_PRESETS).map((n) => ({ value: n, label: formatCurrency(n) }));
+    const list = (presets ?? DEFAULT_PRESETS).map((n) => ({
+      value: n,
+      label: formatCurrency(n),
+    }));
     return list as Option[];
   }, [presets]);
 
@@ -51,6 +56,9 @@ export default function CurrencySelect({
     setOpen(false);
   };
 
+  const isActive = open || focused;
+  const outlineColor = isActive ? theme.colors.primary : theme.colors.outline;
+
   return (
     <>
       <TextInput
@@ -59,19 +67,17 @@ export default function CurrencySelect({
         placeholder={label}
         value={text}
         onChangeText={handleTextChange}
-        keyboardType={Platform.select({ ios: "number-pad", android: "numeric" })}
-        left={
-          text ? (
-            <TextInput.Icon
-              icon="close"
-              onPress={() => {
-                setText("");
-                onChange(undefined);
-              }}
-              forceTextInputFocus={false}
-            />
-          ) : undefined
-        }
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        keyboardType={Platform.select({
+          ios: "number-pad",
+          android: "numeric",
+        })}
+        outlineColor={outlineColor}
+        activeOutlineColor={theme.colors.primary}
+        outlineStyle={{
+          borderWidth: isActive ? 2 : 1,
+        }}
         right={
           allowPresets ? (
             <TextInput.Icon

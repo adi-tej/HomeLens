@@ -24,6 +24,7 @@ export default function DepositInput({
     deposit != null ? formatCurrency(deposit) : "",
   );
   const [percentUserInput, setPercentUserInput] = useState(false);
+  const theme = useTheme();
 
   // derive percent from deposit and property value
   const derivedPercent = useMemo(() => {
@@ -89,6 +90,12 @@ export default function DepositInput({
     value: p,
   }));
 
+  const [percentFocused, setPercentFocused] = useState(false);
+  const percentActive = percentOpen || percentFocused;
+  const percentOutlineColor = percentActive
+    ? theme.colors.primary
+    : theme.colors.outline;
+
   return (
     <View>
       <View style={styles.row}>
@@ -102,20 +109,8 @@ export default function DepositInput({
             ios: "number-pad",
             android: "numeric",
           })}
-          left={
-            currencyText ? (
-              <TextInput.Icon
-                icon="close"
-                onPress={() => {
-                  setCurrencyText("");
-                  setPercentText("");
-                  setPercentUserInput(false);
-                  onChange(undefined);
-                }}
-                forceTextInputFocus={false}
-              />
-            ) : undefined
-          }
+          outlineColor={theme.colors.outline}
+          activeOutlineColor={theme.colors.primary}
           style={styles.flex}
         />
 
@@ -127,6 +122,8 @@ export default function DepositInput({
           placeholder="%"
           value={percentText}
           onChangeText={handlePercentChange}
+          onFocus={() => setPercentFocused(true)}
+          onBlur={() => setPercentFocused(false)}
           keyboardType={Platform.select({
             ios: "decimal-pad",
             android: "numeric",
@@ -143,6 +140,9 @@ export default function DepositInput({
               forceTextInputFocus={false}
             />
           }
+          outlineColor={percentOutlineColor}
+          activeOutlineColor={theme.colors.primary}
+          outlineStyle={{ borderWidth: percentActive ? 2 : 1 }}
           style={styles.percent}
         />
       </View>

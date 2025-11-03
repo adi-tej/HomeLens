@@ -1,29 +1,35 @@
-import React, { useMemo, useState } from 'react';
-import { Keyboard, Pressable, View } from 'react-native';
-import { TextInput } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import NativeSelectModal, { Option } from '../primitives/NativeSelectModal';
+import React, { useMemo, useState } from "react";
+import { Keyboard, Pressable, View } from "react-native";
+import { TextInput, useTheme } from "react-native-paper";
+import NativeSelectModal, { Option } from "../primitives/NativeSelectModal";
 
 export type SelectProps = {
   label?: string;
   value?: string;
   onChange: (v: string | undefined) => void;
   options: Option[];
-  clearable?: boolean;
 };
 
-export default function Select({ label, value, onChange, options, clearable = true }: SelectProps) {
+export default function Select({
+  label,
+  value,
+  onChange,
+  options,
+}: SelectProps) {
   const [open, setOpen] = useState(false);
+  const theme = useTheme();
 
   const display = useMemo(() => {
-    const found = options.find(o => String(o.value) === String(value));
-    return String(found?.label ?? value ?? '');
+    const found = options.find((o) => String(o.value) === String(value));
+    return String(found?.label ?? value ?? "");
   }, [options, value]);
 
   const handleOpen = () => {
     Keyboard.dismiss();
     setOpen(true);
   };
+
+  const outlineColor = open ? theme.colors.primary : theme.colors.outline;
 
   return (
     <>
@@ -35,23 +41,11 @@ export default function Select({ label, value, onChange, options, clearable = tr
             placeholder={label}
             value={display}
             editable={false}
+            outlineColor={outlineColor}
+            activeOutlineColor={theme.colors.primary}
+            outlineStyle={{ borderWidth: open ? 2 : 1 }}
             right={
-              <TextInput.Icon
-                icon={({ color, size }) => (
-                  <MaterialCommunityIcons name="chevron-down" size={size} color={color} />
-                )}
-                forceTextInputFocus={false}
-              />
-            }
-            left={
-              clearable && value ? (
-                <TextInput.Icon
-                  icon={({ color, size }) => (
-                    <MaterialCommunityIcons name="close" size={size} color={color} />
-                  )}
-                  forceTextInputFocus={false}
-                />
-              ) : undefined
+              <TextInput.Icon icon="chevron-down" forceTextInputFocus={false} />
             }
           />
         </View>
