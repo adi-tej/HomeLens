@@ -1,0 +1,171 @@
+import React, { useMemo, useState } from "react";
+import { View, StyleSheet, Keyboard, Platform } from "react-native";
+import { TextInput, HelperText, useTheme, Button } from "react-native-paper";
+import { spacing } from "../../theme/spacing";
+import { formatCurrency, parseNumber } from "../../utils/parser";
+import NativeSelectModal, { Option } from "../primitives/NativeSelectModal";
+
+export type DepositInputProps = {
+  propertyValue?: number;
+  deposit?: number;
+  onChange: (v: number | undefined) => void;
+};
+
+const PERCENT_PRESETS = [5, 10, 15, 20];
+
+export default function DepositInput({
+  propertyValue,
+  deposit,
+  onChange,
+}: DepositInputProps) {
+  const theme = useTheme();
+  const [percentOpen, setPercentOpen] = useState(false);
+  const [percentText, setPercentText] = useState<string>("");
+  const [currencyText, setCurrencyText] = useState<string>(
+    deposit != null ? formatCurrency(deposit) : "",
+  );
+  const [percentUserInput, setPercentUserInput] = useState(false);
+
+  // derive percent from deposit and property value
+  const derivedPercent = useMemo(() => {
+    if (!propertyValue || !deposit) return "";
+    const p = (deposit / propertyValue) * 100;
+    if (!isFinite(p)) return "";
+    return String(Math.round(p * 10) / 10);
+  }, [propertyValue, deposit]);
+
+  // keep local text in sync with props
+  React.useEffect(() => {
+    setCurrencyText(deposit != null ? formatCurrency(deposit) : "");
+
+    if (!propertyValue) {
+      // Do not wipe user-entered percent when property value is missing
+      return;
+    }
+
+    // If user entered percent first and deposit isn't set yet, apply percent now
+    if (percentUserInput && (deposit == null || isNaN(Number(deposit)))) {
+      const parsed = parseNumber(percentText);
+      if (parsed != null) {
+        const val = Math.round((parsed / 100) * propertyValue);
+        onChange(val);
+      }
+      setPercentUserInput(false);
+      return;
+    }
+
+    // Otherwise derive percent from deposit
+    if (deposit != null && propertyValue > 0) {
+      setPercentText(derivedPercent);
+    }
+  }, [deposit, propertyValue, derivedPercent]);
+
+  const handleCurrencyChange = (t: string) => {
+    setCurrencyText(t);
+    const parsed = parseNumber(t);
+    if (parsed != null) {
+      onChange(parsed);
+    } else if (t === "") {
+      onChange(undefined);
+    }
+  };
+
+  const applyPercent = (p: number) => {
+    if (!propertyValue || propertyValue <= 0) return;
+    const val = Math.round((p / 100) * propertyValue);
+    onChange(val);
+  };
+
+  const handlePercentChange = (t: string) => {
+    setPercentText(t);
+    setPercentUserInput(true);
+    const parsed = parseNumber(t);
+    if (parsed != null) {
+      applyPercent(parsed);
+    }
+  };
+
+  const percentOptions: Option[] = PERCENT_PRESETS.map((p) => ({
+    label: `${p}%`,
+    value: p,
+  }));
+
+  return (
+    <View>
+      <View style={styles.row}>
+        <TextInput
+          mode="outlined"
+          label="Deposit"
+          placeholder="Deposit"
+          value={currencyText}
+          onChangeText={handleCurrencyChange}
+          keyboardType={Platform.select({
+            ios: "number-pad",
+            android: "numeric",
+          })}
+          left={
+            currencyText ? (
+              <TextInput.Icon
+                icon="close"
+                onPress={() => {
+                  setCurrencyText("");
+                  setPercentText("");
+                  setPercentUserInput(false);
+                  onChange(undefined);
+                }}
+                forceTextInputFocus={false}
+              />
+            ) : undefined
+          }
+          style={styles.flex}
+        />
+
+        <View style={styles.gap} />
+
+        <TextInput
+          mode="outlined"
+          label="%"
+          placeholder="%"
+          value={percentText}
+          onChangeText={handlePercentChange}
+          keyboardType={Platform.select({
+            ios: "decimal-pad",
+            android: "numeric",
+          })}
+          contentStyle={{ paddingRight: 8 }}
+          right={
+            <TextInput.Icon
+              icon="chevron-down"
+              onPress={() => {
+                if (!percentOptions.length) return;
+                Keyboard.dismiss();
+                setPercentOpen(true);
+              }}
+              forceTextInputFocus={false}
+            />
+          }
+          style={styles.percent}
+        />
+      </View>
+
+      <NativeSelectModal
+        visible={percentOpen}
+        options={percentOptions}
+        onSelect={(o) => {
+          const p = Number(o.value);
+          setPercentText(String(p));
+          applyPercent(p);
+          setPercentOpen(false);
+        }}
+        onCancel={() => setPercentOpen(false)}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  row: { flexDirection: "row", alignItems: "center" },
+  flex: { flex: 1 },
+  gap: { width: spacing.md },
+  percent: { width: 140, flexShrink: 0 },
+});

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Keyboard } from 'react-native';
-import Dropdown from './Dropdown';
-import NativeSelectModal, { Option } from './NativeSelectModal';
-import { formatCurrency, parseNumber } from '../../utils/parser';
+import React, { useState, useEffect } from "react";
+import { Keyboard } from "react-native";
+import Dropdown from "../primitives/Dropdown";
+import NativeSelectModal, { Option } from "../primitives/NativeSelectModal";
+import { formatCurrency, parseNumber } from "../../utils/parser";
 
 export type CurrencySelectProps = {
   label?: string;
@@ -18,10 +18,10 @@ export default function CurrencySelect({
   options = [],
 }: CurrencySelectProps) {
   const [open, setOpen] = useState(false);
-  const [text, setText] = useState(value != null ? formatCurrency(value) : '');
+  const [text, setText] = useState(value != null ? formatCurrency(value) : "");
 
   useEffect(() => {
-    setText(value != null ? formatCurrency(value) : '');
+    setText(value != null ? formatCurrency(value) : "");
   }, [value]);
 
   const handleTextChange = (t: string) => {
@@ -31,7 +31,7 @@ export default function CurrencySelect({
       onChange(parsed);
     } else {
       setText(t);
-      if (t === '') onChange(undefined);
+      if (t === "") onChange(undefined);
     }
   };
 
@@ -54,7 +54,7 @@ export default function CurrencySelect({
           setOpen(true);
         }}
         onClear={() => {
-          setText('');
+          setText("");
           onChange(undefined);
         }}
         editable
@@ -63,14 +63,14 @@ export default function CurrencySelect({
 
       <NativeSelectModal
         visible={open}
-        options={options.map(o => ({
+        options={options.map((o) => ({
           label: o.label ?? formatCurrency(Number(o.value)),
           value: o.value,
         }))}
         onSelect={handleSelect}
         onCancel={() => setOpen(false)}
-        renderLabel={o =>
-          typeof o.label === 'number'
+        renderLabel={(o) =>
+          typeof o.label === "number"
             ? formatCurrency(Number(o.label))
             : String(o.label)
         }

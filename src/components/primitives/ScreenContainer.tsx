@@ -1,6 +1,12 @@
-import React, { PropsWithChildren } from 'react';
-import { ScrollView, View, StyleSheet, ScrollViewProps, ViewProps } from 'react-native';
-import { spacing } from '../../theme/spacing';
+import React, { PropsWithChildren } from "react";
+import {
+  ScrollView,
+  View,
+  StyleSheet,
+  ScrollViewProps,
+  ViewProps,
+} from "react-native";
+import { spacing } from "../../theme/spacing";
 
 export type ScreenContainerProps = PropsWithChildren<{
   scroll?: boolean;
@@ -39,5 +45,10 @@ export default function ScreenContainer({
 
 const styles = StyleSheet.create({
   scroll: { flex: 1 },
-  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl, flexGrow: 1 },
+  content: {
+    padding: spacing.lg,
+    gap: spacing.md,
+    paddingBottom: spacing.xl,
+    flexGrow: 1,
+  },
 });

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Keyboard } from 'react-native';
-import Dropdown from './Dropdown';
-import NativeSelectModal, { Option } from './NativeSelectModal';
+import React, { useState } from "react";
+import { Keyboard } from "react-native";
+import * as Haptics from "expo-haptics";
+import Dropdown from "../primitives/Dropdown";
+import NativeSelectModal, { Option } from "../primitives/NativeSelectModal";
 
 export type TextSelectProps = {
   label?: string;
@@ -19,8 +20,9 @@ export default function TextSelect({
   const [open, setOpen] = useState(false);
 
   const display =
-    options.find(o => String(o.value) === String(value))?.label ??
-    (value ?? '');
+    options.find((o) => String(o.value) === String(value))?.label ??
+    value ??
+    "";
 
   const handleSelect = (o: Option) => {
     onChange(String(o.value));
@@ -31,9 +33,10 @@ export default function TextSelect({
     <>
       <Dropdown
         label={label}
-        value={String(display ?? '')}
+        value={String(display ?? "")}
         onOpen={() => {
           Keyboard.dismiss();
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           setOpen(true);
         }}
         onClear={() => {

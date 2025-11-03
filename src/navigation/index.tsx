@@ -1,27 +1,27 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import type { MD3Theme } from 'react-native-paper';
-import { useTheme } from 'react-native-paper';
-import type { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import type { ComponentProps } from 'react';
-import ScenariosScreen from '../screens/Scenarios';
-import HelpScreen from '../screens/Help';
-import CalculatorScreen from '../screens/Calculator';
-import AppHeader from '../components/AppHeader';
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import type { MD3Theme } from "react-native-paper";
+import { useTheme } from "react-native-paper";
+import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import type { ComponentProps } from "react";
+import ScenariosScreen from "../screens/Scenarios";
+import HelpScreen from "../screens/Help";
+import CalculatorScreen from "../screens/Calculator";
+import AppHeader from "../components/AppHeader";
 
 const Tab = createBottomTabNavigator();
 
-type MCIconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
+type MCIconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 
 const iconNameMap: Record<string, MCIconName> = {
-  Calculator: 'calculator-variant',
-  Scenarios: 'view-grid-outline',
-  Help: 'help-circle-outline',
+  Calculator: "calculator-variant",
+  Scenarios: "view-grid-outline",
+  Help: "help-circle-outline",
 };
 
-type RouteName = 'Calculator' | 'Scenarios' | 'Help';
+type RouteName = "Calculator" | "Scenarios" | "Help";
 
 function screenOptionsFactory(theme: MD3Theme) {
   return ({
@@ -35,7 +35,7 @@ function screenOptionsFactory(theme: MD3Theme) {
     tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
     tabBarIcon: ({ color, size }) => (
       <MaterialCommunityIcons
-        name={(iconNameMap[route.name] ?? 'calculator-variant') as MCIconName}
+        name={(iconNameMap[route.name] ?? "calculator-variant") as MCIconName}
         color={color}
         size={size}
       />

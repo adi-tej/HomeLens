@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   TouchableOpacity,
@@ -7,8 +7,8 @@ import {
   StyleSheet,
   Modal,
   Pressable,
-} from 'react-native';
-import { useTheme } from 'react-native-paper';
+} from "react-native";
+import { useTheme } from "react-native-paper";
 
 export type Option = { label?: string | number; value: string | number };
 
@@ -29,7 +29,7 @@ export default function NativeSelectModal({
 }: NativeSelectModalProps) {
   const theme = useTheme();
   const isDark = theme.dark as unknown as boolean | undefined;
-  const backdropColor = isDark ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.3)';
+  const backdropColor = isDark ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.3)";
   return (
     <Modal
       visible={visible}
@@ -37,24 +37,41 @@ export default function NativeSelectModal({
       transparent
       onRequestClose={onCancel}
     >
-      <Pressable style={[styles.backdrop, { backgroundColor: backdropColor }]} onPress={onCancel}>
-        <View style={[styles.container, { backgroundColor: theme.colors.surfaceVariant }]}>
-          <View style={[styles.handle, { backgroundColor: theme.colors.outline }]} />
+      <Pressable
+        style={[styles.backdrop, { backgroundColor: backdropColor }]}
+        onPress={onCancel}
+      >
+        <View
+          style={[
+            styles.container,
+            { backgroundColor: theme.colors.surfaceVariant },
+          ]}
+        >
+          <View
+            style={[styles.handle, { backgroundColor: theme.colors.outline }]}
+          />
           <ScrollView contentContainerStyle={styles.list}>
-            {options.map(o => (
+            {options.map((o) => (
               <TouchableOpacity
                 key={String(o.value)}
-                style={[styles.option, { borderBottomColor: theme.colors.outline }]}
+                style={[
+                  styles.option,
+                  { borderBottomColor: theme.colors.outline },
+                ]}
                 onPress={() => onSelect(o)}
               >
-                <Text style={[styles.optionText, { color: theme.colors.onSurface }]}>
+                <Text
+                  style={[styles.optionText, { color: theme.colors.onSurface }]}
+                >
                   {renderLabel ? renderLabel(o) : String(o.label ?? o.value)}
                 </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
           <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-            <Text style={[styles.cancelText, { color: theme.colors.primary }]}>Cancel</Text>
+            <Text style={[styles.cancelText, { color: theme.colors.primary }]}>
+              Cancel
+            </Text>
           </TouchableOpacity>
         </View>
       </Pressable>
@@ -65,16 +82,16 @@ export default function NativeSelectModal({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   container: {
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
-    maxHeight: '70%',
+    maxHeight: "70%",
     paddingBottom: 8,
   },
   handle: {
-    alignSelf: 'center',
+    alignSelf: "center",
     width: 40,
     height: 4,
     borderRadius: 2,
@@ -86,6 +103,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   optionText: { fontSize: 16 },
-  cancelButton: { padding: 16, alignItems: 'center' },
-  cancelText: { fontWeight: '600' },
+  cancelButton: { padding: 16, alignItems: "center" },
+  cancelText: { fontWeight: "600" },
 });
