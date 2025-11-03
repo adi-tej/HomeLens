@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { Text } from "react-native-paper";
 import ScreenContainer from "../components/primitives/ScreenContainer";
 
-export default function ScenariosScreen() {
+export default function Matrix() {
   return (
     <View style={styles.container}>
       <ScreenContainer>

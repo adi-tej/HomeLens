@@ -11,9 +11,9 @@ import ScreenContainer from "../components/primitives/ScreenContainer";
 import SectionTitle from "../components/primitives/SectionTitle";
 import { useMortgageCalculator } from "../state/MortgageCalculatorContext";
 import { spacing } from "../theme/spacing";
+import { calculateStampDuty } from "../utils/stampDuty";
 
-
-export default function CalculatorScreen() {
+export default function Main() {
   const theme = useTheme();
   const {
     propertyValue,
@@ -60,8 +60,9 @@ export default function CalculatorScreen() {
         {/* Occupancy */}
         <Select
           label="Occupancy"
-          value={occupancy}
+          value={firstHomeBuyer ? "owner" : occupancy}
           onChange={(v) => {
+            if (firstHomeBuyer) return; // freeze to owner when FHB
             if (v === "owner" || v === "investment") setOccupancy(v);
             else setOccupancy("");
           }}
@@ -69,6 +70,7 @@ export default function CalculatorScreen() {
             { label: "Owner-Occupied", value: "owner" },
             { label: "Investment", value: "investment" },
           ]}
+          disabled={firstHomeBuyer}
         />
 
         {/* Property Type */}
@@ -112,7 +114,10 @@ export default function CalculatorScreen() {
         >
           Submit
         </Button>
-
+      </View>
+      <View
+        style={[styles.card, { backgroundColor: theme.colors.surfaceVariant }]}
+      >
         {/* Inline summary */}
         <SectionTitle>Summary</SectionTitle>
         <Text>
@@ -122,6 +127,7 @@ export default function CalculatorScreen() {
             `FHB: ${firstHomeBuyer ? "Yes" : "No"}`,
             `Occupancy: ${occupancy || "—"}`,
             `Type: ${propertyType || "—"}`,
+            `Duty: ${calculateStampDuty(propertyValue)}`,
           ].join("  •  ")}
         </Text>
       </View>

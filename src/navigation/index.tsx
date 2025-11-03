@@ -1,14 +1,16 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import type { MD3Theme } from "react-native-paper";
 import { useTheme } from "react-native-paper";
-import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+
 import type { ComponentProps } from "react";
-import ScenariosScreen from "../screens/Scenarios";
-import HelpScreen from "../screens/Help";
-import CalculatorScreen from "../screens/Calculator";
+import type { MD3Theme } from "react-native-paper";
+import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
+
+import Matrix from "../screens/Matrix";
+import Help from "../screens/Help";
+import Main from "../screens/Main";
 import AppHeader from "../components/AppHeader";
 
 const Tab = createBottomTabNavigator();
@@ -49,9 +51,9 @@ export function RootNavigator() {
     <View style={styles.root}>
       <AppHeader />
       <Tab.Navigator screenOptions={screenOptionsFactory(theme)}>
-        <Tab.Screen name="Calculator" component={CalculatorScreen} />
-        <Tab.Screen name="Scenarios" component={ScenariosScreen} />
-        <Tab.Screen name="Help" component={HelpScreen} />
+        <Tab.Screen name="Calculator" component={Main} />
+        <Tab.Screen name="Scenarios" component={Matrix} />
+        <Tab.Screen name="Help" component={Help} />
       </Tab.Navigator>
     </View>
   );

@@ -8,6 +8,7 @@ export type SelectProps = {
   value?: string;
   onChange: (v: string | undefined) => void;
   options: Option[];
+  disabled?: boolean;
 };
 
 export default function Select({
@@ -15,6 +16,7 @@ export default function Select({
   value,
   onChange,
   options,
+  disabled = false,
 }: SelectProps) {
   const [open, setOpen] = useState(false);
   const theme = useTheme();
@@ -25,6 +27,7 @@ export default function Select({
   }, [options, value]);
 
   const handleOpen = () => {
+    if (disabled) return;
     Keyboard.dismiss();
     setOpen(true);
   };
@@ -41,6 +44,7 @@ export default function Select({
             placeholder={label}
             value={display}
             editable={false}
+            disabled={disabled}
             outlineColor={outlineColor}
             activeOutlineColor={theme.colors.primary}
             outlineStyle={{ borderWidth: open ? 2 : 1 }}
