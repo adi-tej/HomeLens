@@ -11,7 +11,6 @@ import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 import Matrix from "../screens/Matrix";
 import Help from "../screens/Help";
 import Main from "../screens/Main";
-import AppHeader from "../components/AppHeader";
 
 const Tab = createBottomTabNavigator();
 
@@ -45,11 +44,10 @@ function screenOptionsFactory(theme: MD3Theme) {
   });
 }
 
-export function RootNavigator() {
+export function BottomNavigator() {
   const theme = useTheme() as MD3Theme;
   return (
     <View style={styles.root}>
-      <AppHeader />
       <Tab.Navigator screenOptions={screenOptionsFactory(theme)}>
         <Tab.Screen name="Calculator" component={Main} />
         <Tab.Screen name="Scenarios" component={Matrix} />

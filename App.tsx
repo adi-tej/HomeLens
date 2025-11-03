@@ -8,10 +8,12 @@ import {
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PaperProvider, MD3Theme } from "react-native-paper";
 import { useColorScheme } from "react-native";
-import { RootNavigator } from "./src/navigation";
+import { RootNavigator } from "./src/navigation/RootNavigator";
 import { lightTheme, darkTheme } from "./src/theme/theme";
 import { MortgageCalculatorProvider } from "./src/state/MortgageCalculatorContext";
 import { ThemeModeContext, ThemeMode } from "./src/state/ThemeModeContext";
+import { RightDrawerProvider } from "./src/state/RightDrawerContext";
+import { LeftDrawerProvider } from "./src/state/LeftDrawerContext";
 
 function toNavigationTheme(
   paper: MD3Theme,
@@ -49,9 +51,13 @@ export default function App() {
       <PaperProvider theme={paperTheme}>
         <ThemeModeContext.Provider value={themeCtx}>
           <NavigationContainer theme={navTheme}>
-            <MortgageCalculatorProvider>
-              <RootNavigator />
-            </MortgageCalculatorProvider>
+            <LeftDrawerProvider>
+              <MortgageCalculatorProvider>
+                <RightDrawerProvider>
+                  <RootNavigator />
+                </RightDrawerProvider>
+              </MortgageCalculatorProvider>
+            </LeftDrawerProvider>
           </NavigationContainer>
         </ThemeModeContext.Provider>
       </PaperProvider>

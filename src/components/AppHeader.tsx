@@ -1,22 +1,26 @@
 import React from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View, TouchableOpacity } from "react-native";
 import { Appbar, Text } from "react-native-paper";
 import { spacing } from "../theme/spacing";
-import { useThemeMode } from "../state/ThemeModeContext";
+import { useRightDrawer } from "../state/RightDrawerContext";
+import { useLeftDrawer } from "../state/LeftDrawerContext";
 
 export default function AppHeader() {
-  const { themeMode, setThemeMode } = useThemeMode();
+  const { toggle } = useRightDrawer();
+  const { toggle: toggleLeft } = useLeftDrawer();
   return (
     <Appbar.Header style={styles.header}>
       <View style={styles.brandRow}>
-        <Image source={require("../../assets/icon.png")} style={styles.logo} />
+        <TouchableOpacity onPress={toggleLeft} accessibilityLabel="Open left menu">
+          <Image source={require("../../assets/icon.png")} style={styles.logo} />
+        </TouchableOpacity>
         <Text style={styles.brandText}>HomeLens</Text>
       </View>
       <View style={styles.flexFill} />
       <Appbar.Action
-        icon={themeMode === "dark" ? "lightbulb-on-outline" : "lightbulb"}
-        onPress={() => setThemeMode(themeMode === "dark" ? "light" : "dark")}
-        accessibilityLabel="Toggle theme"
+        icon="menu"
+        onPress={toggle}
+        accessibilityLabel="Open menu"
       />
     </Appbar.Header>
   );
