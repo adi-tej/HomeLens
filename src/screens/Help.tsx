@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
-import { List, Text, useTheme } from 'react-native-paper';
+import { List, Text } from 'react-native-paper';
 import { spacing } from '../theme/spacing';
 import ScreenContainer from '../components/primitives/ScreenContainer';
 
@@ -11,7 +11,6 @@ function LeftIcon(icon: string) {
 }
 
 export default function HelpScreen() {
-  const theme = useTheme();
   return (
     <View style={styles.container}>
       <ScreenContainer>

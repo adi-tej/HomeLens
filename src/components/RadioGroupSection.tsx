@@ -30,7 +30,7 @@ export default function RadioGroupSection({
           </View>
         ))}
       </RadioButton.Group>
-      <HelperText type="error" visible={!!touched && !!error}>{error}</HelperText>
+      <HelperText type="error" visible={touched && !!error}>{error}</HelperText>
     </View>
   );
 }
