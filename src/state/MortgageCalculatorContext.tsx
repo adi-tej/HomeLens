@@ -1,4 +1,10 @@
 import React, { createContext, useContext, useMemo } from "react";
+import { calculateStampDuty } from "../utils/stampDuty";
+import {
+  calculateLMI,
+  monthlyRepayment,
+  annualBreakdown,
+} from "../utils/helper";
 
 export type AmountMode = "select" | "enter";
 export type Occupancy = "" | "owner" | "investment";
@@ -116,6 +122,15 @@ interface CtxValue extends MortgageState {
   reset: () => void;
   errors: MortgageErrors;
   isInvalid: boolean;
+  // Derived outputs
+  stampDuty: number;
+  lvr: number;
+  lmi: number;
+  totalLoan: number;
+  loanInterest: number;
+  monthlyMortgage: number;
+  annualPrincipal: number;
+  annualInterest: number;
 }
 
 const Ctx = createContext<CtxValue | undefined>(undefined);
@@ -130,8 +145,35 @@ export function MortgageCalculatorProvider({
   const errors = useMemo(() => validate(state), [state]);
   const isInvalid = Object.keys(errors).length > 0;
 
-  const value: CtxValue = useMemo(
-    () => ({
+  const value: CtxValue = useMemo(() => {
+    const pv = Number(state.propertyValue) || 0;
+    const dep = Number(state.deposit) || 0;
+
+    const sd = calculateStampDuty(
+      pv,
+      state.firstHomeBuyer,
+      state.propertyType === "land",
+    );
+
+    // As per spec: lvr = 100 - (deposit / (propertyvalue + stampduty)) * 100
+    const lvr = pv + sd > 0 && dep > 0 ? 100 - (dep / (pv + sd)) * 100 : 0;
+
+    // Base loan before LMI
+    const baseLoan = pv - dep + sd;
+    // LMI uses provided util (expects propertyValue and loanAmount)
+    const lmi = calculateLMI(lvr, baseLoan);
+
+    const totalLoan = baseLoan + (Number.isFinite(lmi) ? lmi : 0);
+
+    const loanInterest = 5.5;
+
+    const monthlyMortgage = monthlyRepayment(totalLoan, loanInterest, 30);
+
+    const breakdown = annualBreakdown(1, totalLoan, loanInterest, 30);
+    const annualPrincipal = breakdown.principal;
+    const annualInterest = breakdown.interest;
+
+    return {
       ...state,
       setValueMode: (v) => dispatch({ type: "setValueMode", value: v }),
       setPropertyValue: (v) => dispatch({ type: "setPropertyValue", value: v }),
@@ -147,22 +189,21 @@ export function MortgageCalculatorProvider({
         dispatch({ type: "touch" });
         if (Object.keys(validate({ ...state, touched: true })).length > 0)
           return;
-        // Submit handler placeholder — integrate with backend or analytics if needed
-        const payload = {
-          propertyValue: state.propertyValue,
-          deposit: state.deposit,
-          firstHomeBuyer: state.firstHomeBuyer,
-          occupancy: state.occupancy,
-          propertyType: state.propertyType,
-        };
-        // console.log('mortgage_form_submit', payload);
       },
       reset: () => dispatch({ type: "reset" }),
       errors,
       isInvalid,
-    }),
-    [state, errors, isInvalid],
-  );
+      // Derived
+      stampDuty: sd,
+      lvr,
+      lmi,
+      totalLoan,
+      loanInterest,
+      monthlyMortgage,
+      annualPrincipal,
+      annualInterest,
+    };
+  }, [state, errors, isInvalid]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

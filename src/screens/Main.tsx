@@ -29,7 +29,14 @@ export default function Main() {
     touched,
     errors,
     isInvalid,
-    submit,
+    // Derived values from state
+    stampDuty,
+    lvr,
+    lmi,
+    totalLoan,
+    monthlyMortgage,
+    annualPrincipal,
+    annualInterest,
   } = useMortgageCalculator();
 
   return (
@@ -105,41 +112,103 @@ export default function Main() {
               .join("\n")}
           </Text>
         )}
-
-        <Button
-          mode="contained"
-          onPress={submit}
-          style={styles.button}
-          disabled={touched && isInvalid}
-        >
-          Submit
-        </Button>
       </View>
       <View
         style={[styles.card, { backgroundColor: theme.colors.surfaceVariant }]}
       >
-        {/* Inline summary */}
-        <SectionTitle>Summary</SectionTitle>
-        <Text>
+        {/* Summary table (computed from state) */}
+        <View
+          style={{
+            borderWidth: 1,
+            borderColor: theme.colors.outlineVariant,
+            borderRadius: 8,
+            overflow: "hidden",
+          }}
+        >
           {[
-            `Property: ${formatCurrency(propertyValue) || "—"}`,
-            `Deposit: ${formatCurrency(deposit) || "—"}`,
-            `FHB: ${firstHomeBuyer ? "Yes" : "No"}`,
-            `Occupancy: ${occupancy || "—"}`,
-            `Type: ${propertyType || "—"}`,
-            `Duty: ${calculateStampDuty(propertyValue)}`,
-          ].join("  •  ")}
-        </Text>
+            {
+              key: "sd",
+              label: "Stamp Duty",
+              value: formatCurrency(stampDuty),
+            },
+            {
+              key: "lvr",
+              label: "LVR",
+              value: `${Number.isFinite(lvr) ? Math.round(lvr * 100) / 100 : 0}%`,
+            },
+            { key: "lmi", label: "LMI", value: formatCurrency(lmi) },
+            {
+              key: "loan",
+              label: "Total loan amount",
+              value: formatCurrency(totalLoan),
+            },
+            {
+              key: "mm",
+              label: "Monthly mortgage",
+              value: formatCurrency(monthlyMortgage),
+              highlight: true,
+            },
+            {
+              key: "ap",
+              label: "Annual principle",
+              value: formatCurrency(annualPrincipal),
+            },
+            {
+              key: "ai",
+              label: "Annual interest",
+              value: formatCurrency(annualInterest),
+            },
+          ].map((row, idx) => {
+            const isHighlight = row.highlight;
+            const baseRowStyle = {
+              flexDirection: "row" as const,
+              justifyContent: "space-between" as const,
+              alignItems: "center" as const,
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+              backgroundColor: isHighlight
+                ? theme.colors.secondaryContainer
+                : theme.colors.surfaceVariant,
+            };
+            const labelStyle = {
+              color: isHighlight
+                ? theme.colors.onSecondaryContainer
+                : theme.colors.onSurfaceVariant,
+              fontSize: 14,
+              fontWeight: isHighlight ? "700" : "600",
+            } as const;
+            const valueStyle: import("react-native").TextStyle = {
+              color: isHighlight
+                ? theme.colors.onSecondaryContainer
+                : theme.colors.onSurface,
+              fontSize: isHighlight ? 18 : 14,
+              fontWeight: isHighlight ? "700" : "500",
+              fontVariant: ["tabular-nums"],
+            };
+
+            return (
+              <View key={row.key} style={baseRowStyle}>
+                <Text style={labelStyle}>{row.label}</Text>
+                <Text style={valueStyle}>{row.value}</Text>
+              </View>
+            );
+          })}
+          {/* Caption / footnote */}
+          <View style={{ padding: 10, backgroundColor: theme.colors.surface }}>
+            <Text
+              style={{ color: theme.colors.onSurfaceVariant, fontSize: 12 }}
+            >
+              Assumes fixed 5.5% p.a. interest and 30-year term. Values are
+              estimates.
+            </Text>
+          </View>
+        </View>
       </View>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1 },
-  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
-  button: { marginTop: spacing.md },
-  summaryHeader: { marginTop: spacing.md },
   card: {
     padding: spacing.md,
     borderRadius: 12,
