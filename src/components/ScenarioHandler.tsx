@@ -3,11 +3,14 @@ import { StyleSheet, View } from "react-native";
 import { Text, List, Divider, useTheme } from "react-native-paper";
 import { useRightDrawer } from "../state/useDrawer";
 import { useNavigation } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { spacing } from "../theme/spacing";
 
 export default function ScenarioHandler() {
   const theme = useTheme();
   const { close } = useRightDrawer();
   const nav = useNavigation<any>();
+  const insets = useSafeAreaInsets();
 
   function navigateTo(name: string) {
     close();
@@ -19,7 +22,15 @@ export default function ScenarioHandler() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.colors.surface,
+          paddingTop: insets.top + spacing.xl,
+        },
+      ]}
+    >
       <Text variant="titleMedium" style={styles.header}>
         Scenarios
       </Text>
@@ -46,10 +57,9 @@ export default function ScenarioHandler() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 48,
+    paddingHorizontal: spacing.lg,
   },
   header: {
-    paddingHorizontal: 8,
-    marginBottom: 4,
+    marginBottom: spacing.sm,
   },
 });

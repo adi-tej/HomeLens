@@ -4,12 +4,15 @@ import { List, Divider, Text, Button, useTheme } from "react-native-paper";
 import { useLeftDrawer } from "../state/useDrawer";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeMode } from "../state/ThemeModeContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { spacing } from "../theme/spacing";
 
 export default function MainMenu() {
   const theme = useTheme();
   const { close } = useLeftDrawer();
   const nav = useNavigation<any>();
   const { themeMode, setThemeMode } = useThemeMode();
+  const insets = useSafeAreaInsets();
 
   function navigateTo(name: string) {
     close();
@@ -23,7 +26,15 @@ export default function MainMenu() {
   const nextMode = (themeMode ?? "light") === "dark" ? "light" : "dark";
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.colors.surface,
+          paddingTop: insets.top + spacing.xl,
+        },
+      ]}
+    >
       <View style={styles.content}>
         <Text variant="titleMedium" style={styles.header}>
           Main Menu
@@ -71,17 +82,15 @@ export default function MainMenu() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 48,
+    paddingHorizontal: spacing.lg,
   },
   content: {
     flex: 1,
   },
   header: {
-    paddingHorizontal: 8,
-    marginBottom: 4,
+    marginBottom: spacing.sm,
   },
   footer: {
-    paddingHorizontal: 8,
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
   },
 });
