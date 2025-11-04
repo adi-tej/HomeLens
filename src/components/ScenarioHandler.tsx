@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, View, ScrollView, Pressable } from "react-native";
+import { StyleSheet, View, ScrollView } from "react-native";
 import {
   Text,
   Divider,
@@ -10,6 +10,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { spacing } from "../theme/spacing";
 import { useScenarios } from "../state/ScenarioContext";
+import Scenario from "./Scenario";
 
 export default function ScenarioHandler() {
   const theme = useTheme();
@@ -19,6 +20,7 @@ export default function ScenarioHandler() {
     currentScenarioId,
     createScenario,
     setCurrentScenario,
+    deleteScenario,
   } = useScenarios();
 
   const scenarios = getAllScenarios();
@@ -69,39 +71,16 @@ export default function ScenarioHandler() {
         showsVerticalScrollIndicator={false}
       >
         {/* Existing scenarios */}
-        {scenarios.map((scenario) => {
-          const isSelected = scenario.id === currentScenarioId;
-          return (
-            <Pressable
-              key={scenario.id}
-              onPress={() => handleScenarioPress(scenario.id)}
-              style={({ pressed }) => [
-                styles.scenarioCard,
-                {
-                  backgroundColor:
-                    isSelected || pressed
-                      ? theme.colors.primaryContainer
-                      : theme.colors.surfaceVariant,
-                  borderLeftColor: theme.colors.primary,
-                },
-              ]}
-              android_ripple={{
-                color: theme.colors.primary,
-                borderless: false,
-              }}
-            >
-              <Text
-                variant="bodyLarge"
-                style={[
-                  styles.scenarioText,
-                  { fontWeight: isSelected ? "600" : "500" },
-                ]}
-              >
-                {scenario.name}
-              </Text>
-            </Pressable>
-          );
-        })}
+        {scenarios.map((scenario) => (
+          <Scenario
+            key={scenario.id}
+            scenario={scenario}
+            isSelected={scenario.id === currentScenarioId}
+            canDelete={scenarios.length > 1}
+            onPress={() => handleScenarioPress(scenario.id)}
+            onDelete={() => deleteScenario(scenario.id)}
+          />
+        ))}
 
         {/* Add new scenario input */}
         {isAddingNew ? (
@@ -158,16 +137,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  scenarioCard: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.md,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-  },
-  scenarioText: {
-    fontWeight: "500",
   },
   inputContainer: {
     marginBottom: spacing.md,

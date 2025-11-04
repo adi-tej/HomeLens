@@ -85,24 +85,34 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
 
   const deleteScenario = useCallback(
     (id: ScenarioId) => {
+      // Prevent deletion if only one scenario left
+      if (scenarios.size <= 1) {
+        return;
+      }
+
+      // If deleting current scenario, switch selection
+      if (currentScenarioId === id) {
+        const allScenarios = Array.from(scenarios.values()).sort(
+          (a, b) => a.createdAt - b.createdAt,
+        );
+        const currentIndex = allScenarios.findIndex((s) => s.id === id);
+
+        if (currentIndex > 0) {
+          // Select the one above (previous in list)
+          setCurrentScenarioId(allScenarios[currentIndex - 1].id);
+        } else {
+          // If nothing above (first item), select the one below
+          setCurrentScenarioId(allScenarios[1].id);
+        }
+      }
+
       setScenarios((prev) => {
         const next = new Map(prev);
         next.delete(id);
         return next;
       });
-
-      // If deleting current scenario, switch to first available
-      setCurrentScenarioId((prevId) => {
-        if (prevId === id) {
-          const remaining = Array.from(scenarios.keys()).filter(
-            (key) => key !== id,
-          );
-          return remaining[0] || null;
-        }
-        return prevId;
-      });
     },
-    [scenarios],
+    [scenarios, currentScenarioId],
   );
 
   const updateScenario = useCallback(
