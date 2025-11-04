@@ -9,6 +9,7 @@ import Reanimated, {
   runOnJS,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "react-native-paper";
 import { useDrawer } from "../state/useDrawer";
 import { useAppContext } from "../state/AppContext";
 
@@ -29,6 +30,7 @@ export default function Drawer({ side, children }: Props) {
   const { progress, drawerWidth, isOpen, open, close } = useDrawer(side);
   const { isDrawerOpen } = useAppContext();
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
   const isGestureActive = useSharedValue(false);
   const isLeft = side === "left";
   const HEADER_BLOCK = insets.top + (Platform.OS === "ios" ? 64 : 56);
@@ -132,7 +134,11 @@ export default function Drawer({ side, children }: Props) {
       <GestureDetector gesture={scrimGesture}>
         <Reanimated.View
           pointerEvents={isOpen ? "auto" : "none"}
-          style={[styles.scrim, scrimStyle]}
+          style={[
+            styles.scrim,
+            { backgroundColor: theme.colors.backdrop },
+            scrimStyle,
+          ]}
         >
           <Pressable style={styles.scrimPressable} onPress={close} />
         </Reanimated.View>
@@ -143,7 +149,11 @@ export default function Drawer({ side, children }: Props) {
         <Reanimated.View
           style={[
             styles.drawer,
-            { width: drawerWidth, [side]: 0 },
+            {
+              width: drawerWidth,
+              [side]: 0,
+              backgroundColor: theme.colors.surface,
+            },
             drawerStyle,
           ]}
         >
@@ -167,7 +177,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "black",
     zIndex: 998,
   },
   scrimPressable: {
@@ -178,7 +187,6 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     zIndex: 1000,
-    backgroundColor: "white",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
