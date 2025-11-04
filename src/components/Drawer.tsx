@@ -30,9 +30,8 @@ export default function Drawer({ side, children }: Props) {
   const { isDrawerOpen } = useAppContext();
   const insets = useSafeAreaInsets();
   const isGestureActive = useSharedValue(false);
-  const EDGE_WIDTH = 20;
-  const HEADER_HEIGHT = Platform.OS === "ios" ? 64 : 56;
-  const HEADER_BLOCK = insets.top + HEADER_HEIGHT;
+  const isLeft = side === "left";
+  const HEADER_BLOCK = insets.top + (Platform.OS === "ios" ? 64 : 56);
 
   // Sync progress with isOpen state
   useEffect(() => {
@@ -45,138 +44,85 @@ export default function Drawer({ side, children }: Props) {
     });
   }, [isOpen, progress]);
 
-  const isLeft = side === "left";
-
-  // Shared gesture logic
-  const handleGestureStart = () => {
-    "worklet";
-    isGestureActive.value = true;
-    cancelAnimation(progress);
-  };
-
-  const calcProgress = (translation: number, fromOpen = false) => {
-    "worklet";
-    const delta = isLeft ? translation : -translation;
-    const base = fromOpen ? 1 : 0;
-    return Math.max(0, Math.min(1, base + delta / drawerWidth));
-  };
-
-  const animateAndUpdate = (targetValue: 0 | 1, callback: () => void) => {
-    "worklet";
-    isGestureActive.value = false;
-    progress.value = withSpring(targetValue, SPRING_CONFIG);
-    runOnJS(callback)();
-  };
-
-  // Edge swipe gesture to open drawer
-  const edgeGesture = useMemo(
+  // Gesture factory
+  const createGesture = useMemo(
     () =>
-      Gesture.Pan()
-        .activeOffsetX(isLeft ? 5 : -5)
-        .failOffsetY([-20, 20])
-        .enabled(!isDrawerOpen)
-        .onBegin(handleGestureStart)
-        .onUpdate((event) => {
-          "worklet";
-          progress.value = calcProgress(event.translationX);
-        })
-        .onEnd((event) => {
-          "worklet";
-          const velocity = event.velocityX;
-          const currentProgress = Math.max(0, Math.min(1, progress.value));
-          const shouldOpen =
-            currentProgress > 0.3 ||
-            (isLeft ? velocity > 500 : velocity < -500);
+      (
+        offsetX: number | [number, number],
+        enabled: boolean,
+        fromOpen: boolean,
+      ) =>
+        Gesture.Pan()
+          .activeOffsetX(offsetX as any)
+          .failOffsetY([-15, 15])
+          .enabled(enabled)
+          .onBegin(() => {
+            "worklet";
+            cancelAnimation(progress);
+            isGestureActive.value = true;
+          })
+          .onUpdate((event) => {
+            "worklet";
+            const delta = isLeft ? event.translationX : -event.translationX;
+            const base = fromOpen ? 1 : 0;
+            progress.value = Math.max(
+              0,
+              Math.min(1, base + delta / drawerWidth),
+            );
+          })
+          .onEnd((event) => {
+            "worklet";
+            const threshold = fromOpen ? 0.5 : 0.3;
+            const velocityThreshold = 500;
+            const shouldTarget1 = fromOpen
+              ? progress.value >= threshold &&
+                (isLeft
+                  ? event.velocityX >= -velocityThreshold
+                  : event.velocityX <= velocityThreshold)
+              : progress.value > threshold ||
+                (isLeft
+                  ? event.velocityX > velocityThreshold
+                  : event.velocityX < -velocityThreshold);
 
-          animateAndUpdate(shouldOpen ? 1 : 0, shouldOpen ? open : close);
-        }),
-    [isLeft, isDrawerOpen, progress, drawerWidth, isGestureActive, open, close],
+            isGestureActive.value = false;
+            progress.value = withSpring(shouldTarget1 ? 1 : 0, SPRING_CONFIG);
+            runOnJS(shouldTarget1 ? open : close)();
+          }),
+    [isLeft, progress, drawerWidth, isGestureActive, open, close],
   );
 
-  // Drawer swipe gesture to close
-  const drawerGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .activeOffsetX([-10, 10])
-        .failOffsetY([-15, 15])
-        .enabled(isOpen)
-        .onStart(handleGestureStart)
-        .onUpdate((event) => {
-          "worklet";
-          progress.value = calcProgress(event.translationX, true);
-        })
-        .onEnd((event) => {
-          "worklet";
-          const velocity = event.velocityX;
-          const currentProgress = Math.max(0, Math.min(1, progress.value));
-          const shouldClose =
-            currentProgress < 0.5 ||
-            (isLeft ? velocity < -500 : velocity > 500);
-
-          animateAndUpdate(shouldClose ? 0 : 1, shouldClose ? close : open);
-        }),
-    [isLeft, isOpen, progress, drawerWidth, isGestureActive, open, close],
-  );
-
-  // Scrim swipe gesture to close
-  const scrimGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .activeOffsetX(isLeft ? [-10, -Infinity] : [10, Infinity])
-        .failOffsetY([-15, 15])
-        .enabled(isOpen)
-        .onStart(handleGestureStart)
-        .onUpdate((event) => {
-          "worklet";
-          progress.value = calcProgress(event.translationX, true);
-        })
-        .onEnd((event) => {
-          "worklet";
-          const velocity = event.velocityX;
-          const currentProgress = Math.max(0, Math.min(1, progress.value));
-          const shouldClose =
-            currentProgress < 0.5 ||
-            (isLeft ? velocity < -500 : velocity > 500);
-
-          animateAndUpdate(shouldClose ? 0 : 1, shouldClose ? close : open);
-        }),
-    [isLeft, isOpen, progress, drawerWidth, isGestureActive, open, close],
+  const edgeGesture = createGesture(isLeft ? 5 : -5, !isDrawerOpen, false);
+  const drawerGesture = createGesture([-10, 10], isOpen, true);
+  const scrimGesture = createGesture(
+    isLeft ? [-10, -Infinity] : [10, Infinity],
+    isOpen,
+    true,
   );
 
   // Animated styles
-  const drawerStyle = useAnimatedStyle(() => {
-    const translateX =
-      side === "left"
-        ? (progress.value - 1) * drawerWidth
-        : (1 - progress.value) * drawerWidth;
+  const drawerStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: isLeft
+          ? (progress.value - 1) * drawerWidth
+          : (1 - progress.value) * drawerWidth,
+      },
+    ],
+  }));
 
-    return {
-      transform: [{ translateX }],
-    };
-  });
-
-  const scrimStyle = useAnimatedStyle(() => {
-    return {
-      opacity: progress.value * 0.5,
-    };
-  });
-
-  const handleScrimPress = () => {
-    close();
-  };
+  const scrimStyle = useAnimatedStyle(() => ({
+    opacity: progress.value * 0.5,
+  }));
 
   return (
     <>
-      {/* Edge swipe area - only active when NO drawer is open */}
+      {/* Edge swipe area */}
       {!isDrawerOpen && (
         <GestureDetector gesture={edgeGesture}>
           <Reanimated.View
             style={[
               styles.edgeArea,
-              { top: HEADER_BLOCK },
-              side === "left"
-                ? { left: 0, width: EDGE_WIDTH }
-                : { right: 0, width: EDGE_WIDTH },
+              { top: HEADER_BLOCK, [side]: 0, width: 20 },
             ]}
           />
         </GestureDetector>
@@ -188,7 +134,7 @@ export default function Drawer({ side, children }: Props) {
           pointerEvents={isOpen ? "auto" : "none"}
           style={[styles.scrim, scrimStyle]}
         >
-          <Pressable style={styles.scrimPressable} onPress={handleScrimPress} />
+          <Pressable style={styles.scrimPressable} onPress={close} />
         </Reanimated.View>
       </GestureDetector>
 
@@ -197,10 +143,7 @@ export default function Drawer({ side, children }: Props) {
         <Reanimated.View
           style={[
             styles.drawer,
-            {
-              width: drawerWidth,
-              [side]: 0,
-            },
+            { width: drawerWidth, [side]: 0 },
             drawerStyle,
           ]}
         >
