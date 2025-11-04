@@ -10,7 +10,7 @@ import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 
 import Matrix from "../screens/Matrix";
 import Help from "../screens/Help";
-import Main from "../screens/Main";
+import Calculator from "../screens/Calculator";
 
 const Tab = createBottomTabNavigator();
 
@@ -49,7 +49,7 @@ export function BottomNavigator() {
   return (
     <View style={styles.root}>
       <Tab.Navigator screenOptions={screenOptionsFactory(theme)}>
-        <Tab.Screen name="Calculator" component={Main} />
+        <Tab.Screen name="Calculator" component={Calculator} />
         <Tab.Screen name="Matrix" component={Matrix} />
         <Tab.Screen name="Help" component={Help} />
       </Tab.Navigator>

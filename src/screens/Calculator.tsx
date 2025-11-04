@@ -1,19 +1,16 @@
 import React from "react";
+import { StyleSheet, View } from "react-native";
+import { Text, useTheme } from "react-native-paper";
 import CurrencySelect from "../components/inputs/CurrencySelect";
 import Select from "../components/inputs/Select";
 import Toggle from "../components/inputs/Toggle";
 import DepositInput from "../components/inputs/DepositInput";
-
-import { formatCurrency } from "../utils/parser";
-import { StyleSheet, View } from "react-native";
-import { Button, Text, useTheme } from "react-native-paper";
 import ScreenContainer from "../components/primitives/ScreenContainer";
-import SectionTitle from "../components/primitives/SectionTitle";
+import { formatCurrency } from "../utils/parser";
 import { useMortgageCalculator } from "../state/MortgageCalculatorContext";
 import { spacing } from "../theme/spacing";
-import { calculateStampDuty } from "../utils/stampDuty";
 
-export default function Main() {
+export default function Calculator() {
   const theme = useTheme();
   const {
     propertyValue,
