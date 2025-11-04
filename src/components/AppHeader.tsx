@@ -1,10 +1,11 @@
 import React from "react";
-import { Image, StyleSheet, View, TouchableOpacity } from "react-native";
-import { Appbar, Text } from "react-native-paper";
+import { Image, StyleSheet, View } from "react-native";
+import { Appbar, Text, useTheme } from "react-native-paper";
 import { spacing } from "../theme/spacing";
 import { useLeftDrawer, useRightDrawer } from "../state/useDrawer";
 
 export default function AppHeader() {
+  const theme = useTheme();
   const {
     open: openRight,
     close: closeRight,
@@ -27,41 +28,74 @@ export default function AppHeader() {
 
   return (
     <Appbar.Header style={styles.header}>
-      <View style={styles.brandRow}>
-        <TouchableOpacity
+      <View style={styles.row}>
+        <Appbar.Action
+          icon="cog-outline"
           onPress={onPressLeft}
+          size={28}
+          color={theme.colors.onSurfaceVariant}
           accessibilityLabel="Open left menu"
-        >
+          style={styles.leftMenuButton}
+        />
+        <View style={styles.centerContainer}>
           <Image
             source={require("../../assets/icon.png")}
             style={styles.logo}
           />
-        </TouchableOpacity>
-        <Text style={styles.brandText}>HomeLens</Text>
+          <Text style={[styles.brandText, { color: theme.colors.primary }]}>
+            Home Lens
+          </Text>
+        </View>
+        <Appbar.Action
+          icon="apps"
+          onPress={onPressRight}
+          size={28}
+          color={theme.colors.onSurfaceVariant}
+          accessibilityLabel="Open menu"
+          style={styles.menuButton}
+        />
       </View>
-      <View style={styles.flexFill} />
-      <Appbar.Action
-        icon="menu"
-        onPress={onPressRight}
-        accessibilityLabel="Open menu"
-      />
     </Appbar.Header>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {},
-  logo: { width: 28, height: 28, resizeMode: "contain" },
-  brandRow: {
+  header: {
+    paddingHorizontal: spacing.lg,
+  },
+  row: {
     flexDirection: "row",
-    alignItems: "flex-end",
-    marginLeft: spacing.md,
+    alignItems: "center",
+    justifyContent: "space-between",
+    flex: 1,
+  },
+  leftMenuButton: {
+    margin: 0,
+    marginLeft: -spacing.sm,
+  },
+  centerContainer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "center",
+    gap: spacing.sm,
+    pointerEvents: "none",
+  },
+  logo: {
+    width: 28,
+    height: 28,
+    resizeMode: "contain",
   },
   brandText: {
-    marginLeft: spacing.sm,
-    fontSize: 22,
-    lineHeight: 20,
-    fontWeight: "500",
+    fontSize: 28,
+    fontWeight: "400",
+    lineHeight: 28,
+    letterSpacing: -0.5,
   },
-  flexFill: { flex: 1 },
+  menuButton: {
+    margin: 0,
+    marginRight: -spacing.sm,
+  },
 });

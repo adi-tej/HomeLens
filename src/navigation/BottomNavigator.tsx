@@ -18,11 +18,11 @@ type MCIconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 
 const iconNameMap: Record<string, MCIconName> = {
   Calculator: "calculator-variant",
-  Scenarios: "view-grid-outline",
+  Matrix: "view-grid-outline",
   Help: "help-circle-outline",
 };
 
-type RouteName = "Calculator" | "Scenarios" | "Help";
+type RouteName = "Calculator" | "Matrix" | "Help";
 
 function screenOptionsFactory(theme: MD3Theme) {
   return ({
