@@ -32,6 +32,11 @@ interface ScenarioContextType {
   updateScenario: (id: ScenarioId, updates: Partial<Scenario>) => void;
   setCurrentScenario: (id: ScenarioId) => void;
   getAllScenarios: () => Scenario[];
+  comparisonMode: boolean;
+  selectedScenarios: Set<ScenarioId>;
+  setComparisonMode: (mode: boolean) => void;
+  toggleScenarioSelection: (id: ScenarioId) => void;
+  clearSelectedScenarios: () => void;
 }
 
 const ScenarioContext = createContext<ScenarioContextType | undefined>(
@@ -61,6 +66,27 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
       return Array.from(scenarios.keys())[0] || null;
     },
   );
+
+  const [comparisonMode, setComparisonMode] = useState(false);
+  const [selectedScenarios, setSelectedScenarios] = useState<Set<ScenarioId>>(
+    new Set(),
+  );
+
+  const toggleScenarioSelection = useCallback((id: ScenarioId) => {
+    setSelectedScenarios((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  const clearSelectedScenarios = useCallback(() => {
+    setSelectedScenarios(new Set());
+  }, []);
 
   const createScenario = useCallback((name: string): ScenarioId => {
     const id = generateId();
@@ -161,6 +187,11 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
     updateScenario,
     setCurrentScenario,
     getAllScenarios,
+    comparisonMode,
+    selectedScenarios,
+    setComparisonMode,
+    toggleScenarioSelection,
+    clearSelectedScenarios,
   };
 
   return (

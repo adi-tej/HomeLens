@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { spacing } from "../theme/spacing";
 import { useScenarios } from "../state/ScenarioContext";
 import Scenario from "./Scenario";
+import Compare from "./Compare";
 
 export default function ScenarioHandler() {
   const theme = useTheme();
@@ -21,6 +22,11 @@ export default function ScenarioHandler() {
     createScenario,
     setCurrentScenario,
     deleteScenario,
+    comparisonMode,
+    selectedScenarios,
+    setComparisonMode,
+    toggleScenarioSelection,
+    clearSelectedScenarios,
   } = useScenarios();
 
   const scenarios = getAllScenarios();
@@ -46,9 +52,33 @@ export default function ScenarioHandler() {
   };
 
   const handleScenarioPress = (scenarioId: string) => {
-    setCurrentScenario(scenarioId);
-    // TODO: Navigate to calculation form with this scenario
-    console.log("Selected scenario:", scenarioId);
+    if (!comparisonMode) {
+      setCurrentScenario(scenarioId);
+      // TODO: Navigate to calculation form with this scenario
+      console.log("Selected scenario:", scenarioId);
+    }
+  };
+
+  const handleCompareToggle = () => {
+    if (comparisonMode) {
+      // Exit comparison mode
+      setComparisonMode(false);
+      clearSelectedScenarios();
+    } else {
+      // Enter comparison mode
+      setComparisonMode(true);
+    }
+  };
+
+  const handleProceed = () => {
+    console.log(
+      "Proceeding with selected scenarios:",
+      Array.from(selectedScenarios),
+    );
+    // TODO: Navigate to comparison screen
+    // For now, just exit comparison mode
+    setComparisonMode(false);
+    clearSelectedScenarios();
   };
 
   return (
@@ -76,14 +106,17 @@ export default function ScenarioHandler() {
             key={scenario.id}
             scenario={scenario}
             isSelected={scenario.id === currentScenarioId}
-            canDelete={scenarios.length > 1}
+            canDelete={scenarios.length > 1 && !comparisonMode}
             onPress={() => handleScenarioPress(scenario.id)}
             onDelete={() => deleteScenario(scenario.id)}
+            showCheckbox={comparisonMode}
+            isChecked={selectedScenarios.has(scenario.id)}
+            onToggleCheckbox={() => toggleScenarioSelection(scenario.id)}
           />
         ))}
 
         {/* Add new scenario input */}
-        {isAddingNew ? (
+        {!comparisonMode && isAddingNew ? (
           <View style={styles.inputContainer}>
             <TextInput
               mode="outlined"
@@ -108,7 +141,7 @@ export default function ScenarioHandler() {
               }
             />
           </View>
-        ) : (
+        ) : !comparisonMode ? (
           /* Modern FAB-style Add button */
           <View style={styles.addButtonContainer}>
             <IconButton
@@ -121,8 +154,17 @@ export default function ScenarioHandler() {
               style={styles.addButton}
             />
           </View>
-        )}
+        ) : null}
       </ScrollView>
+
+      {/* Compare / Proceed & Cancel buttons */}
+      <Compare
+        comparisonMode={comparisonMode}
+        selectedCount={selectedScenarios.size}
+        scenariosCount={scenarios.length}
+        onCompareToggle={handleCompareToggle}
+        onProceed={handleProceed}
+      />
     </View>
   );
 }
@@ -136,7 +178,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   scrollView: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
   },
   inputContainer: {
     marginBottom: spacing.md,
@@ -150,5 +193,27 @@ const styles = StyleSheet.create({
   },
   addButton: {
     margin: 0,
+  },
+  compareButtonContainer: {
+    alignItems: "center",
+    paddingTop: spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.1)",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    width: "100%",
+    gap: spacing.xl,
+  },
+  buttonWithLabel: {
+    alignItems: "center",
+  },
+  compareButton: {
+    margin: 0,
+  },
+  compareButtonText: {
+    marginTop: spacing.xs,
+    fontWeight: "600",
   },
 });

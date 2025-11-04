@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, View, Pressable } from "react-native";
-import { Text, IconButton, useTheme } from "react-native-paper";
+import { Text, IconButton, useTheme, Checkbox } from "react-native-paper";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import { spacing } from "../theme/spacing";
 import type { Scenario as ScenarioType } from "../state/ScenarioContext";
@@ -11,6 +11,9 @@ type Props = {
   canDelete: boolean;
   onPress: () => void;
   onDelete: () => void;
+  showCheckbox?: boolean;
+  isChecked?: boolean;
+  onToggleCheckbox?: () => void;
 };
 
 const DELETE_WIDTH = 60;
@@ -21,8 +24,19 @@ export default function Scenario({
   canDelete,
   onPress,
   onDelete,
+  showCheckbox = false,
+  isChecked = false,
+  onToggleCheckbox,
 }: Props) {
   const theme = useTheme();
+
+  const handlePress = () => {
+    if (showCheckbox && onToggleCheckbox) {
+      onToggleCheckbox();
+    } else {
+      onPress();
+    }
+  };
 
   const renderRightActions = () => (
     <View style={styles.deleteActionContainer}>
@@ -44,14 +58,16 @@ export default function Scenario({
   return (
     <View style={styles.wrapper}>
       <Swipeable
-        renderRightActions={canDelete ? renderRightActions : undefined}
-        enabled={canDelete}
+        renderRightActions={
+          canDelete && !showCheckbox ? renderRightActions : undefined
+        }
+        enabled={canDelete && !showCheckbox}
         overshootRight={false}
         rightThreshold={40}
         containerStyle={styles.container}
       >
         <Pressable
-          onPress={onPress}
+          onPress={handlePress}
           style={[
             styles.scenarioCard,
             {
@@ -66,15 +82,30 @@ export default function Scenario({
             borderless: false,
           }}
         >
-          <Text
-            variant="bodyLarge"
-            style={[
-              styles.scenarioText,
-              { fontWeight: isSelected ? "600" : "500" },
-            ]}
-          >
-            {scenario.name}
-          </Text>
+          <View style={styles.scenarioContent}>
+            {showCheckbox && (
+              <View style={styles.checkboxContainer}>
+                <Checkbox.Android
+                  status={isChecked ? "checked" : "unchecked"}
+                  onPress={onToggleCheckbox}
+                  color={theme.colors.primary}
+                  uncheckedColor={theme.colors.outline}
+                />
+              </View>
+            )}
+            <Text
+              variant="bodyLarge"
+              style={[
+                styles.scenarioText,
+                {
+                  fontWeight: isSelected ? "600" : "400",
+                  marginLeft: showCheckbox ? spacing.sm : 0,
+                },
+              ]}
+            >
+              {scenario.name}
+            </Text>
+          </View>
         </Pressable>
       </Swipeable>
     </View>
@@ -90,12 +121,25 @@ const styles = StyleSheet.create({
   container: {},
   scenarioCard: {
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     borderLeftWidth: 4,
     borderRadius: 8,
   },
+  scenarioContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 28,
+  },
+  checkboxContainer: {
+    width: 24,
+    height: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+  },
   scenarioText: {
     fontWeight: "500",
+    flex: 1,
   },
   deleteActionContainer: {
     width: DELETE_WIDTH,
