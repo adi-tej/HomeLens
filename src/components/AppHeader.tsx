@@ -2,24 +2,47 @@ import React from "react";
 import { Image, StyleSheet, View, TouchableOpacity } from "react-native";
 import { Appbar, Text } from "react-native-paper";
 import { spacing } from "../theme/spacing";
-import { useRightDrawer } from "../state/RightDrawerContext";
-import { useLeftDrawer } from "../state/LeftDrawerContext";
+import { useLeftDrawer, useRightDrawer } from "../state/useDrawer";
 
 export default function AppHeader() {
-  const { toggle } = useRightDrawer();
-  const { toggle: toggleLeft } = useLeftDrawer();
+  const {
+    open: openRight,
+    close: closeRight,
+    isOpen: rightIsOpen,
+  } = useRightDrawer();
+  const {
+    open: openLeft,
+    close: closeLeft,
+    isOpen: leftIsOpen,
+  } = useLeftDrawer();
+
+  const onPressLeft = () => {
+    if (rightIsOpen) closeRight();
+    if (!leftIsOpen) openLeft();
+  };
+  const onPressRight = () => {
+    if (leftIsOpen) closeLeft();
+    if (!rightIsOpen) openRight();
+  };
+
   return (
     <Appbar.Header style={styles.header}>
       <View style={styles.brandRow}>
-        <TouchableOpacity onPress={toggleLeft} accessibilityLabel="Open left menu">
-          <Image source={require("../../assets/icon.png")} style={styles.logo} />
+        <TouchableOpacity
+          onPress={onPressLeft}
+          accessibilityLabel="Open left menu"
+        >
+          <Image
+            source={require("../../assets/icon.png")}
+            style={styles.logo}
+          />
         </TouchableOpacity>
         <Text style={styles.brandText}>HomeLens</Text>
       </View>
       <View style={styles.flexFill} />
       <Appbar.Action
         icon="menu"
-        onPress={toggle}
+        onPress={onPressRight}
         accessibilityLabel="Open menu"
       />
     </Appbar.Header>

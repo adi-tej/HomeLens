@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { List, Text, useTheme, Divider, Button } from "react-native-paper";
-import { useLeftDrawer } from "../state/LeftDrawerContext";
+import { List, Divider, Text, Button, useTheme } from "react-native-paper";
+import { useLeftDrawer } from "../state/useDrawer";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeMode } from "../state/ThemeModeContext";
 
@@ -25,7 +25,9 @@ export default function MainMenu() {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
       <View style={styles.content}>
-        <Text variant="titleMedium" style={styles.header}>Main Menu</Text>
+        <Text variant="titleMedium" style={styles.header}>
+          Main Menu
+        </Text>
         <Divider style={{ marginBottom: 8 }} />
         <List.Item
           title="Login / Signup"

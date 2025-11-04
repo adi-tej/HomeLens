@@ -1,7 +1,7 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
-import { List, Text, useTheme, Divider } from "react-native-paper";
-import { useRightDrawer } from "../state/RightDrawerContext";
+import { StyleSheet, View } from "react-native";
+import { Text, List, Divider, useTheme } from "react-native-paper";
+import { useRightDrawer } from "../state/useDrawer";
 import { useNavigation } from "@react-navigation/native";
 
 export default function ScenarioHandler() {

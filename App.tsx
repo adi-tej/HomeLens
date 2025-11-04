@@ -12,8 +12,9 @@ import { RootNavigator } from "./src/navigation/RootNavigator";
 import { lightTheme, darkTheme } from "./src/theme/theme";
 import { MortgageCalculatorProvider } from "./src/state/MortgageCalculatorContext";
 import { ThemeModeContext, ThemeMode } from "./src/state/ThemeModeContext";
-import { RightDrawerProvider } from "./src/state/RightDrawerContext";
-import { LeftDrawerProvider } from "./src/state/LeftDrawerContext";
+import { AppProvider } from "./src/state/AppContext";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { StyleSheet } from "react-native";
 
 function toNavigationTheme(
   paper: MD3Theme,
@@ -50,17 +51,19 @@ export default function App() {
     <SafeAreaProvider>
       <PaperProvider theme={paperTheme}>
         <ThemeModeContext.Provider value={themeCtx}>
-          <NavigationContainer theme={navTheme}>
-            <LeftDrawerProvider>
-              <MortgageCalculatorProvider>
-                <RightDrawerProvider>
+          <GestureHandlerRootView style={styles.flex}>
+            <NavigationContainer theme={navTheme}>
+              <AppProvider>
+                <MortgageCalculatorProvider>
                   <RootNavigator />
-                </RightDrawerProvider>
-              </MortgageCalculatorProvider>
-            </LeftDrawerProvider>
-          </NavigationContainer>
+                </MortgageCalculatorProvider>
+              </AppProvider>
+            </NavigationContainer>
+          </GestureHandlerRootView>
         </ThemeModeContext.Provider>
       </PaperProvider>
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({ flex: { flex: 1 } });

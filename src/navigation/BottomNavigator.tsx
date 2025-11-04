@@ -50,7 +50,7 @@ export function BottomNavigator() {
     <View style={styles.root}>
       <Tab.Navigator screenOptions={screenOptionsFactory(theme)}>
         <Tab.Screen name="Calculator" component={Main} />
-        <Tab.Screen name="Scenarios" component={Matrix} />
+        <Tab.Screen name="Matrix" component={Matrix} />
         <Tab.Screen name="Help" component={Help} />
       </Tab.Navigator>
     </View>
