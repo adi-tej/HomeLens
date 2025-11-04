@@ -13,6 +13,7 @@ import { lightTheme, darkTheme } from "./src/theme/theme";
 import { MortgageCalculatorProvider } from "./src/state/MortgageCalculatorContext";
 import { ThemeModeContext, ThemeMode } from "./src/state/ThemeModeContext";
 import { AppProvider } from "./src/state/AppContext";
+import { ScenarioProvider } from "./src/state/ScenarioContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
 
@@ -54,9 +55,11 @@ export default function App() {
           <GestureHandlerRootView style={styles.flex}>
             <NavigationContainer theme={navTheme}>
               <AppProvider>
-                <MortgageCalculatorProvider>
-                  <RootNavigator />
-                </MortgageCalculatorProvider>
+                <ScenarioProvider>
+                  <MortgageCalculatorProvider>
+                    <RootNavigator />
+                  </MortgageCalculatorProvider>
+                </ScenarioProvider>
               </AppProvider>
             </NavigationContainer>
           </GestureHandlerRootView>

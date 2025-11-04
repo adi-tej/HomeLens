@@ -9,18 +9,25 @@ import {
 } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { spacing } from "../theme/spacing";
+import { useScenarios } from "../state/ScenarioContext";
 
 export default function ScenarioHandler() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const {
+    getAllScenarios,
+    currentScenarioId,
+    createScenario,
+    setCurrentScenario,
+  } = useScenarios();
 
-  const [scenarios, setScenarios] = useState(["My first property"]);
+  const scenarios = getAllScenarios();
   const [newScenarioName, setNewScenarioName] = useState("");
   const [isAddingNew, setIsAddingNew] = useState(false);
 
   const handleAddScenario = () => {
     if (newScenarioName.trim()) {
-      setScenarios([...scenarios, newScenarioName.trim()]);
+      createScenario(newScenarioName.trim());
       setNewScenarioName("");
       setIsAddingNew(false);
     }
@@ -36,9 +43,10 @@ export default function ScenarioHandler() {
     }
   };
 
-  const handleScenarioPress = (scenarioName: string) => {
+  const handleScenarioPress = (scenarioId: string) => {
+    setCurrentScenario(scenarioId);
     // TODO: Navigate to calculation form with this scenario
-    console.log("Selected scenario:", scenarioName);
+    console.log("Selected scenario:", scenarioId);
   };
 
   return (
@@ -61,32 +69,39 @@ export default function ScenarioHandler() {
         showsVerticalScrollIndicator={false}
       >
         {/* Existing scenarios */}
-        {scenarios.map((scenario, index) => (
-          <Pressable
-            key={index}
-            onPress={() => handleScenarioPress(scenario)}
-            style={({ pressed }) => [
-              styles.scenarioCard,
-              {
-                backgroundColor: pressed
-                  ? theme.colors.primaryContainer
-                  : theme.colors.surfaceVariant,
-                borderLeftColor: theme.colors.primary,
-              },
-            ]}
-            android_ripple={{
-              color: theme.colors.primary,
-              borderless: false,
-            }}
-          >
-            <Text
-              variant="bodyLarge"
-              style={[styles.scenarioText, { color: theme.colors.onSurface }]}
+        {scenarios.map((scenario) => {
+          const isSelected = scenario.id === currentScenarioId;
+          return (
+            <Pressable
+              key={scenario.id}
+              onPress={() => handleScenarioPress(scenario.id)}
+              style={({ pressed }) => [
+                styles.scenarioCard,
+                {
+                  backgroundColor:
+                    isSelected || pressed
+                      ? theme.colors.primaryContainer
+                      : theme.colors.surfaceVariant,
+                  borderLeftColor: theme.colors.primary,
+                },
+              ]}
+              android_ripple={{
+                color: theme.colors.primary,
+                borderless: false,
+              }}
             >
-              {scenario}
-            </Text>
-          </Pressable>
-        ))}
+              <Text
+                variant="bodyLarge"
+                style={[
+                  styles.scenarioText,
+                  { fontWeight: isSelected ? "600" : "500" },
+                ]}
+              >
+                {scenario.name}
+              </Text>
+            </Pressable>
+          );
+        })}
 
         {/* Add new scenario input */}
         {isAddingNew ? (
