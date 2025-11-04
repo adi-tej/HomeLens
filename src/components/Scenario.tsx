@@ -1,7 +1,14 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, View, Pressable } from "react-native";
 import { Text, IconButton, useTheme, Checkbox } from "react-native-paper";
 import Swipeable from "react-native-gesture-handler/Swipeable";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+  runOnJS,
+} from "react-native-reanimated";
 import { spacing } from "../theme/spacing";
 import type { Scenario as ScenarioType } from "../state/ScenarioContext";
 
@@ -29,6 +36,35 @@ export default function Scenario({
   onToggleCheckbox,
 }: Props) {
   const theme = useTheme();
+  const checkboxScale = useSharedValue(showCheckbox ? 1 : 0);
+  const [shouldRenderCheckbox, setShouldRenderCheckbox] =
+    React.useState(showCheckbox);
+
+  useEffect(() => {
+    if (showCheckbox) {
+      setShouldRenderCheckbox(true);
+    }
+
+    checkboxScale.value = withTiming(
+      showCheckbox ? 1 : 0,
+      {
+        duration: 200,
+        easing: Easing.inOut(Easing.ease),
+      },
+      (finished) => {
+        "worklet";
+        if (finished && !showCheckbox) {
+          // Remove from DOM only after animation completes
+          runOnJS(setShouldRenderCheckbox)(false);
+        }
+      },
+    );
+  }, [showCheckbox, checkboxScale]);
+
+  const checkboxAnimatedStyle = useAnimatedStyle(() => ({
+    width: 24 * checkboxScale.value,
+    opacity: checkboxScale.value,
+  }));
 
   const handlePress = () => {
     if (showCheckbox && onToggleCheckbox) {
@@ -83,15 +119,17 @@ export default function Scenario({
           }}
         >
           <View style={styles.scenarioContent}>
-            {showCheckbox && (
-              <View style={styles.checkboxContainer}>
+            {shouldRenderCheckbox && (
+              <Animated.View
+                style={[styles.checkboxContainer, checkboxAnimatedStyle]}
+              >
                 <Checkbox.Android
                   status={isChecked ? "checked" : "unchecked"}
                   onPress={onToggleCheckbox}
                   color={theme.colors.primary}
                   uncheckedColor={theme.colors.outline}
                 />
-              </View>
+              </Animated.View>
             )}
             <Text
               variant="bodyLarge"
