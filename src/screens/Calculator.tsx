@@ -10,10 +10,8 @@ import {
 } from "../components/inputs";
 import ScreenContainer from "../components/primitives/ScreenContainer";
 import { formatCurrency } from "../utils/parser";
-import {
-    type PropertyType,
-    validateMortgageData,
-} from "../utils/mortgageCalculator";
+import { type PropertyType } from "../utils/mortgageCalculator";
+import { validateMortgageData } from "../hooks/useMortgageCalculations";
 import { useScenarios } from "../state/ScenarioContext";
 import { spacing } from "../theme/spacing";
 

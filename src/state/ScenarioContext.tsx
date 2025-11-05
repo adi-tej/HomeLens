@@ -5,10 +5,8 @@ import React, {
     useContext,
     useState,
 } from "react";
-import {
-    calculateMortgageData,
-    type MortgageData,
-} from "../utils/mortgageCalculator";
+import { type MortgageData } from "../utils/mortgageCalculator";
+import { calculateMortgageData } from "../hooks/useMortgageCalculations";
 
 export type ScenarioId = string;
 
