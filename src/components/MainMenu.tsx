@@ -66,7 +66,9 @@ export default function MainMenu() {
           onPress={() => navigateTo("Contact")}
         />
       </View>
-      <View style={styles.footer}>
+      <View
+        style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}
+      >
         <Button
           mode="text"
           icon={nextMode === "dark" ? "weather-night" : "white-balance-sunny"}
@@ -91,6 +93,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   footer: {
-    paddingVertical: spacing.md,
+    paddingTop: spacing.md,
   },
 });
