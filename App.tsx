@@ -10,7 +10,6 @@ import { PaperProvider, MD3Theme } from "react-native-paper";
 import { useColorScheme } from "react-native";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { lightTheme, darkTheme } from "./src/theme/theme";
-import { MortgageCalculatorProvider } from "./src/state/MortgageCalculatorContext";
 import { ThemeModeContext, ThemeMode } from "./src/state/ThemeModeContext";
 import { AppProvider } from "./src/state/AppContext";
 import { ScenarioProvider } from "./src/state/ScenarioContext";
@@ -56,9 +55,7 @@ export default function App() {
             <NavigationContainer theme={navTheme}>
               <AppProvider>
                 <ScenarioProvider>
-                  <MortgageCalculatorProvider>
-                    <RootNavigator />
-                  </MortgageCalculatorProvider>
+                  <RootNavigator />
                 </ScenarioProvider>
               </AppProvider>
             </NavigationContainer>

@@ -5,6 +5,10 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
+import {
+  calculateMortgageData,
+  type MortgageData,
+} from "../utils/mortgageCalculator";
 
 export type ScenarioId = string;
 
@@ -14,13 +18,7 @@ export interface Scenario {
   createdAt: number;
   updatedAt: number;
   // Mortgage calculation data
-  data?: {
-    propertyValue?: number;
-    deposit?: number;
-    firstHomeBuyer: boolean;
-    occupancy: string;
-    propertyType: string;
-  };
+  data: MortgageData;
 }
 
 interface ScenarioContextType {
@@ -34,6 +32,7 @@ interface ScenarioContextType {
   getAllScenarios: () => Scenario[];
   comparisonMode: boolean;
   selectedScenarios: Set<ScenarioId>;
+  updateScenarioData: (id: ScenarioId, data: Partial<MortgageData>) => void;
   setComparisonMode: (mode: boolean) => void;
   toggleScenarioSelection: (id: ScenarioId) => void;
   clearSelectedScenarios: () => void;
@@ -56,6 +55,11 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
       name: "My first property",
       createdAt: Date.now(),
       updatedAt: Date.now(),
+      data: {
+        firstHomeBuyer: false,
+        occupancy: "",
+        propertyType: "",
+      },
     };
     return new Map([[defaultId, defaultScenario]]);
   });
@@ -93,6 +97,11 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
     const newScenario: Scenario = {
       id,
       name,
+      data: {
+        firstHomeBuyer: false,
+        occupancy: "",
+        propertyType: "",
+      },
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
@@ -159,6 +168,33 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const updateScenarioData = useCallback(
+    (id: ScenarioId, data: Partial<MortgageData>) => {
+      setScenarios((prev) => {
+        const scenario = prev.get(id);
+        if (!scenario) return prev;
+
+        // Merge new data with existing data
+        const mergedData = {
+          ...scenario.data,
+          ...data,
+        };
+
+        // Recalculate all mortgage values
+        const calculatedData = calculateMortgageData(mergedData);
+
+        const next = new Map(prev);
+        next.set(id, {
+          ...scenario,
+          data: calculatedData,
+          updatedAt: Date.now(),
+        });
+        return next;
+      });
+    },
+    [],
+  );
+
   const setCurrentScenario = useCallback(
     (id: ScenarioId) => {
       if (scenarios.has(id)) {
@@ -185,6 +221,7 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
     createScenario,
     deleteScenario,
     updateScenario,
+    updateScenarioData,
     setCurrentScenario,
     getAllScenarios,
     comparisonMode,
