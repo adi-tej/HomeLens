@@ -14,6 +14,49 @@ import Scenario from "../components/Scenario";
 import CompareButton from "../components/CompareButton";
 import { spacing } from "../theme/spacing";
 
+// Reusable input component for adding/editing scenarios
+function ScenarioInput({
+    value,
+    onChangeText,
+    onSubmit,
+    onBlur,
+    onCancel,
+    placeholder = "Enter scenario name",
+}: {
+    value: string;
+    onChangeText: (text: string) => void;
+    onSubmit: () => void;
+    onBlur: () => void;
+    onCancel: () => void;
+    placeholder?: string;
+}) {
+    const theme = useTheme();
+
+    return (
+        <View style={styles.inputContainer}>
+            <TextInput
+                mode="outlined"
+                placeholder={placeholder}
+                value={value}
+                onChangeText={onChangeText}
+                onSubmitEditing={onSubmit}
+                onBlur={onBlur}
+                autoFocus
+                style={styles.inputField}
+                outlineColor={theme.colors.outline}
+                activeOutlineColor={theme.colors.primary}
+                right={
+                    <TextInput.Icon
+                        icon="close"
+                        color={theme.colors.error}
+                        onPress={onCancel}
+                    />
+                }
+            />
+        </View>
+    );
+}
+
 export default function ScenarioManager() {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
@@ -24,6 +67,7 @@ export default function ScenarioManager() {
         createScenario,
         setCurrentScenario,
         deleteScenario,
+        updateScenario,
         comparisonMode,
         selectedScenarios,
         setComparisonMode,
@@ -34,6 +78,10 @@ export default function ScenarioManager() {
     const scenarios = getAllScenarios();
     const [newScenarioName, setNewScenarioName] = useState("");
     const [isAddingNew, setIsAddingNew] = useState(false);
+    const [editingScenarioId, setEditingScenarioId] = useState<string | null>(
+        null,
+    );
+    const [editScenarioName, setEditScenarioName] = useState("");
 
     const handleAddScenario = () => {
         if (newScenarioName.trim()) {
@@ -79,6 +127,41 @@ export default function ScenarioManager() {
         setCompareScreenActive(true);
     };
 
+    const handleLongPress = (scenarioId: string, currentName: string) => {
+        if (!comparisonMode) {
+            setEditingScenarioId(scenarioId);
+            setEditScenarioName(currentName);
+        }
+    };
+
+    const handleSaveEdit = () => {
+        if (editingScenarioId && editScenarioName.trim()) {
+            updateScenario(editingScenarioId, {
+                name: editScenarioName.trim(),
+            });
+            setEditingScenarioId(null);
+            setEditScenarioName("");
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setEditingScenarioId(null);
+        setEditScenarioName("");
+    };
+
+    const handleCancelAdd = () => {
+        setIsAddingNew(false);
+        setNewScenarioName("");
+    };
+
+    const handleEditBlur = () => {
+        if (editScenarioName.trim()) {
+            handleSaveEdit();
+        } else {
+            handleCancelEdit();
+        }
+    };
+
     return (
         <View
             style={[
@@ -99,62 +182,59 @@ export default function ScenarioManager() {
                 showsVerticalScrollIndicator={false}
             >
                 {/* Existing scenarios */}
-                {scenarios.map((scenario) => (
-                    <Scenario
-                        key={scenario.id}
-                        scenario={scenario}
-                        isSelected={scenario.id === currentScenarioId}
-                        canDelete={scenarios.length > 1 && !comparisonMode}
-                        onPress={() => handleScenarioPress(scenario.id)}
-                        onDelete={() => deleteScenario(scenario.id)}
-                        showCheckbox={comparisonMode}
-                        isChecked={selectedScenarios.has(scenario.id)}
-                        onToggleCheckbox={() =>
-                            toggleScenarioSelection(scenario.id)
-                        }
-                    />
-                ))}
-
-                {/* Add new scenario input */}
-                {!comparisonMode && isAddingNew ? (
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            mode="outlined"
-                            placeholder="Enter scenario name"
-                            value={newScenarioName}
-                            onChangeText={setNewScenarioName}
-                            onSubmitEditing={handleAddScenario}
-                            onBlur={handleBlur}
-                            autoFocus
-                            style={styles.inputField}
-                            outlineColor={theme.colors.outline}
-                            activeOutlineColor={theme.colors.primary}
-                            right={
-                                <TextInput.Icon
-                                    icon="close"
-                                    color={theme.colors.error}
-                                    onPress={() => {
-                                        setIsAddingNew(false);
-                                        setNewScenarioName("");
-                                    }}
-                                />
+                {scenarios.map((scenario) =>
+                    editingScenarioId === scenario.id ? (
+                        <ScenarioInput
+                            key={scenario.id}
+                            value={editScenarioName}
+                            onChangeText={setEditScenarioName}
+                            onSubmit={handleSaveEdit}
+                            onBlur={handleEditBlur}
+                            onCancel={handleCancelEdit}
+                        />
+                    ) : (
+                        <Scenario
+                            key={scenario.id}
+                            scenario={scenario}
+                            isSelected={scenario.id === currentScenarioId}
+                            canDelete={scenarios.length > 1 && !comparisonMode}
+                            onPress={() => handleScenarioPress(scenario.id)}
+                            onDelete={() => deleteScenario(scenario.id)}
+                            onLongPress={() =>
+                                handleLongPress(scenario.id, scenario.name)
+                            }
+                            showCheckbox={comparisonMode}
+                            isChecked={selectedScenarios.has(scenario.id)}
+                            onToggleCheckbox={() =>
+                                toggleScenarioSelection(scenario.id)
                             }
                         />
-                    </View>
-                ) : !comparisonMode ? (
-                    /* Modern FAB-style Add button */
-                    <View style={styles.addButtonContainer}>
-                        <IconButton
-                            icon="plus"
-                            mode="contained"
-                            size={24}
-                            iconColor={theme.colors.onPrimary}
-                            containerColor={theme.colors.primary}
-                            onPress={() => setIsAddingNew(true)}
-                            style={styles.addButton}
+                    ),
+                )}
+
+                {/* Add new scenario section */}
+                {!comparisonMode &&
+                    (isAddingNew ? (
+                        <ScenarioInput
+                            value={newScenarioName}
+                            onChangeText={setNewScenarioName}
+                            onSubmit={handleAddScenario}
+                            onBlur={handleBlur}
+                            onCancel={handleCancelAdd}
                         />
-                    </View>
-                ) : null}
+                    ) : (
+                        <View style={styles.addButtonContainer}>
+                            <IconButton
+                                icon="plus"
+                                mode="contained"
+                                size={24}
+                                iconColor={theme.colors.onPrimary}
+                                containerColor={theme.colors.primary}
+                                onPress={() => setIsAddingNew(true)}
+                                style={styles.addButton}
+                            />
+                        </View>
+                    ))}
             </ScrollView>
 
             {/* Compare / Proceed & Cancel buttons */}

@@ -12,18 +12,21 @@ import Animated, {
 import { spacing } from "../theme/spacing";
 import type { Scenario as ScenarioType } from "../state/ScenarioContext";
 
+const DELETE_WIDTH = 60;
+const CHECKBOX_SIZE = 24;
+const ANIMATION_DURATION = 200;
+
 type Props = {
     scenario: ScenarioType;
     isSelected: boolean;
     canDelete: boolean;
     onPress: () => void;
     onDelete: () => void;
+    onLongPress?: () => void;
     showCheckbox?: boolean;
     isChecked?: boolean;
     onToggleCheckbox?: () => void;
 };
-
-const DELETE_WIDTH = 60;
 
 export default function Scenario({
     scenario,
@@ -31,6 +34,7 @@ export default function Scenario({
     canDelete,
     onPress,
     onDelete,
+    onLongPress,
     showCheckbox = false,
     isChecked = false,
     onToggleCheckbox,
@@ -40,6 +44,9 @@ export default function Scenario({
     const [shouldRenderCheckbox, setShouldRenderCheckbox] =
         React.useState(showCheckbox);
 
+    // Compute derived values once
+    const canSwipe = canDelete && !showCheckbox;
+
     useEffect(() => {
         if (showCheckbox) {
             setShouldRenderCheckbox(true);
@@ -48,13 +55,12 @@ export default function Scenario({
         checkboxScale.value = withTiming(
             showCheckbox ? 1 : 0,
             {
-                duration: 200,
+                duration: ANIMATION_DURATION,
                 easing: Easing.inOut(Easing.ease),
             },
             (finished) => {
                 "worklet";
                 if (finished && !showCheckbox) {
-                    // Remove from DOM only after animation completes
                     runOnJS(setShouldRenderCheckbox)(false);
                 }
             },
@@ -62,7 +68,7 @@ export default function Scenario({
     }, [showCheckbox, checkboxScale]);
 
     const checkboxAnimatedStyle = useAnimatedStyle(() => ({
-        width: 24 * checkboxScale.value,
+        width: CHECKBOX_SIZE * checkboxScale.value,
         opacity: checkboxScale.value,
     }));
 
@@ -74,39 +80,41 @@ export default function Scenario({
         }
     };
 
-    const renderRightActions = () => (
-        <View style={styles.deleteActionContainer}>
-            <View
-                style={[
-                    styles.deleteSlider,
-                    { backgroundColor: theme.colors.error },
-                ]}
-            />
-            <View style={styles.deleteButton}>
-                <IconButton
-                    icon="delete"
-                    iconColor={theme.colors.onError}
-                    size={20}
-                    onPress={onDelete}
-                    style={styles.deleteIcon}
+    const renderRightActions = React.useCallback(
+        () => (
+            <View style={styles.deleteActionContainer}>
+                <View
+                    style={[
+                        styles.deleteSlider,
+                        { backgroundColor: theme.colors.error },
+                    ]}
                 />
+                <View style={styles.deleteButton}>
+                    <IconButton
+                        icon="delete"
+                        iconColor={theme.colors.onError}
+                        size={20}
+                        onPress={onDelete}
+                        style={styles.deleteIcon}
+                    />
+                </View>
             </View>
-        </View>
+        ),
+        [theme.colors.error, theme.colors.onError, onDelete],
     );
 
     return (
         <View style={styles.wrapper}>
             <Swipeable
-                renderRightActions={
-                    canDelete && !showCheckbox ? renderRightActions : undefined
-                }
-                enabled={canDelete && !showCheckbox}
+                renderRightActions={canSwipe ? renderRightActions : undefined}
+                enabled={canSwipe}
                 overshootRight={false}
                 rightThreshold={40}
                 containerStyle={styles.container}
             >
                 <Pressable
                     onPress={handlePress}
+                    onLongPress={onLongPress}
                     style={[
                         styles.scenarioCard,
                         {
