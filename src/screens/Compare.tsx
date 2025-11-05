@@ -156,9 +156,28 @@ export default function Compare() {
                         ]}
                     >
                         {/* Table: left fixed label column + right scrollable block (header + rows) */}
-                        <View style={{ flexDirection: "row" }}>
+                        <View
+                            style={{
+                                flexDirection: "row",
+                                overflow: "hidden",
+                                borderRadius: 8,
+                            }}
+                        >
                             {/* Left: fixed label column including the header label */}
-                            <View style={{ width: LABEL_WIDTH }}>
+                            <View
+                                style={{
+                                    width: LABEL_WIDTH,
+                                    zIndex: 10,
+                                    backgroundColor: theme.colors.surface,
+                                    shadowColor: "#000",
+                                    shadowOffset: { width: 2, height: 0 },
+                                    shadowOpacity: 0.1,
+                                    shadowRadius: 4,
+                                    elevation: 4,
+                                    borderTopLeftRadius: 8,
+                                    borderBottomLeftRadius: 8,
+                                }}
+                            >
                                 <View
                                     style={{
                                         height: 40,
@@ -167,14 +186,17 @@ export default function Compare() {
                                     }}
                                 ></View>
                                 <Divider />
-                                {rows.map((row) => (
+                                {rows.map((row, index) => (
                                     <View
                                         key={row.key}
                                         style={{
                                             height: 48,
                                             justifyContent: "center",
                                             paddingLeft: spacing.sm,
-                                            borderBottomWidth: 1,
+                                            borderBottomWidth:
+                                                index === rows.length - 1
+                                                    ? 0
+                                                    : 1,
                                             borderBottomColor:
                                                 theme.colors.outline,
                                             backgroundColor: row.highlight
@@ -255,13 +277,16 @@ export default function Compare() {
                                     <Divider />
 
                                     {/* Data rows: for each metric, render a horizontal row of values aligned to the header columns */}
-                                    {rows.map((row) => (
+                                    {rows.map((row, index) => (
                                         <View
                                             key={row.key}
                                             style={{
                                                 flexDirection: "row",
                                                 height: 48,
-                                                borderBottomWidth: 1,
+                                                borderBottomWidth:
+                                                    index === rows.length - 1
+                                                        ? 0
+                                                        : 1,
                                                 borderBottomColor:
                                                     theme.colors.outline,
                                                 backgroundColor: row.highlight
