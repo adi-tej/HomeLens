@@ -5,7 +5,7 @@ import Reanimated, {
     interpolate,
     useAnimatedStyle,
 } from "react-native-reanimated";
-import { useLeftDrawer, useRightDrawer } from "../state/useDrawer";
+import { useLeftDrawer, useRightDrawer } from "../hooks/useDrawer";
 import Drawer from "../components/Drawer";
 import AppHeader from "../components/AppHeader";
 import { BottomNavigator } from "./BottomNavigator";

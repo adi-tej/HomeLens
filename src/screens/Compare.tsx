@@ -2,109 +2,26 @@ import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Divider, IconButton, Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useScenarios } from "../state/ScenarioContext";
 import { useAppContext } from "../state/AppContext";
 import { spacing } from "../theme/spacing";
-import { formatCurrency } from "../utils/parser";
 import ShareButton from "../components/ShareButton";
-
-const LABEL_WIDTH = 120; // fixed left label column width (configurable)
-const CELL_WIDTH = 130; // fixed per-scenario column width (configurable)
-
-// Font size controls
-const LABEL_FONT = 12; // smaller labels
-const DATA_FONT = 14; // larger data / scenario names
+import { useComparisonData } from "../hooks/useComparisonData";
+import {
+    DataCell,
+    HeaderCell,
+    LabelCell,
+    TABLE_CONFIG,
+} from "../components/table";
 
 export default function Compare() {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
-    const { selectedScenarios, scenarios } = useScenarios();
     const { setCompareScreenActive } = useAppContext();
-
-    const selectedScenarioList = Array.from(selectedScenarios)
-        .map((id) => scenarios.get(id))
-        .filter((s) => s !== undefined);
+    const { selectedScenarioList, comparisonRows } = useComparisonData();
 
     const handleBack = () => {
         setCompareScreenActive(false);
     };
-
-    const rows = [
-        {
-            key: "propertyValue",
-            label: "Property Value",
-            accessor: (s: any) => formatCurrency(s.data.propertyValue),
-        },
-        {
-            key: "deposit",
-            label: "Deposit",
-            accessor: (s: any) => formatCurrency(s.data.deposit),
-        },
-        {
-            key: "fhb",
-            label: "First Home Buyer",
-            accessor: (s: any) => (s.data.firstHomeBuyer ? "Yes" : "No"),
-        },
-        {
-            key: "occupancy",
-            label: "Occupancy",
-            accessor: (s: any) =>
-                s.data.occupancy === "owner"
-                    ? "Owner-Occupied"
-                    : s.data.occupancy === "investment"
-                      ? "Investment"
-                      : "-",
-        },
-        {
-            key: "propertyType",
-            label: "Property Type",
-            accessor: (s: any) =>
-                s.data.propertyType === "brandnew"
-                    ? "Brand New"
-                    : s.data.propertyType === "existing"
-                      ? "Existing"
-                      : s.data.propertyType === "land"
-                        ? "Land"
-                        : "-",
-        },
-        {
-            key: "stampDuty",
-            label: "Stamp Duty",
-            accessor: (s: any) => formatCurrency(s.data.stampDuty),
-        },
-        {
-            key: "lvr",
-            label: "LVR",
-            accessor: (s: any) =>
-                `${Number.isFinite(s.data.lvr) ? Math.round((s.data.lvr || 0) * 100) / 100 : 0}%`,
-        },
-        {
-            key: "lmi",
-            label: "LMI",
-            accessor: (s: any) => formatCurrency(s.data.lmi),
-        },
-        {
-            key: "totalLoan",
-            label: "Total Loan",
-            accessor: (s: any) => formatCurrency(s.data.totalLoan),
-        },
-        {
-            key: "monthlyMortgage",
-            label: "Monthly Mortgage",
-            accessor: (s: any) => formatCurrency(s.data.monthlyMortgage),
-            highlight: true,
-        },
-        {
-            key: "annualPrincipal",
-            label: "Annual Principal",
-            accessor: (s: any) => formatCurrency(s.data.annualPrincipal),
-        },
-        {
-            key: "annualInterest",
-            label: "Annual Interest",
-            accessor: (s: any) => formatCurrency(s.data.annualInterest),
-        },
-    ];
 
     return (
         <View
@@ -126,7 +43,10 @@ export default function Compare() {
                 <Text variant="titleLarge" style={styles.headerText}>
                     Compare Scenarios
                 </Text>
-                <ShareButton data={rows} scenarios={selectedScenarioList} />
+                <ShareButton
+                    data={comparisonRows}
+                    scenarios={selectedScenarioList}
+                />
             </View>
 
             <Divider style={{ marginBottom: spacing.md }} />
@@ -151,74 +71,31 @@ export default function Compare() {
                             {
                                 borderWidth: 1,
                                 borderColor: theme.colors.outline,
-                                borderRadius: 8,
+                                borderRadius: TABLE_CONFIG.borderRadius,
                             },
                         ]}
                     >
                         {/* Table: left fixed label column + right scrollable block (header + rows) */}
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                overflow: "hidden",
-                                borderRadius: 8,
-                            }}
-                        >
+                        <View style={styles.tableContainer}>
                             {/* Left: fixed label column including the header label */}
                             <View
-                                style={{
-                                    width: LABEL_WIDTH,
-                                    zIndex: 10,
-                                    backgroundColor: theme.colors.surface,
-                                    shadowColor: "#000",
-                                    shadowOffset: { width: 2, height: 0 },
-                                    shadowOpacity: 0.1,
-                                    shadowRadius: 4,
-                                    elevation: 4,
-                                    borderTopLeftRadius: 8,
-                                    borderBottomLeftRadius: 8,
-                                }}
+                                style={[
+                                    styles.fixedLabelColumn,
+                                    { backgroundColor: theme.colors.surface },
+                                ]}
                             >
-                                <View
-                                    style={{
-                                        height: 40,
-                                        justifyContent: "center",
-                                        paddingLeft: spacing.sm,
-                                    }}
-                                ></View>
+                                <View style={styles.emptyHeaderCell} />
                                 <Divider />
-                                {rows.map((row, index) => (
-                                    <View
+                                {comparisonRows.map((row, index) => (
+                                    <LabelCell
                                         key={row.key}
-                                        style={{
-                                            height: 48,
-                                            justifyContent: "center",
-                                            paddingLeft: spacing.sm,
-                                            borderBottomWidth:
-                                                index === rows.length - 1
-                                                    ? 0
-                                                    : 1,
-                                            borderBottomColor:
-                                                theme.colors.outline,
-                                            backgroundColor: row.highlight
-                                                ? theme.colors
-                                                      .secondaryContainer
-                                                : "transparent",
-                                        }}
-                                    >
-                                        <Text
-                                            style={{
-                                                fontWeight: "600",
-                                                fontSize: LABEL_FONT,
-                                                color: row.highlight
-                                                    ? theme.colors
-                                                          .onSecondaryContainer
-                                                    : theme.colors
-                                                          .onSurfaceVariant,
-                                            }}
-                                        >
-                                            {row.label}
-                                        </Text>
-                                    </View>
+                                        label={row.label}
+                                        highlight={row.highlight}
+                                        isLast={
+                                            index === comparisonRows.length - 1
+                                        }
+                                        theme={theme}
+                                    />
                                 ))}
                             </View>
 
@@ -226,50 +103,28 @@ export default function Compare() {
                             <ScrollView
                                 horizontal
                                 showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={{ paddingVertical: 0 }}
+                                contentContainerStyle={
+                                    styles.horizontalScrollContent
+                                }
                             >
                                 <View
                                     style={{
                                         width: Math.max(
                                             selectedScenarioList.length *
-                                                CELL_WIDTH,
+                                                TABLE_CONFIG.cellWidth,
                                             200,
                                         ),
                                     }}
                                 >
                                     {/* Header row */}
-                                    <View
-                                        style={{
-                                            flexDirection: "row",
-                                            height: 40,
-                                        }}
-                                    >
+                                    <View style={styles.headerRow}>
                                         {selectedScenarioList.map(
                                             (scenario) => (
-                                                <View
+                                                <HeaderCell
                                                     key={scenario.id}
-                                                    style={{
-                                                        width: CELL_WIDTH,
-                                                        justifyContent:
-                                                            "center",
-                                                        alignItems: "center",
-                                                        paddingHorizontal:
-                                                            spacing.sm,
-                                                    }}
-                                                >
-                                                    <Text
-                                                        numberOfLines={2}
-                                                        style={{
-                                                            fontSize: DATA_FONT, // scenario names
-                                                            fontWeight: "600",
-                                                            color: theme.colors
-                                                                .primary,
-                                                            textAlign: "center",
-                                                        }}
-                                                    >
-                                                        {scenario.name}
-                                                    </Text>
-                                                </View>
+                                                    name={scenario.name}
+                                                    theme={theme}
+                                                />
                                             ),
                                         )}
                                     </View>
@@ -277,60 +132,41 @@ export default function Compare() {
                                     <Divider />
 
                                     {/* Data rows: for each metric, render a horizontal row of values aligned to the header columns */}
-                                    {rows.map((row, index) => (
+                                    {comparisonRows.map((row, index) => (
                                         <View
                                             key={row.key}
-                                            style={{
-                                                flexDirection: "row",
-                                                height: 48,
-                                                borderBottomWidth:
-                                                    index === rows.length - 1
-                                                        ? 0
-                                                        : 1,
-                                                borderBottomColor:
-                                                    theme.colors.outline,
-                                                backgroundColor: row.highlight
-                                                    ? theme.colors
-                                                          .secondaryContainer
-                                                    : "transparent",
-                                            }}
+                                            style={[
+                                                styles.dataRow,
+                                                {
+                                                    borderBottomWidth:
+                                                        index ===
+                                                        comparisonRows.length -
+                                                            1
+                                                            ? 0
+                                                            : 1,
+                                                    borderBottomColor:
+                                                        theme.colors.outline,
+                                                    backgroundColor:
+                                                        row.highlight
+                                                            ? theme.colors
+                                                                  .secondaryContainer
+                                                            : theme.colors
+                                                                  .surfaceVariant,
+                                                },
+                                            ]}
                                         >
                                             {selectedScenarioList.map(
                                                 (scenario) => (
-                                                    <View
+                                                    <DataCell
                                                         key={scenario.id}
-                                                        style={{
-                                                            width: CELL_WIDTH,
-                                                            justifyContent:
-                                                                "center",
-                                                            alignItems:
-                                                                "center",
-                                                            paddingHorizontal:
-                                                                spacing.sm,
-                                                        }}
-                                                    >
-                                                        <Text
-                                                            numberOfLines={1}
-                                                            ellipsizeMode="tail"
-                                                            style={{
-                                                                fontSize:
-                                                                    DATA_FONT, // data values
-                                                                textAlign:
-                                                                    "center",
-                                                                color: row.highlight
-                                                                    ? theme
-                                                                          .colors
-                                                                          .onSecondaryContainer
-                                                                    : theme
-                                                                          .colors
-                                                                          .onSurface,
-                                                            }}
-                                                        >
-                                                            {row.accessor(
-                                                                scenario,
-                                                            )}
-                                                        </Text>
-                                                    </View>
+                                                        value={row.accessor(
+                                                            scenario,
+                                                        )}
+                                                        highlight={
+                                                            row.highlight
+                                                        }
+                                                        theme={theme}
+                                                    />
                                                 ),
                                             )}
                                         </View>
@@ -346,29 +182,62 @@ export default function Compare() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, paddingHorizontal: spacing.sm },
+    container: {
+        flex: 1,
+        paddingHorizontal: spacing.sm,
+    },
     header: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
         marginBottom: spacing.sm,
     },
-    headerText: { flex: 1, textAlign: "center" },
-    scrollView: { flex: 1 },
+    headerText: {
+        flex: 1,
+        textAlign: "center",
+    },
+    scrollView: {
+        flex: 1,
+    },
     emptyContainer: {
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
         paddingTop: spacing.xl * 4,
     },
-    comparisonContainer: { paddingBottom: 0 },
-    row: { flexDirection: "row", alignItems: "center" },
-    labelColumn: { flex: 1.5, paddingRight: spacing.sm },
-    valueColumn: {
-        flex: 1.25,
-        alignItems: "center",
-        paddingHorizontal: spacing.xs,
+    comparisonContainer: {
+        paddingBottom: 0,
     },
-    labelText: { textAlign: "left", fontWeight: "600" },
-    valueText: { textAlign: "center", width: "100%", alignSelf: "center" },
+    tableContainer: {
+        flexDirection: "row",
+        overflow: "hidden",
+        borderRadius: TABLE_CONFIG.borderRadius,
+    },
+    fixedLabelColumn: {
+        width: TABLE_CONFIG.labelWidth,
+        zIndex: 10,
+        shadowColor: "#000",
+        shadowOffset: { width: 2, height: 0 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 4,
+        borderTopLeftRadius: TABLE_CONFIG.borderRadius,
+        borderBottomLeftRadius: TABLE_CONFIG.borderRadius,
+    },
+    emptyHeaderCell: {
+        height: TABLE_CONFIG.headerHeight,
+        justifyContent: "center",
+        paddingLeft: spacing.sm,
+    },
+    horizontalScrollContent: {
+        paddingVertical: 0,
+    },
+    headerRow: {
+        flexDirection: "row",
+        height: TABLE_CONFIG.headerHeight,
+    },
+    dataRow: {
+        flexDirection: "row",
+        height: TABLE_CONFIG.rowHeight,
+    },
 });

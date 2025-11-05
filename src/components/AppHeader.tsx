@@ -2,7 +2,7 @@ import React from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { Appbar, Text, useTheme } from "react-native-paper";
 import { spacing } from "../theme/spacing";
-import { useLeftDrawer, useRightDrawer } from "../state/useDrawer";
+import { useLeftDrawer, useRightDrawer } from "../hooks/useDrawer";
 
 export default function AppHeader() {
     const theme = useTheme();

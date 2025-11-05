@@ -11,7 +11,7 @@ export type SelectProps = {
     disabled?: boolean;
 };
 
-export default function Select({
+export function Select({
     label,
     value,
     onChange,

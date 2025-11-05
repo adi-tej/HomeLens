@@ -14,7 +14,7 @@ export type CurrencySelectProps = {
 
 const DEFAULT_PRESETS = [400000, 600000, 800000, 1000000, 1200000];
 
-export default function CurrencySelect({
+export function CurrencySelect({
     label,
     value,
     onChange,

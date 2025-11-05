@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Divider, Text, useTheme } from "react-native-paper";
-import CurrencySelect from "../components/inputs/CurrencySelect";
-import Select from "../components/inputs/Select";
-import Toggle from "../components/inputs/Toggle";
-import DepositInput from "../components/inputs/DepositInput";
+import {
+    CurrencySelect,
+    DepositInput,
+    Select,
+    Toggle,
+} from "../components/inputs";
 import ScreenContainer from "../components/primitives/ScreenContainer";
 import { formatCurrency } from "../utils/parser";
 import {

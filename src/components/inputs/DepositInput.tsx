@@ -13,7 +13,7 @@ export type DepositInputProps = {
 
 const PERCENT_PRESETS = [5, 10, 15, 20];
 
-export default function DepositInput({
+export function DepositInput({
     propertyValue,
     deposit,
     onChange,

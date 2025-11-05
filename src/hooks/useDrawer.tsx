@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Dimensions } from "react-native";
 import type { SharedValue } from "react-native-reanimated";
 import { makeMutable } from "react-native-reanimated";
-import { useAppContext } from "./AppContext";
+import { useAppContext } from "../state/AppContext";
 
 type Side = "left" | "right";
 
