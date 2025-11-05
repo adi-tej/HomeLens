@@ -28,12 +28,18 @@ const SPRING_CONFIG = {
 
 export default function Drawer({ side, children }: Props) {
   const { progress, drawerWidth, isOpen, open, close } = useDrawer(side);
-  const { isDrawerOpen } = useAppContext();
+  const { isDrawerOpen, isCompareScreenActive } = useAppContext();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const isGestureActive = useSharedValue(false);
   const isLeft = side === "left";
   const HEADER_BLOCK = insets.top + (Platform.OS === "ios" ? 64 : 56);
+
+  // Disable right drawer gestures when Compare screen is active
+  const isGestureEnabled = isLeft || !isCompareScreenActive;
+
+  // Disable scrim press to close when right drawer is in compare mode
+  const allowScrimClose = !(side === "right" && isCompareScreenActive);
 
   // Sync progress with isOpen state
   useEffect(() => {
@@ -93,11 +99,19 @@ export default function Drawer({ side, children }: Props) {
     [isLeft, progress, drawerWidth, isGestureActive, open, close],
   );
 
-  const edgeGesture = createGesture(isLeft ? 5 : -5, !isDrawerOpen, false);
-  const drawerGesture = createGesture([-10, 10], isOpen, true);
+  const edgeGesture = createGesture(
+    isLeft ? 5 : -5,
+    !isDrawerOpen && isGestureEnabled,
+    false,
+  );
+  const drawerGesture = createGesture(
+    [-10, 10],
+    isOpen && isGestureEnabled,
+    true,
+  );
   const scrimGesture = createGesture(
     isLeft ? [-10, -Infinity] : [10, Infinity],
-    isOpen,
+    isOpen && isGestureEnabled,
     true,
   );
 
@@ -119,7 +133,7 @@ export default function Drawer({ side, children }: Props) {
   return (
     <>
       {/* Edge swipe area */}
-      {!isDrawerOpen && (
+      {!isDrawerOpen && isGestureEnabled && (
         <GestureDetector gesture={edgeGesture}>
           <Reanimated.View
             style={[
@@ -133,14 +147,17 @@ export default function Drawer({ side, children }: Props) {
       {/* Scrim overlay */}
       <GestureDetector gesture={scrimGesture}>
         <Reanimated.View
-          pointerEvents={isOpen ? "auto" : "none"}
+          pointerEvents={isOpen && allowScrimClose ? "auto" : "none"}
           style={[
             styles.scrim,
             { backgroundColor: theme.colors.backdrop },
             scrimStyle,
           ]}
         >
-          <Pressable style={styles.scrimPressable} onPress={close} />
+          <Pressable
+            style={styles.scrimPressable}
+            onPress={allowScrimClose ? close : undefined}
+          />
         </Reanimated.View>
       </GestureDetector>
 

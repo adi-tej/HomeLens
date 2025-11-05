@@ -11,18 +11,18 @@ import AppHeader from "../components/AppHeader";
 import { BottomNavigator } from "./BottomNavigator";
 import ScenarioManager from "../screens/ScenarioManager";
 import MainMenu from "../components/MainMenu";
+import CompareOverlay from "../components/CompareOverlay";
 
 export function RootNavigator() {
-  const { progress: progressRight, drawerWidth: drawerWidthRight } =
-    useRightDrawer();
+  const { progress: progressRight } = useRightDrawer();
   const { progress: progressLeft, drawerWidth: drawerWidthLeft } =
     useLeftDrawer();
 
-  const animatedStyle = useAnimatedStyle(() => {
+  const translate = useAnimatedStyle(() => {
     const translateRight = interpolate(
       progressRight.value,
       [0, 1],
-      [0, -drawerWidthRight],
+      [0, -drawerWidthLeft],
       Extrapolation.CLAMP,
     );
     const translateLeft = interpolate(
@@ -36,18 +36,22 @@ export function RootNavigator() {
 
   return (
     <>
-      <Reanimated.View style={[{ flex: 1 }, animatedStyle]}>
+      <Reanimated.View style={[{ flex: 1 }, translate]}>
         <AppHeader />
         <BottomNavigator />
       </Reanimated.View>
+
       <Drawer side="left">
         <MainMenu />
       </Drawer>
+
       <Drawer side="right">
         <View style={{ flex: 1 }}>
           <ScenarioManager />
         </View>
       </Drawer>
+
+      <CompareOverlay />
     </>
   );
 }

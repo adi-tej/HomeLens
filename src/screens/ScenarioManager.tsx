@@ -8,14 +8,16 @@ import {
   TextInput,
 } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { spacing } from "../theme/spacing";
+import { useAppContext } from "../state/AppContext";
 import { useScenarios } from "../state/ScenarioContext";
 import Scenario from "../components/Scenario";
 import CompareButton from "../components/CompareButton";
+import { spacing } from "../theme/spacing";
 
 export default function ScenarioManager() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const { setCompareScreenActive } = useAppContext();
   const {
     getAllScenarios,
     currentScenarioId,
@@ -54,8 +56,6 @@ export default function ScenarioManager() {
   const handleScenarioPress = (scenarioId: string) => {
     if (!comparisonMode) {
       setCurrentScenario(scenarioId);
-      // TODO: Navigate to calculation form with this scenario
-      console.log("Selected scenario:", scenarioId);
     }
   };
 
@@ -75,10 +75,8 @@ export default function ScenarioManager() {
       "Proceeding with selected scenarios:",
       Array.from(selectedScenarios),
     );
-    // TODO: Navigate to comparison screen
-    // For now, just exit comparison mode
-    setComparisonMode(false);
-    clearSelectedScenarios();
+    // Open the Compare panel inside the right drawer
+    setCompareScreenActive(true);
   };
 
   return (

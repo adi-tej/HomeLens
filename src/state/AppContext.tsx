@@ -3,16 +3,21 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 type AppContextType = {
   isDrawerOpen: boolean;
   setDrawerOpen: (isOpen: boolean) => void;
+  isCompareScreenActive: boolean;
+  setCompareScreenActive: (isActive: boolean) => void;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const [isCompareScreenActive, setCompareScreenActive] = useState(false);
 
   const value: AppContextType = {
     isDrawerOpen,
     setDrawerOpen,
+    isCompareScreenActive,
+    setCompareScreenActive,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
