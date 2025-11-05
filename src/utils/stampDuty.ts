@@ -9,7 +9,8 @@ export function calculateStampDuty(
 
   // Base duty (standard schedule, no concessions)
   const baseDuty = (amount: number): number => {
-    const per100 = (amt: number, ratePer100: number) => (amt / 100) * ratePer100;
+    const per100 = (amt: number, ratePer100: number) =>
+      (amt / 100) * ratePer100;
 
     if (amount <= 17000) {
       const duty = per100(amount, 1.25);

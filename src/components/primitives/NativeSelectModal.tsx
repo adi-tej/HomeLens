@@ -1,12 +1,12 @@
 import React from "react";
 import {
-  View,
-  TouchableOpacity,
-  ScrollView,
-  Text,
-  StyleSheet,
   Modal,
   Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useTheme } from "react-native-paper";
 

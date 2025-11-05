@@ -1,9 +1,9 @@
 import React, { PropsWithChildren } from "react";
 import {
   ScrollView,
-  View,
-  StyleSheet,
   ScrollViewProps,
+  StyleSheet,
+  View,
   ViewProps,
 } from "react-native";
 import { spacing } from "../../theme/spacing";

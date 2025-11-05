@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo } from "react";
-import { StyleSheet, Pressable, Platform } from "react-native";
+import { Platform, Pressable, StyleSheet } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Reanimated, {
+  cancelAnimation,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  cancelAnimation,
-  runOnJS,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "react-native-paper";

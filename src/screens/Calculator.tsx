@@ -8,9 +8,9 @@ import DepositInput from "../components/inputs/DepositInput";
 import ScreenContainer from "../components/primitives/ScreenContainer";
 import { formatCurrency } from "../utils/parser";
 import {
-  validateMortgageData,
   type Occupancy,
   type PropertyType,
+  validateMortgageData,
 } from "../utils/mortgageCalculator";
 import { useScenarios } from "../state/ScenarioContext";
 import { spacing } from "../theme/spacing";

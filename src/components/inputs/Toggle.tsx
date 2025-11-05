@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View, Pressable } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -31,7 +31,9 @@ export default function Toggle({
             height: size,
             borderRadius: radius,
             borderColor: theme.colors.outline,
-            backgroundColor: checked ? theme.colors.primary : theme.colors.surface,
+            backgroundColor: checked
+              ? theme.colors.primary
+              : theme.colors.surface,
           },
         ]}
       >

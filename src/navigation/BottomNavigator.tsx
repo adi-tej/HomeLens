@@ -1,12 +1,11 @@
+import type { ComponentProps } from "react";
 import React from "react";
 import { StyleSheet, View } from "react-native";
+import type { MD3Theme } from "react-native-paper";
 import { useTheme } from "react-native-paper";
+import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-
-import type { ComponentProps } from "react";
-import type { MD3Theme } from "react-native-paper";
-import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 
 import Matrix from "../screens/Matrix";
 import Help from "../screens/Help";

@@ -1,20 +1,19 @@
 import React, { useMemo, useState } from "react";
 import {
-  NavigationContainer,
-  DefaultTheme as NavDefaultTheme,
   DarkTheme as NavDarkTheme,
+  DefaultTheme as NavDefaultTheme,
+  NavigationContainer,
   Theme as NavigationTheme,
 } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { PaperProvider, MD3Theme } from "react-native-paper";
-import { useColorScheme } from "react-native";
+import { MD3Theme, PaperProvider } from "react-native-paper";
+import { StyleSheet, useColorScheme } from "react-native";
 import { RootNavigator } from "./src/navigation/RootNavigator";
-import { lightTheme, darkTheme } from "./src/theme/theme";
-import { ThemeModeContext, ThemeMode } from "./src/state/ThemeModeContext";
+import { darkTheme, lightTheme } from "./src/theme/theme";
+import { ThemeMode, ThemeModeContext } from "./src/state/ThemeModeContext";
 import { AppProvider } from "./src/state/AppContext";
 import { ScenarioProvider } from "./src/state/ScenarioContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { StyleSheet } from "react-native";
 
 function toNavigationTheme(
   paper: MD3Theme,

@@ -1,6 +1,6 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
-import { List, Divider, Text, Button, useTheme } from "react-native-paper";
+import { StyleSheet, View } from "react-native";
+import { Button, Divider, List, Text, useTheme } from "react-native-paper";
 import { useLeftDrawer } from "../state/useDrawer";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeMode } from "../state/ThemeModeContext";

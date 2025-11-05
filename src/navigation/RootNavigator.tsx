@@ -1,9 +1,9 @@
 import React from "react";
 import { View } from "react-native";
 import Reanimated, {
-  useAnimatedStyle,
-  interpolate,
   Extrapolation,
+  interpolate,
+  useAnimatedStyle,
 } from "react-native-reanimated";
 import { useLeftDrawer, useRightDrawer } from "../state/useDrawer";
 import Drawer from "../components/Drawer";

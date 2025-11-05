@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 import { Pressable, useWindowDimensions } from "react-native";
 import Reanimated, {
+  useAnimatedStyle,
   useSharedValue,
   withSpring,
-  useAnimatedStyle,
 } from "react-native-reanimated";
 import { useTheme } from "react-native-paper";
 import { useAppContext } from "../state/AppContext";

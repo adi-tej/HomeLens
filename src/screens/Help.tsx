@@ -1,8 +1,8 @@
-import React from 'react';
-import { Linking, StyleSheet, View } from 'react-native';
-import { List, Text } from 'react-native-paper';
-import { spacing } from '../theme/spacing';
-import ScreenContainer from '../components/primitives/ScreenContainer';
+import React from "react";
+import { Linking, StyleSheet, View } from "react-native";
+import { List, Text } from "react-native-paper";
+import { spacing } from "../theme/spacing";
+import ScreenContainer from "../components/primitives/ScreenContainer";
 
 function LeftIcon(icon: string) {
   return function IconRenderer(props: any) {
@@ -20,18 +20,18 @@ export default function HelpScreen() {
         <List.Section>
           <List.Item
             title="Documentation"
-            left={LeftIcon('file-document-outline')}
-            onPress={() => Linking.openURL('https://example.com/docs')}
+            left={LeftIcon("file-document-outline")}
+            onPress={() => Linking.openURL("https://example.com/docs")}
           />
           <List.Item
             title="Support"
-            left={LeftIcon('lifebuoy')}
-            onPress={() => Linking.openURL('mailto:support@example.com')}
+            left={LeftIcon("lifebuoy")}
+            onPress={() => Linking.openURL("mailto:support@example.com")}
           />
           <List.Item
             title="Privacy"
-            left={LeftIcon('shield-outline')}
-            onPress={() => Linking.openURL('https://example.com/privacy')}
+            left={LeftIcon("shield-outline")}
+            onPress={() => Linking.openURL("https://example.com/privacy")}
           />
         </List.Section>
       </ScreenContainer>

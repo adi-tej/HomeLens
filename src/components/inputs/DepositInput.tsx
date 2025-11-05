@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { View, StyleSheet, Keyboard, Platform } from "react-native";
+import { Keyboard, Platform, StyleSheet, View } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
 import { spacing } from "../../theme/spacing";
 import { formatCurrency, parseNumber } from "../../utils/parser";

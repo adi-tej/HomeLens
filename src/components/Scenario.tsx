@@ -1,13 +1,13 @@
 import React, { useEffect } from "react";
-import { StyleSheet, View, Pressable } from "react-native";
-import { Text, IconButton, useTheme, Checkbox } from "react-native-paper";
+import { Pressable, StyleSheet, View } from "react-native";
+import { Checkbox, IconButton, Text, useTheme } from "react-native-paper";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
   Easing,
   runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 import { spacing } from "../theme/spacing";
 import type { Scenario as ScenarioType } from "../state/ScenarioContext";
