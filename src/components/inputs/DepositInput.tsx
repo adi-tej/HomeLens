@@ -23,7 +23,9 @@ export default function DepositInput({
   const [currencyText, setCurrencyText] = useState<string>(
     deposit != null ? formatCurrency(deposit) : "",
   );
-  const [percentUserInput, setPercentUserInput] = useState(false);
+  const [inputMode, setInputMode] = useState<"currency" | "percent" | null>(
+    null,
+  );
   const theme = useTheme();
 
   // derive percent from deposit and property value
@@ -43,25 +45,25 @@ export default function DepositInput({
       return;
     }
 
-    // If user entered percent first and deposit isn't set yet, apply percent now
-    if (percentUserInput && (deposit == null || isNaN(Number(deposit)))) {
+    // If user is in percent mode, recalculate deposit when property value changes
+    if (inputMode === "percent" && percentText) {
       const parsed = parseNumber(percentText);
       if (parsed != null) {
         const val = Math.round((parsed / 100) * propertyValue);
         onChange(val);
       }
-      setPercentUserInput(false);
       return;
     }
 
-    // Otherwise derive percent from deposit
+    // Otherwise derive percent from deposit (currency mode)
     if (deposit != null && propertyValue > 0) {
       setPercentText(derivedPercent);
     }
-  }, [deposit, propertyValue, derivedPercent]);
+  }, [propertyValue, derivedPercent]);
 
   const handleCurrencyChange = (t: string) => {
     setCurrencyText(t);
+    setInputMode("currency");
     const parsed = parseNumber(t);
     if (parsed != null) {
       onChange(parsed);
@@ -78,7 +80,7 @@ export default function DepositInput({
 
   const handlePercentChange = (t: string) => {
     setPercentText(t);
-    setPercentUserInput(true);
+    setInputMode("percent");
     const parsed = parseNumber(t);
     if (parsed != null) {
       applyPercent(parsed);
@@ -153,6 +155,7 @@ export default function DepositInput({
         onSelect={(o) => {
           const p = Number(o.value);
           setPercentText(String(p));
+          setInputMode("percent");
           applyPercent(p);
           setPercentOpen(false);
         }}

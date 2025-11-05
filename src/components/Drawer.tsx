@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "react-native-paper";
 import { useDrawer } from "../state/useDrawer";
 import { useAppContext } from "../state/AppContext";
+import { useScenarios } from "../state/ScenarioContext";
 
 type Side = "left" | "right";
 
@@ -28,7 +29,10 @@ const SPRING_CONFIG = {
 
 export default function Drawer({ side, children }: Props) {
   const { progress, drawerWidth, isOpen, open, close } = useDrawer(side);
-  const { isDrawerOpen, isCompareScreenActive } = useAppContext();
+  const { isDrawerOpen, isCompareScreenActive, setCompareScreenActive } =
+    useAppContext();
+  const { comparisonMode, setComparisonMode, clearSelectedScenarios } =
+    useScenarios();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const isGestureActive = useSharedValue(false);
@@ -40,6 +44,22 @@ export default function Drawer({ side, children }: Props) {
 
   // Disable scrim press to close when right drawer is in compare mode
   const allowScrimClose = !(side === "right" && isCompareScreenActive);
+
+  // Exit compare mode when right drawer closes
+  useEffect(() => {
+    if (side === "right" && !isOpen && comparisonMode) {
+      setComparisonMode(false);
+      clearSelectedScenarios();
+      setCompareScreenActive(false);
+    }
+  }, [
+    side,
+    isOpen,
+    comparisonMode,
+    setComparisonMode,
+    clearSelectedScenarios,
+    setCompareScreenActive,
+  ]);
 
   // Sync progress with isOpen state
   useEffect(() => {
