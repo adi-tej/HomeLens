@@ -9,7 +9,7 @@ import { useLeftDrawer, useRightDrawer } from "../state/useDrawer";
 import Drawer from "../components/Drawer";
 import AppHeader from "../components/AppHeader";
 import { BottomNavigator } from "./BottomNavigator";
-import ScenarioHandler from "../components/ScenarioHandler";
+import ScenarioManager from "../screens/ScenarioManager";
 import MainMenu from "../components/MainMenu";
 
 export function RootNavigator() {
@@ -45,7 +45,7 @@ export function RootNavigator() {
       </Drawer>
       <Drawer side="right">
         <View style={{ flex: 1 }}>
-          <ScenarioHandler />
+          <ScenarioManager />
         </View>
       </Drawer>
     </>

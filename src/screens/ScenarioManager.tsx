@@ -10,10 +10,10 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { spacing } from "../theme/spacing";
 import { useScenarios } from "../state/ScenarioContext";
-import Scenario from "./Scenario";
-import Compare from "./Compare";
+import Scenario from "../components/Scenario";
+import Compare from "../components/Compare";
 
-export default function ScenarioHandler() {
+export default function ScenarioManager() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const {
