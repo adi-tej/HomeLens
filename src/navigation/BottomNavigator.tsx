@@ -7,7 +7,7 @@ import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-import Matrix from "../screens/Matrix";
+import Insights from "../screens/Insights";
 import Help from "../screens/Help";
 import Calculator from "../screens/Calculator";
 
@@ -17,11 +17,11 @@ type MCIconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 
 const iconNameMap: Record<string, MCIconName> = {
     Calculator: "calculator-variant",
-    Matrix: "view-grid-outline",
+    Insights: "view-grid-outline",
     Help: "help-circle-outline",
 };
 
-type RouteName = "Calculator" | "Matrix" | "Help";
+type RouteName = "Calculator" | "Insights" | "Help";
 
 function screenOptionsFactory(theme: MD3Theme) {
     return ({
@@ -52,7 +52,7 @@ export function BottomNavigator() {
         <View style={styles.root}>
             <Tab.Navigator screenOptions={screenOptionsFactory(theme)}>
                 <Tab.Screen name="Calculator" component={Calculator} />
-                <Tab.Screen name="Matrix" component={Matrix} />
+                <Tab.Screen name="Insights" component={Insights} />
                 <Tab.Screen name="Help" component={Help} />
             </Tab.Navigator>
         </View>

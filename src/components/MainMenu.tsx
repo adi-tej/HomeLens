@@ -51,7 +51,7 @@ export default function MainMenu() {
                     onPress={() => navigateTo("Calculator")}
                 />
                 <List.Item
-                    title="Prediction Matrix"
+                    title="Prediction Insights"
                     left={(p) => <List.Icon {...p} icon="view-grid-outline" />}
                     onPress={() => navigateTo("Scenarios")}
                 />

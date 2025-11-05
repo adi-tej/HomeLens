@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
 import ScreenContainer from "../components/primitives/ScreenContainer";
 
-export default function Matrix() {
+export default function Insights() {
     return (
         <View style={styles.container}>
             <ScreenContainer>
