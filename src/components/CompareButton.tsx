@@ -12,7 +12,7 @@ type Props = {
   onProceed: () => void;
 };
 
-export default function Compare({
+export default function CompareButton({
   comparisonMode,
   selectedCount,
   scenariosCount,

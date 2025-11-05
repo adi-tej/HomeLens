@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { spacing } from "../theme/spacing";
 import { useScenarios } from "../state/ScenarioContext";
 import Scenario from "../components/Scenario";
-import Compare from "../components/Compare";
+import CompareButton from "../components/CompareButton";
 
 export default function ScenarioManager() {
   const theme = useTheme();
@@ -158,7 +158,7 @@ export default function ScenarioManager() {
       </ScrollView>
 
       {/* Compare / Proceed & Cancel buttons */}
-      <Compare
+      <CompareButton
         comparisonMode={comparisonMode}
         selectedCount={selectedScenarios.size}
         scenariosCount={scenarios.length}
