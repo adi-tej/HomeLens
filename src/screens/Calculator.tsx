@@ -4,13 +4,13 @@ import { Divider, Text, useTheme } from "react-native-paper";
 import {
     CurrencySelect,
     DepositInput,
+    PercentageInput,
     Select,
     Toggle,
 } from "../components/inputs";
 import ScreenContainer from "../components/primitives/ScreenContainer";
 import { formatCurrency } from "../utils/parser";
 import {
-    type Occupancy,
     type PropertyType,
     validateMortgageData,
 } from "../utils/mortgageCalculator";
@@ -22,6 +22,7 @@ export default function Calculator() {
     const { currentScenario, currentScenarioId, updateScenarioData } =
         useScenarios();
     const [touched, setTouched] = useState(false);
+    const [showAdvanced, setShowAdvanced] = useState(false);
 
     if (!currentScenario || !currentScenarioId) {
         return (
@@ -41,6 +42,9 @@ export default function Calculator() {
     const updateData = (updates: Partial<typeof data>) => {
         updateScenarioData(currentScenarioId, updates);
     };
+
+    // Check if this is an investment property
+    const isInvestment = !data.isLivingHere;
 
     // Use stored calculated values from scenario data
     const {
@@ -76,16 +80,44 @@ export default function Calculator() {
                         ]}
                     />
                 </View>
+
+                {/* First home buyer */}
                 <Toggle
                     label="First home buyer?"
                     checked={data.firstHomeBuyer}
                     onToggle={() => {
-                        updateData({ firstHomeBuyer: !data.firstHomeBuyer });
-                        if (!data.firstHomeBuyer) {
-                            // When enabling FHB, set occupancy to owner
-                            updateData({ occupancy: "owner" });
-                        }
+                        const newFHB = !data.firstHomeBuyer;
+                        updateData({
+                            firstHomeBuyer: newFHB,
+                            ...(newFHB && {
+                                isLivingHere: true,
+                                isOwnerOccupiedLoan: true,
+                            }),
+                        });
                     }}
+                />
+
+                {/* Occupancy */}
+                <Toggle
+                    label="I'm living here"
+                    checked={data.isLivingHere}
+                    onToggle={() => {
+                        const newIsLivingHere = !data.isLivingHere;
+                        // Calculate interest rate based on loan type and repayment type
+                        let newRate = 5.5; // Default: owner-occupied P&I
+                        if (newIsLivingHere) {
+                            newRate = data.isInterestOnly ? 5.8 : 5.5;
+                        } else {
+                            newRate = data.isInterestOnly ? 6.3 : 6.0;
+                        }
+                        updateData({
+                            isLivingHere: newIsLivingHere,
+                            // Set smart defaults based on living situation
+                            isOwnerOccupiedLoan: newIsLivingHere,
+                            loanInterest: newRate,
+                        });
+                    }}
+                    disabled={data.firstHomeBuyer}
                 />
 
                 {/* Property Value */}
@@ -103,42 +135,218 @@ export default function Calculator() {
                     onChange={(v) => updateData({ deposit: v })}
                 />
 
-                {/* Occupancy */}
-                <Select
-                    label="Occupancy"
-                    value={data.firstHomeBuyer ? "owner" : data.occupancy}
-                    onChange={(v) => {
-                        if (data.firstHomeBuyer) return; // freeze to owner when FHB
-                        if (v === "owner" || v === "investment")
-                            updateData({ occupancy: v as Occupancy });
-                        else updateData({ occupancy: "" });
-                    }}
-                    options={[
-                        { label: "Owner-Occupied", value: "owner" },
-                        { label: "Investment", value: "investment" },
-                    ]}
-                    disabled={data.firstHomeBuyer}
-                />
-
                 {/* Property Type */}
                 <Select
                     label="Property type"
                     value={data.propertyType}
                     onChange={(v) => {
                         if (
-                            v === "brandnew" ||
-                            v === "existing" ||
+                            v === "house" ||
+                            v === "townhouse" ||
+                            v === "apartment" ||
                             v === "land"
                         )
                             updateData({ propertyType: v as PropertyType });
                         else updateData({ propertyType: "" });
                     }}
                     options={[
-                        { label: "Brand New", value: "brandnew" },
-                        { label: "Existing", value: "existing" },
+                        { label: "House", value: "house" },
+                        { label: "Townhouse", value: "townhouse" },
+                        { label: "Apartment", value: "apartment" },
                         { label: "Land", value: "land" },
                     ]}
                 />
+
+                {/* Brand New / Existing */}
+                <Toggle
+                    label="Brand new property"
+                    checked={data.isBrandNew}
+                    onToggle={() =>
+                        updateData({ isBrandNew: !data.isBrandNew })
+                    }
+                />
+
+                {/* Advanced Section Toggle */}
+                <Divider
+                    style={[
+                        styles.divider,
+                        {
+                            backgroundColor: theme.colors.outline,
+                            marginTop: spacing.sm,
+                        },
+                    ]}
+                />
+                <Toggle
+                    label="Advanced options"
+                    checked={showAdvanced}
+                    onToggle={() => setShowAdvanced(!showAdvanced)}
+                />
+
+                {/* Advanced Section Content */}
+                {showAdvanced && (
+                    <View
+                        style={[
+                            styles.advancedContent,
+                            { backgroundColor: theme.colors.surface },
+                        ]}
+                    >
+                        {/* Loan Settings */}
+                        <Text
+                            variant="labelLarge"
+                            style={{
+                                color: theme.colors.primary,
+                                marginBottom: spacing.xs,
+                            }}
+                        >
+                            Loan Settings
+                        </Text>
+
+                        <Toggle
+                            label="Owner-occupied loan"
+                            checked={data.isOwnerOccupiedLoan}
+                            onToggle={() => {
+                                const newIsOwnerOccupied =
+                                    !data.isOwnerOccupiedLoan;
+                                // Calculate interest rate: owner-occupied (5.5/5.8) vs investment (6.0/6.3)
+                                let newRate;
+                                if (newIsOwnerOccupied) {
+                                    newRate = data.isInterestOnly ? 5.8 : 5.5;
+                                } else {
+                                    newRate = data.isInterestOnly ? 6.3 : 6.0;
+                                }
+                                updateData({
+                                    isOwnerOccupiedLoan: newIsOwnerOccupied,
+                                    loanInterest: newRate,
+                                });
+                            }}
+                        />
+
+                        <Toggle
+                            label="Interest only"
+                            checked={data.isInterestOnly}
+                            onToggle={() => {
+                                const newIsInterestOnly = !data.isInterestOnly;
+                                // Calculate interest rate: P&I vs Interest Only (+0.3%)
+                                let newRate;
+                                if (data.isOwnerOccupiedLoan) {
+                                    newRate = newIsInterestOnly ? 5.8 : 5.5;
+                                } else {
+                                    newRate = newIsInterestOnly ? 6.3 : 6.0;
+                                }
+                                updateData({
+                                    isInterestOnly: newIsInterestOnly,
+                                    loanInterest: newRate,
+                                });
+                            }}
+                        />
+
+                        <CurrencySelect
+                            label="Interest rate (% p.a.)"
+                            value={data.loanInterest}
+                            onChange={(v) =>
+                                updateData({ loanInterest: v || 5.5 })
+                            }
+                            allowPresets={false}
+                        />
+
+                        <CurrencySelect
+                            label="Loan term (years)"
+                            value={data.loanTerm}
+                            onChange={(v) => updateData({ loanTerm: v || 30 })}
+                            allowPresets={false}
+                        />
+
+                        <Text style={styles.helpText}>
+                            💡 Owner-occupied loans typically have lower
+                            interest rates than investment loans.
+                        </Text>
+
+                        {/* Property Details */}
+                        <Divider
+                            style={[
+                                styles.sectionDivider,
+                                {
+                                    backgroundColor:
+                                        theme.colors.outlineVariant,
+                                },
+                            ]}
+                        />
+
+                        <Text
+                            variant="labelLarge"
+                            style={{
+                                color: theme.colors.primary,
+                                marginBottom: spacing.xs,
+                            }}
+                        >
+                            Property Details
+                        </Text>
+
+                        <CurrencySelect
+                            label="Strata levy (per quarter)"
+                            value={data.strataFees}
+                            onChange={(v) => updateData({ strataFees: v })}
+                            allowPresets={false}
+                        />
+
+                        {/* Rental Income - Only show if investment */}
+                        {isInvestment && (
+                            <>
+                                <CurrencySelect
+                                    label="Weekly rent"
+                                    value={data.rentalIncome}
+                                    onChange={(v) =>
+                                        updateData({ rentalIncome: v })
+                                    }
+                                    allowPresets={false}
+                                />
+
+                                <CurrencySelect
+                                    label="Annual rent increase ($/week)"
+                                    value={data.rentalGrowth}
+                                    onChange={(v) =>
+                                        updateData({ rentalGrowth: v || 30 })
+                                    }
+                                    allowPresets={false}
+                                />
+                            </>
+                        )}
+
+                        {/* Assumptions */}
+                        <Divider
+                            style={[
+                                styles.sectionDivider,
+                                {
+                                    backgroundColor:
+                                        theme.colors.outlineVariant,
+                                },
+                            ]}
+                        />
+
+                        <Text
+                            variant="labelLarge"
+                            style={{
+                                color: theme.colors.primary,
+                                marginBottom: spacing.xs,
+                            }}
+                        >
+                            Assumptions
+                        </Text>
+
+                        <PercentageInput
+                            label="Annual property growth (%)"
+                            value={data.capitalGrowth}
+                            onChange={(v) =>
+                                updateData({ capitalGrowth: v || 3 })
+                            }
+                            presets={[2, 3, 5, 8, 10]}
+                        />
+
+                        <Text style={styles.helpText}>
+                            💡 For future value estimates and scenario planning.
+                        </Text>
+                    </View>
+                )}
 
                 {touched && isInvalid && (
                     <Text style={{ color: theme.colors.error }}>
@@ -146,7 +354,6 @@ export default function Calculator() {
                             errors.propertyValue && `• ${errors.propertyValue}`,
                             errors.deposit && `• ${errors.deposit}`,
                             errors.depositTooBig && `• ${errors.depositTooBig}`,
-                            errors.occupancy && `• ${errors.occupancy}`,
                             errors.propertyType && `• ${errors.propertyType}`,
                             !data.propertyValue &&
                                 touched &&
@@ -192,6 +399,11 @@ export default function Calculator() {
                             key: "loan",
                             label: "Total loan amount",
                             value: formatCurrency(totalLoan),
+                        },
+                        {
+                            key: "interest",
+                            label: "Interest rate",
+                            value: `${data.loanInterest || 5.5}% p.a.`,
                         },
                         {
                             key: "mm",
@@ -255,10 +467,11 @@ export default function Calculator() {
                             style={{
                                 color: theme.colors.onSurfaceVariant,
                                 fontSize: 12,
+                                lineHeight: 18,
                             }}
                         >
-                            Assumes fixed 5.5% p.a. interest and 30-year term.
-                            Values are estimates.
+                            💡 Loan amount includes stamp duty & LMI.{"\n"}
+                            {"      "}Values are estimates.
                         </Text>
                     </View>
                 </View>
@@ -283,5 +496,20 @@ const styles = StyleSheet.create({
         display: "flex",
         flexDirection: "column",
         gap: spacing.md,
+    },
+    advancedContent: {
+        padding: spacing.md,
+        borderRadius: 8,
+        gap: spacing.md,
+        marginTop: spacing.xs,
+    },
+    sectionDivider: {
+        height: 1,
+        marginVertical: spacing.sm,
+    },
+    helpText: {
+        fontSize: 12,
+        fontStyle: "italic",
+        marginTop: spacing.xs,
     },
 });

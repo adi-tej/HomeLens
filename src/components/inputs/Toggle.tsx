@@ -7,10 +7,12 @@ export function Toggle({
     label,
     checked,
     onToggle,
+    disabled = false,
 }: {
     label: string;
     checked: boolean;
     onToggle: () => void;
+    disabled?: boolean;
 }) {
     const theme = useTheme();
     const size = 24;
@@ -19,10 +21,10 @@ export function Toggle({
     return (
         <View style={styles.row}>
             <Pressable
-                onPress={onToggle}
+                onPress={disabled ? undefined : onToggle}
                 hitSlop={8}
                 accessibilityRole="checkbox"
-                accessibilityState={{ checked }}
+                accessibilityState={{ checked, disabled }}
                 accessibilityLabel={label}
                 style={[
                     styles.box,
@@ -30,10 +32,15 @@ export function Toggle({
                         width: size,
                         height: size,
                         borderRadius: radius,
-                        borderColor: theme.colors.outline,
+                        borderColor: disabled
+                            ? theme.colors.outlineVariant
+                            : theme.colors.outline,
                         backgroundColor: checked
-                            ? theme.colors.primary
+                            ? disabled
+                                ? theme.colors.surfaceDisabled
+                                : theme.colors.primary
                             : theme.colors.surface,
+                        opacity: disabled ? 0.5 : 1,
                     },
                 ]}
             >
@@ -45,7 +52,10 @@ export function Toggle({
                     />
                 ) : null}
             </Pressable>
-            <Text style={styles.label} onPress={onToggle}>
+            <Text
+                style={[styles.label, { opacity: disabled ? 0.5 : 1 }]}
+                onPress={disabled ? undefined : onToggle}
+            >
                 {label}
             </Text>
         </View>

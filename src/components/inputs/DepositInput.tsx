@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { Keyboard, Platform, StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
 import { spacing } from "../../theme/spacing";
 import { formatCurrency, parseNumber } from "../../utils/parser";
-import NativeSelectModal, { Option } from "../primitives/NativeSelectModal";
+import { PercentageInput } from "./PercentageInput";
 
 export type DepositInputProps = {
     propertyValue?: number;
@@ -18,7 +18,6 @@ export function DepositInput({
     deposit,
     onChange,
 }: DepositInputProps) {
-    const [percentOpen, setPercentOpen] = useState(false);
     const [percentText, setPercentText] = useState<string>("");
     const [currencyText, setCurrencyText] = useState<string>(
         deposit != null ? formatCurrency(deposit) : "",
@@ -26,7 +25,15 @@ export function DepositInput({
     const [inputMode, setInputMode] = useState<"currency" | "percent" | null>(
         null,
     );
+    const inputModeRef = React.useRef<"currency" | "percent" | null>(null);
+    const percentTextRef = React.useRef<string>("");
     const theme = useTheme();
+
+    // Keep refs in sync
+    React.useEffect(() => {
+        inputModeRef.current = inputMode;
+        percentTextRef.current = percentText;
+    }, [inputMode, percentText]);
 
     // derive percent from deposit and property value
     const derivedPercent = useMemo(() => {
@@ -36,34 +43,44 @@ export function DepositInput({
         return String(Math.round(p * 10) / 10);
     }, [propertyValue, deposit]);
 
-    // keep local text in sync with props
+    // Recalculate deposit from percentage when property value changes
     React.useEffect(() => {
-        setCurrencyText(deposit != null ? formatCurrency(deposit) : "");
+        if (!propertyValue) return;
 
-        if (!propertyValue) {
-            // Do not wipe user-entered percent when property value is missing
-            return;
-        }
-
-        // If user is in percent mode, recalculate deposit when property value changes
-        if (inputMode === "percent" && percentText) {
-            const parsed = parseNumber(percentText);
+        // If user entered a percentage, recalculate deposit when property value changes
+        if (inputModeRef.current === "percent" && percentTextRef.current) {
+            const parsed = parseNumber(percentTextRef.current);
             if (parsed != null) {
                 const val = Math.round((parsed / 100) * propertyValue);
-                onChange(val);
+                // Only update if the calculated value is different from current deposit
+                if (val !== deposit) {
+                    onChange(val);
+                }
             }
-            return;
         }
+    }, [propertyValue, deposit]);
 
-        // Otherwise derive percent from deposit (currency mode)
-        if (deposit != null && propertyValue > 0) {
+    // Sync currency text with deposit prop
+    React.useEffect(() => {
+        setCurrencyText(deposit != null ? formatCurrency(deposit) : "");
+    }, [deposit]);
+
+    // Derive percent from deposit when in currency mode
+    React.useEffect(() => {
+        if (
+            inputModeRef.current === "currency" &&
+            deposit != null &&
+            propertyValue &&
+            propertyValue > 0
+        ) {
             setPercentText(derivedPercent);
         }
-    }, [propertyValue, derivedPercent]);
+    }, [derivedPercent, deposit, propertyValue]);
 
     const handleCurrencyChange = (t: string) => {
         setCurrencyText(t);
         setInputMode("currency");
+        inputModeRef.current = "currency";
         const parsed = parseNumber(t);
         if (parsed != null) {
             onChange(parsed);
@@ -72,31 +89,22 @@ export function DepositInput({
         }
     };
 
-    const applyPercent = (p: number) => {
-        if (!propertyValue || propertyValue <= 0) return;
+    const applyPercent = (p: number | undefined) => {
+        if (!p || !propertyValue || propertyValue <= 0) return;
         const val = Math.round((p / 100) * propertyValue);
         onChange(val);
     };
 
-    const handlePercentChange = (t: string) => {
+    const handlePercentChangeRaw = (t: string) => {
         setPercentText(t);
+        percentTextRef.current = t;
         setInputMode("percent");
+        inputModeRef.current = "percent";
         const parsed = parseNumber(t);
         if (parsed != null) {
             applyPercent(parsed);
         }
     };
-
-    const percentOptions: Option[] = PERCENT_PRESETS.map((p) => ({
-        label: `${p}%`,
-        value: p,
-    }));
-
-    const [percentFocused, setPercentFocused] = useState(false);
-    const percentActive = percentOpen || percentFocused;
-    const percentOutlineColor = percentActive
-        ? theme.colors.primary
-        : theme.colors.outline;
 
     return (
         <View>
@@ -118,49 +126,25 @@ export function DepositInput({
 
                 <View style={styles.gap} />
 
-                <TextInput
-                    mode="outlined"
-                    label="%"
-                    placeholder="%"
-                    value={percentText}
-                    onChangeText={handlePercentChange}
-                    onFocus={() => setPercentFocused(true)}
-                    onBlur={() => setPercentFocused(false)}
-                    keyboardType={Platform.select({
-                        ios: "decimal-pad",
-                        android: "numeric",
-                    })}
-                    contentStyle={{ paddingRight: 8 }}
-                    right={
-                        <TextInput.Icon
-                            icon="chevron-down"
-                            onPress={() => {
-                                if (!percentOptions.length) return;
-                                Keyboard.dismiss();
-                                setPercentOpen(true);
-                            }}
-                            forceTextInputFocus={false}
-                        />
-                    }
-                    outlineColor={percentOutlineColor}
-                    activeOutlineColor={theme.colors.primary}
-                    outlineStyle={{ borderWidth: percentActive ? 2 : 1 }}
-                    style={styles.percent}
-                />
+                <View style={styles.percent}>
+                    <PercentageInput
+                        label="%"
+                        value={undefined}
+                        displayValue={percentText}
+                        onChange={(v) => {
+                            if (v !== undefined) {
+                                setPercentText(v.toString());
+                                percentTextRef.current = v.toString();
+                                setInputMode("percent");
+                                inputModeRef.current = "percent";
+                                applyPercent(v);
+                            }
+                        }}
+                        onChangeRaw={handlePercentChangeRaw}
+                        presets={PERCENT_PRESETS}
+                    />
+                </View>
             </View>
-
-            <NativeSelectModal
-                visible={percentOpen}
-                options={percentOptions}
-                onSelect={(o) => {
-                    const p = Number(o.value);
-                    setPercentText(String(p));
-                    setInputMode("percent");
-                    applyPercent(p);
-                    setPercentOpen(false);
-                }}
-                onCancel={() => setPercentOpen(false)}
-            />
         </View>
     );
 }

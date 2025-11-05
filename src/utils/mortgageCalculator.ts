@@ -2,22 +2,30 @@
 import { calculateStampDuty } from "./stampDuty";
 import { calculateLMI } from "./lmi";
 
-export type Occupancy = "" | "owner" | "investment";
-export type PropertyType = "" | "brandnew" | "existing" | "land";
+export type PropertyType = "" | "house" | "townhouse" | "apartment" | "land";
 
 export interface MortgageData {
-    // Input values
+    // Basic input values
     propertyValue?: number;
     deposit?: number;
     firstHomeBuyer: boolean;
-    occupancy: Occupancy;
+    isLivingHere: boolean;
     propertyType: PropertyType;
+    isBrandNew: boolean;
+    // Advanced input values
+    isOwnerOccupiedLoan: boolean;
+    isInterestOnly: boolean;
+    loanTerm: number;
+    loanInterest: number;
+    rentalIncome?: number;
+    rentalGrowth: number;
+    strataFees?: number;
+    capitalGrowth: number;
     // Calculated values (stored)
     stampDuty?: number;
     lvr?: number;
     lmi?: number;
     totalLoan?: number;
-    loanInterest?: number;
     monthlyMortgage?: number;
     annualPrincipal?: number;
     annualInterest?: number;
@@ -25,11 +33,7 @@ export interface MortgageData {
 
 export type MortgageErrors = Partial<
     Record<
-        | "propertyValue"
-        | "deposit"
-        | "depositTooBig"
-        | "occupancy"
-        | "propertyType",
+        "propertyValue" | "deposit" | "depositTooBig" | "propertyType",
         string
     >
 >;
@@ -42,9 +46,7 @@ export function validateMortgageData(data: MortgageData): MortgageErrors {
         e.deposit = "Enter or select a valid deposit.";
     if (data.propertyValue && data.deposit && data.deposit > data.propertyValue)
         e.depositTooBig = "Deposit cannot exceed property value.";
-    if (!data.occupancy) e.occupancy = "Select Owner-Occupied or Investment.";
-    if (!data.propertyType)
-        e.propertyType = "Select Brand New, Existing or Land.";
+    if (!data.propertyType) e.propertyType = "Select a property type.";
     return e;
 }
 
@@ -77,11 +79,21 @@ export function calculateMortgageData(
 
     const totalLoan = baseLoan + (Number.isFinite(lmi) ? lmi : 0);
 
-    const loanInterest = 5.5;
+    const loanInterest = inputData.loanInterest || 5.5;
+    const loanTermYears = inputData.loanTerm || 30;
 
-    const monthlyMortgage = monthlyRepayment(totalLoan, loanInterest, 30);
+    const monthlyMortgage = monthlyRepayment(
+        totalLoan,
+        loanInterest,
+        loanTermYears,
+    );
 
-    const breakdown = annualBreakdown(1, totalLoan, loanInterest, 30);
+    const breakdown = annualBreakdown(
+        1,
+        totalLoan,
+        loanInterest,
+        loanTermYears,
+    );
     const annualPrincipal = breakdown.principal;
     const annualInterest = breakdown.interest;
 
@@ -89,13 +101,31 @@ export function calculateMortgageData(
         propertyValue: inputData.propertyValue,
         deposit: inputData.deposit,
         firstHomeBuyer: inputData.firstHomeBuyer || false,
-        occupancy: inputData.occupancy || "",
-        propertyType: inputData.propertyType || "",
+        isLivingHere: inputData.isLivingHere || false,
+        propertyType: inputData.propertyType || "house",
+        isBrandNew: inputData.isBrandNew || false,
+        isOwnerOccupiedLoan: inputData.isOwnerOccupiedLoan ?? true,
+        isInterestOnly: inputData.isInterestOnly || false,
+        loanTerm: inputData.loanTerm || 30,
+        loanInterest:
+            inputData.loanInterest ||
+            (() => {
+                const isOwnerOccupied = inputData.isOwnerOccupiedLoan ?? true;
+                const isInterestOnly = inputData.isInterestOnly || false;
+                if (isOwnerOccupied) {
+                    return isInterestOnly ? 5.8 : 5.5;
+                } else {
+                    return isInterestOnly ? 6.3 : 6.0;
+                }
+            })(),
+        rentalIncome: inputData.rentalIncome ?? 600,
+        rentalGrowth: inputData.rentalGrowth || 30,
+        strataFees: inputData.strataFees ?? 1500,
+        capitalGrowth: inputData.capitalGrowth || 3,
         stampDuty,
         lvr,
         lmi,
         totalLoan,
-        loanInterest,
         monthlyMortgage,
         annualPrincipal,
         annualInterest,
