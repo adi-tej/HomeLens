@@ -1,5 +1,6 @@
 import React from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView as RNScrollView, StyleSheet, View } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import { Divider, IconButton, Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppContext } from "../state/AppContext";
@@ -51,9 +52,11 @@ export default function Compare() {
 
             <Divider style={{ marginBottom: spacing.md }} />
 
-            <ScrollView
+            <RNScrollView
                 style={styles.scrollView}
+                contentContainerStyle={styles.scrollViewContent}
                 showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
             >
                 {selectedScenarioList.length === 0 ? (
                     <View style={styles.emptyContainer}>
@@ -100,83 +103,84 @@ export default function Compare() {
                             </View>
 
                             {/* Right: horizontal scroll block containing header row and all data rows stacked vertically */}
-                            <ScrollView
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={
-                                    styles.horizontalScrollContent
-                                }
-                            >
-                                <View
-                                    style={{
-                                        width: Math.max(
-                                            selectedScenarioList.length *
-                                                TABLE_CONFIG.cellWidth,
-                                            200,
-                                        ),
-                                    }}
+                            <View style={{ flex: 1 }} pointerEvents="box-none">
+                                <ScrollView
+                                    horizontal
+                                    showsHorizontalScrollIndicator={false}
+                                    nestedScrollEnabled={true}
+                                    scrollEnabled={true}
+                                    style={{ flex: 1 }}
                                 >
-                                    {/* Header row */}
-                                    <View style={styles.headerRow}>
-                                        {selectedScenarioList.map(
-                                            (scenario) => (
-                                                <HeaderCell
-                                                    key={scenario.id}
-                                                    name={scenario.name}
-                                                    theme={theme}
-                                                />
-                                            ),
-                                        )}
-                                    </View>
-
-                                    <Divider />
-
-                                    {/* Data rows: for each metric, render a horizontal row of values aligned to the header columns */}
-                                    {comparisonRows.map((row, index) => (
-                                        <View
-                                            key={row.key}
-                                            style={[
-                                                styles.dataRow,
-                                                {
-                                                    borderBottomWidth:
-                                                        index ===
-                                                        comparisonRows.length -
-                                                            1
-                                                            ? 0
-                                                            : 1,
-                                                    borderBottomColor:
-                                                        theme.colors.outline,
-                                                    backgroundColor:
-                                                        row.highlight
-                                                            ? theme.colors
-                                                                  .secondaryContainer
-                                                            : theme.colors
-                                                                  .surfaceVariant,
-                                                },
-                                            ]}
-                                        >
+                                    <View
+                                        style={{
+                                            minWidth:
+                                                selectedScenarioList.length *
+                                                TABLE_CONFIG.cellWidth,
+                                        }}
+                                    >
+                                        {/* Header row */}
+                                        <View style={styles.headerRow}>
                                             {selectedScenarioList.map(
                                                 (scenario) => (
-                                                    <DataCell
+                                                    <HeaderCell
                                                         key={scenario.id}
-                                                        value={row.accessor(
-                                                            scenario,
-                                                        )}
-                                                        highlight={
-                                                            row.highlight
-                                                        }
+                                                        name={scenario.name}
                                                         theme={theme}
                                                     />
                                                 ),
                                             )}
                                         </View>
-                                    ))}
-                                </View>
-                            </ScrollView>
+
+                                        <Divider />
+
+                                        {/* Data rows: for each metric, render a horizontal row of values aligned to the header columns */}
+                                        {comparisonRows.map((row, index) => (
+                                            <View
+                                                key={row.key}
+                                                style={[
+                                                    styles.dataRow,
+                                                    {
+                                                        borderBottomWidth:
+                                                            index ===
+                                                            comparisonRows.length -
+                                                                1
+                                                                ? 0
+                                                                : 1,
+                                                        borderBottomColor:
+                                                            theme.colors
+                                                                .outline,
+                                                        backgroundColor:
+                                                            row.highlight
+                                                                ? theme.colors
+                                                                      .secondaryContainer
+                                                                : theme.colors
+                                                                      .surfaceVariant,
+                                                    },
+                                                ]}
+                                            >
+                                                {selectedScenarioList.map(
+                                                    (scenario) => (
+                                                        <DataCell
+                                                            key={scenario.id}
+                                                            value={row.accessor(
+                                                                scenario,
+                                                            )}
+                                                            highlight={
+                                                                row.highlight
+                                                            }
+                                                            theme={theme}
+                                                        />
+                                                    ),
+                                                )}
+                                            </View>
+                                        ))}
+                                    </View>
+                                </ScrollView>
+                            </View>
                         </View>
                     </View>
                 )}
-            </ScrollView>
+            </RNScrollView>
         </View>
     );
 }
@@ -198,6 +202,9 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flex: 1,
+    },
+    scrollViewContent: {
+        paddingBottom: spacing.xl,
     },
     emptyContainer: {
         flex: 1,
