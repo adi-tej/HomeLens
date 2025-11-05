@@ -6,6 +6,7 @@ import { useScenarios } from "../state/ScenarioContext";
 import { useAppContext } from "../state/AppContext";
 import { spacing } from "../theme/spacing";
 import { formatCurrency } from "../utils/parser";
+import ShareButton from "../components/ShareButton";
 
 const LABEL_WIDTH = 120; // fixed left label column width (configurable)
 const CELL_WIDTH = 130; // fixed per-scenario column width (configurable)
@@ -125,7 +126,7 @@ export default function Compare() {
                 <Text variant="titleLarge" style={styles.headerText}>
                     Compare Scenarios
                 </Text>
-                <View style={{ width: 48 }} />
+                <ShareButton data={rows} scenarios={selectedScenarioList} />
             </View>
 
             <Divider style={{ marginBottom: spacing.md }} />
