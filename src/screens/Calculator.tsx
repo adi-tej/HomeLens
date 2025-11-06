@@ -259,21 +259,29 @@ export default function Calculator() {
                             }}
                         />
 
-                        <PercentageInput
-                            label="Interest rate (% p.a.)"
-                            value={data.loanInterest}
-                            onChange={(v) =>
-                                updateData({ loanInterest: v || 5.5 })
-                            }
-                            presets={[5.5, 5.8, 6.0, 6.3, 6.5, 7.0]}
-                        />
-
-                        <CurrencySelect
-                            label="Loan term (years)"
-                            value={data.loanTerm}
-                            onChange={(v) => updateData({ loanTerm: v || 30 })}
-                            allowPresets={false}
-                        />
+                        <View style={styles.rowInputs}>
+                            <View style={styles.flexInput}>
+                                <PercentageInput
+                                    label="Interest rate (%)"
+                                    value={data.loanInterest}
+                                    onChange={(v) =>
+                                        updateData({ loanInterest: v || 5.5 })
+                                    }
+                                    presets={[5.5, 5.8, 6.0, 6.3, 6.5, 7.0]}
+                                />
+                            </View>
+                            <View style={styles.gap} />
+                            <View style={styles.flexInput}>
+                                <CurrencySelect
+                                    label="Loan term (years)"
+                                    value={data.loanTerm}
+                                    onChange={(v) =>
+                                        updateData({ loanTerm: v || 30 })
+                                    }
+                                    allowPresets={false}
+                                />
+                            </View>
+                        </View>
 
                         <Text style={styles.helpText}>
                             💡 Owner-occupied loans typically have lower
@@ -544,6 +552,16 @@ const styles = StyleSheet.create({
     sectionDivider: {
         height: 1,
         marginVertical: spacing.sm,
+    },
+    rowInputs: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    flexInput: {
+        flex: 1,
+    },
+    gap: {
+        width: spacing.md,
     },
     helpText: {
         fontSize: 12,
