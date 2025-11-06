@@ -215,6 +215,11 @@ export default function ScenarioManager() {
             <ScreenContainer
                 scrollProps={{
                     contentContainerStyle: styles.scrollContent,
+                    maintainVisibleContentPosition: {
+                        minIndexForVisible: 0,
+                        autoscrollToTopThreshold: 10,
+                    },
+                    disableScrollOnKeyboardHide: true,
                 }}
             >
                 {scenarios.map(renderScenario)}
@@ -222,6 +227,7 @@ export default function ScenarioManager() {
                 {!comparisonMode &&
                     (isAddingNew ? (
                         <ScenarioInput
+                            key="new-scenario-input"
                             value={newScenarioName}
                             onChangeText={setNewScenarioName}
                             onSubmit={handleAddScenario}
@@ -229,7 +235,10 @@ export default function ScenarioManager() {
                             onCancel={handleCancelAdd}
                         />
                     ) : (
-                        <View style={styles.addButtonContainer}>
+                        <View
+                            key="add-button"
+                            style={styles.addButtonContainer}
+                        >
                             <IconButton
                                 icon="plus"
                                 mode="contained"
