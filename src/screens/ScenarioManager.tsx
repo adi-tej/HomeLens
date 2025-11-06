@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Divider, IconButton, Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -36,84 +36,165 @@ export default function ScenarioManager() {
     );
     const [editScenarioName, setEditScenarioName] = useState("");
 
-    const handleAddScenario = () => {
+    // Prevent double submission on Android when both onSubmit and onBlur fire
+    const submitLockRef = useRef(false);
+
+    // Generic handler for form submission with debounce protection
+    const handleSubmit = useCallback((action: () => void) => {
+        if (submitLockRef.current) return;
+
+        submitLockRef.current = true;
+        action();
+
+        setTimeout(() => {
+            submitLockRef.current = false;
+        }, 100);
+    }, []);
+
+    // Add new scenario handlers
+    const addScenario = useCallback(() => {
+        const trimmedName = newScenarioName.trim();
+        if (!trimmedName) return;
+
+        createScenario(trimmedName);
+        setNewScenarioName("");
+        setIsAddingNew(false);
+    }, [newScenarioName, createScenario]);
+
+    const handleAddScenario = useCallback(() => {
+        handleSubmit(addScenario);
+    }, [handleSubmit, addScenario]);
+
+    const handleAddBlur = useCallback(() => {
+        if (submitLockRef.current) return;
+
         if (newScenarioName.trim()) {
-            createScenario(newScenarioName.trim());
-            setNewScenarioName("");
-            setIsAddingNew(false);
-        }
-    };
-
-    const handleBlur = () => {
-        if (newScenarioName.trim()) {
-            handleAddScenario();
+            handleSubmit(addScenario);
         } else {
-            // Cancel if input is empty
             setIsAddingNew(false);
             setNewScenarioName("");
         }
-    };
+    }, [newScenarioName, handleSubmit, addScenario]);
 
-    const handleScenarioPress = (scenarioId: string) => {
-        if (!comparisonMode) {
-            setCurrentScenario(scenarioId);
-        }
-    };
+    const handleCancelAdd = useCallback(() => {
+        setIsAddingNew(false);
+        setNewScenarioName("");
+    }, []);
 
-    const handleCompareToggle = () => {
-        if (comparisonMode) {
-            // Exit comparison mode
-            setComparisonMode(false);
-            clearSelectedScenarios();
+    // Edit scenario handlers
+    const saveEdit = useCallback(() => {
+        const trimmedName = editScenarioName.trim();
+        if (!editingScenarioId || !trimmedName) return;
+
+        updateScenario(editingScenarioId, { name: trimmedName });
+        setEditingScenarioId(null);
+        setEditScenarioName("");
+    }, [editingScenarioId, editScenarioName, updateScenario]);
+
+    const handleSaveEdit = useCallback(() => {
+        handleSubmit(saveEdit);
+    }, [handleSubmit, saveEdit]);
+
+    const handleEditBlur = useCallback(() => {
+        if (submitLockRef.current) return;
+
+        if (editScenarioName.trim()) {
+            handleSubmit(saveEdit);
         } else {
-            // Enter comparison mode
-            setComparisonMode(true);
-        }
-    };
-
-    const handleProceed = () => {
-        console.log(
-            "Proceeding with selected scenarios:",
-            Array.from(selectedScenarios),
-        );
-        // Open the Compare panel inside the right drawer
-        setCompareScreenActive(true);
-    };
-
-    const handleLongPress = (scenarioId: string, currentName: string) => {
-        if (!comparisonMode) {
-            setEditingScenarioId(scenarioId);
-            setEditScenarioName(currentName);
-        }
-    };
-
-    const handleSaveEdit = () => {
-        if (editingScenarioId && editScenarioName.trim()) {
-            updateScenario(editingScenarioId, {
-                name: editScenarioName.trim(),
-            });
             setEditingScenarioId(null);
             setEditScenarioName("");
         }
-    };
+    }, [editScenarioName, handleSubmit, saveEdit]);
 
-    const handleCancelEdit = () => {
+    const handleCancelEdit = useCallback(() => {
         setEditingScenarioId(null);
         setEditScenarioName("");
-    };
+    }, []);
 
-    const handleCancelAdd = () => {
-        setIsAddingNew(false);
-        setNewScenarioName("");
-    };
+    // Scenario interaction handlers
+    const handleScenarioPress = useCallback(
+        (scenarioId: string) => {
+            if (!comparisonMode) {
+                setCurrentScenario(scenarioId);
+            }
+        },
+        [comparisonMode, setCurrentScenario],
+    );
 
-    const handleEditBlur = () => {
-        if (editScenarioName.trim()) {
-            handleSaveEdit();
-        } else {
-            handleCancelEdit();
+    const handleLongPress = useCallback(
+        (scenarioId: string, currentName: string) => {
+            if (!comparisonMode) {
+                setEditingScenarioId(scenarioId);
+                setEditScenarioName(currentName);
+            }
+        },
+        [comparisonMode],
+    );
+
+    // Comparison mode handlers
+    const handleCompareToggle = useCallback(() => {
+        setComparisonMode(!comparisonMode);
+        if (comparisonMode) {
+            clearSelectedScenarios();
         }
-    };
+    }, [comparisonMode, setComparisonMode, clearSelectedScenarios]);
+
+    const handleProceed = useCallback(() => {
+        setCompareScreenActive(true);
+    }, [setCompareScreenActive]);
+
+    const renderScenario = useCallback(
+        (scenario: ReturnType<typeof getAllScenarios>[number]) => {
+            const isEditing = editingScenarioId === scenario.id;
+
+            if (isEditing) {
+                return (
+                    <ScenarioInput
+                        key={scenario.id}
+                        value={editScenarioName}
+                        onChangeText={setEditScenarioName}
+                        onSubmit={handleSaveEdit}
+                        onBlur={handleEditBlur}
+                        onCancel={handleCancelEdit}
+                    />
+                );
+            }
+
+            return (
+                <Scenario
+                    key={scenario.id}
+                    scenario={scenario}
+                    isSelected={scenario.id === currentScenarioId}
+                    canDelete={scenarios.length > 1 && !comparisonMode}
+                    onPress={() => handleScenarioPress(scenario.id)}
+                    onDelete={() => deleteScenario(scenario.id)}
+                    onLongPress={() =>
+                        handleLongPress(scenario.id, scenario.name)
+                    }
+                    showCheckbox={comparisonMode}
+                    isChecked={selectedScenarios.has(scenario.id)}
+                    onToggleCheckbox={() =>
+                        toggleScenarioSelection(scenario.id)
+                    }
+                />
+            );
+        },
+        [
+            editingScenarioId,
+            editScenarioName,
+            currentScenarioId,
+            scenarios.length,
+            comparisonMode,
+            selectedScenarios,
+            handleScenarioPress,
+            deleteScenario,
+            handleLongPress,
+            toggleScenarioSelection,
+            handleSaveEdit,
+            handleEditBlur,
+            handleCancelEdit,
+        ],
+    );
 
     return (
         <View
@@ -129,55 +210,22 @@ export default function ScenarioManager() {
             <Text variant="titleMedium" style={styles.header}>
                 Scenarios
             </Text>
-            <Divider style={{ marginBottom: spacing.md }} />
+            <Divider style={styles.divider} />
 
             <ScreenContainer
                 scrollProps={{
-                    contentContainerStyle: {
-                        padding: 0,
-                        gap: 0,
-                    },
+                    contentContainerStyle: styles.scrollContent,
                 }}
             >
-                {/* Existing scenarios */}
-                {scenarios.map((scenario) =>
-                    editingScenarioId === scenario.id ? (
-                        <ScenarioInput
-                            key={scenario.id}
-                            value={editScenarioName}
-                            onChangeText={setEditScenarioName}
-                            onSubmit={handleSaveEdit}
-                            onBlur={handleEditBlur}
-                            onCancel={handleCancelEdit}
-                        />
-                    ) : (
-                        <Scenario
-                            key={scenario.id}
-                            scenario={scenario}
-                            isSelected={scenario.id === currentScenarioId}
-                            canDelete={scenarios.length > 1 && !comparisonMode}
-                            onPress={() => handleScenarioPress(scenario.id)}
-                            onDelete={() => deleteScenario(scenario.id)}
-                            onLongPress={() =>
-                                handleLongPress(scenario.id, scenario.name)
-                            }
-                            showCheckbox={comparisonMode}
-                            isChecked={selectedScenarios.has(scenario.id)}
-                            onToggleCheckbox={() =>
-                                toggleScenarioSelection(scenario.id)
-                            }
-                        />
-                    ),
-                )}
+                {scenarios.map(renderScenario)}
 
-                {/* Add new scenario section */}
                 {!comparisonMode &&
                     (isAddingNew ? (
                         <ScenarioInput
                             value={newScenarioName}
                             onChangeText={setNewScenarioName}
                             onSubmit={handleAddScenario}
-                            onBlur={handleBlur}
+                            onBlur={handleAddBlur}
                             onCancel={handleCancelAdd}
                         />
                     ) : (
@@ -213,6 +261,14 @@ const styles = StyleSheet.create({
     },
     header: {
         marginBottom: spacing.sm,
+    },
+    divider: {
+        marginBottom: spacing.md,
+    },
+    scrollContent: {
+        padding: 0,
+        gap: 0,
+        paddingBottom: spacing.xl * 3,
     },
     addButtonContainer: {
         alignItems: "center",
