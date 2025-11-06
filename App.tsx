@@ -8,12 +8,13 @@ import {
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { MD3Theme, PaperProvider } from "react-native-paper";
 import { StyleSheet, useColorScheme } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { RootNavigator } from "./src/navigation/RootNavigator";
-import { darkTheme, lightTheme } from "./src/theme/theme";
 import { ThemeMode, ThemeModeContext } from "./src/state/ThemeModeContext";
 import { AppProvider } from "./src/state/AppContext";
 import { ScenarioProvider } from "./src/state/ScenarioContext";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { darkTheme, lightTheme } from "./src/theme/theme";
 
 function toNavigationTheme(
     paper: MD3Theme,
@@ -48,19 +49,21 @@ export default function App() {
 
     return (
         <SafeAreaProvider>
-            <PaperProvider theme={paperTheme}>
-                <ThemeModeContext.Provider value={themeCtx}>
-                    <GestureHandlerRootView style={styles.flex}>
-                        <NavigationContainer theme={navTheme}>
-                            <AppProvider>
-                                <ScenarioProvider>
-                                    <RootNavigator />
-                                </ScenarioProvider>
-                            </AppProvider>
-                        </NavigationContainer>
-                    </GestureHandlerRootView>
-                </ThemeModeContext.Provider>
-            </PaperProvider>
+            <KeyboardProvider>
+                <PaperProvider theme={paperTheme}>
+                    <ThemeModeContext.Provider value={themeCtx}>
+                        <GestureHandlerRootView style={styles.flex}>
+                            <NavigationContainer theme={navTheme}>
+                                <AppProvider>
+                                    <ScenarioProvider>
+                                        <RootNavigator />
+                                    </ScenarioProvider>
+                                </AppProvider>
+                            </NavigationContainer>
+                        </GestureHandlerRootView>
+                    </ThemeModeContext.Provider>
+                </PaperProvider>
+            </KeyboardProvider>
         </SafeAreaProvider>
     );
 }

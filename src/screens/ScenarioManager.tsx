@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Divider, IconButton, Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import ScreenContainer from "../components/primitives/ScreenContainer";
 import { useAppContext } from "../state/AppContext";
 import { useScenarios } from "../state/ScenarioContext";
 import Scenario from "../components/Scenario";
@@ -130,9 +131,13 @@ export default function ScenarioManager() {
             </Text>
             <Divider style={{ marginBottom: spacing.md }} />
 
-            <ScrollView
-                style={styles.scrollView}
-                showsVerticalScrollIndicator={false}
+            <ScreenContainer
+                scrollProps={{
+                    contentContainerStyle: {
+                        padding: 0,
+                        gap: 0,
+                    },
+                }}
             >
                 {/* Existing scenarios */}
                 {scenarios.map((scenario) =>
@@ -188,9 +193,8 @@ export default function ScenarioManager() {
                             />
                         </View>
                     ))}
-            </ScrollView>
+            </ScreenContainer>
 
-            {/* Compare / Proceed & Cancel buttons */}
             <CompareButton
                 comparisonMode={comparisonMode}
                 selectedCount={selectedScenarios.size}
@@ -210,43 +214,11 @@ const styles = StyleSheet.create({
     header: {
         marginBottom: spacing.sm,
     },
-    scrollView: {
-        flexGrow: 1,
-        flexShrink: 1,
-    },
-    inputContainer: {
-        marginBottom: spacing.md,
-    },
-    inputField: {
-        backgroundColor: "transparent",
-    },
     addButtonContainer: {
         alignItems: "center",
         paddingVertical: spacing.lg,
     },
     addButton: {
         margin: 0,
-    },
-    compareButtonContainer: {
-        alignItems: "center",
-        paddingTop: spacing.lg,
-        borderTopWidth: 1,
-        borderTopColor: "rgba(0,0,0,0.1)",
-    },
-    buttonRow: {
-        flexDirection: "row",
-        justifyContent: "space-evenly",
-        width: "100%",
-        gap: spacing.xl,
-    },
-    buttonWithLabel: {
-        alignItems: "center",
-    },
-    compareButton: {
-        margin: 0,
-    },
-    compareButtonText: {
-        marginTop: spacing.xs,
-        fontWeight: "600",
     },
 });

@@ -1,40 +1,33 @@
 import React, { PropsWithChildren } from "react";
-import {
-    ScrollView,
-    ScrollViewProps,
-    StyleSheet,
-    View,
-    ViewProps,
-} from "react-native";
+import { StyleSheet, View, ViewProps } from "react-native";
+import type { KeyboardAwareScrollViewProps } from "react-native-keyboard-controller";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { spacing } from "../../theme/spacing";
 
 export type ScreenContainerProps = PropsWithChildren<{
     scroll?: boolean;
-    contentInsetBottom?: number;
-    scrollProps?: ScrollViewProps;
+    scrollProps?: KeyboardAwareScrollViewProps;
     viewProps?: ViewProps;
 }>;
 
 export default function ScreenContainer({
     children,
     scroll = true,
-    contentInsetBottom = spacing.xl,
     scrollProps,
     viewProps,
 }: ScreenContainerProps) {
     if (scroll) {
         return (
-            <ScrollView
+            <KeyboardAwareScrollView
                 style={styles.scroll}
                 contentContainerStyle={styles.content}
-                keyboardShouldPersistTaps="handled"
-                contentInset={{ bottom: contentInsetBottom }}
-                scrollIndicatorInsets={{ bottom: contentInsetBottom }}
+                bottomOffset={40}
                 showsVerticalScrollIndicator={false}
+                disableScrollOnKeyboardHide={false}
                 {...scrollProps}
             >
                 {children}
-            </ScrollView>
+            </KeyboardAwareScrollView>
         );
     }
     return (

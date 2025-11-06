@@ -1,5 +1,4 @@
 import React from "react";
-import { View } from "react-native";
 import Reanimated, {
     Extrapolation,
     interpolate,
@@ -46,9 +45,7 @@ export function RootNavigator() {
             </Drawer>
 
             <Drawer side="right">
-                <View style={{ flex: 1 }}>
-                    <ScenarioManager />
-                </View>
+                <ScenarioManager />
             </Drawer>
 
             <CompareOverlay />
