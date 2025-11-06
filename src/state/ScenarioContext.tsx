@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { type MortgageData } from "../utils/mortgageCalculator";
 import { calculateMortgageData } from "../hooks/useMortgageCalculations";
+import { getDefaultMortgageData } from "../utils/mortgageDefaults";
 
 export type ScenarioId = string;
 
@@ -54,20 +55,7 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
                 name: "My first property",
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
-                data: {
-                    firstHomeBuyer: false,
-                    isLivingHere: false,
-                    propertyType: "house",
-                    isBrandNew: false,
-                    isOwnerOccupiedLoan: true,
-                    isInterestOnly: false,
-                    loanTerm: 30,
-                    loanInterest: 5.5,
-                    rentalIncome: 600,
-                    rentalGrowth: 30,
-                    strataFees: 1500,
-                    capitalGrowth: 3,
-                },
+                data: getDefaultMortgageData(),
             };
             return new Map([[defaultId, defaultScenario]]);
         },
@@ -105,32 +93,16 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
         const newScenario: Scenario = {
             id,
             name,
-            data: {
-                firstHomeBuyer: false,
-                isLivingHere: false,
-                propertyType: "house",
-                isBrandNew: false,
-                isOwnerOccupiedLoan: true,
-                isInterestOnly: false,
-                loanTerm: 30,
-                loanInterest: 5.5,
-                rentalIncome: 600,
-                rentalGrowth: 30,
-                strataFees: 1500,
-                capitalGrowth: 3,
-            },
+            data: getDefaultMortgageData(),
             createdAt: Date.now(),
             updatedAt: Date.now(),
         };
 
         setScenarios((prev) => {
-            const next = new Map(prev);
-            next.set(id, newScenario);
-            return next;
+            const updated = new Map(prev);
+            updated.set(id, newScenario);
+            return updated;
         });
-
-        // Automatically set as current scenario
-        setCurrentScenarioId(id);
 
         return id;
     }, []);

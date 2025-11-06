@@ -5,6 +5,15 @@ import { calculateStampDuty } from "../utils/stampDuty";
 import { calculateLMI } from "../utils/lmi";
 import type { MortgageData, MortgageErrors } from "../utils/mortgageCalculator";
 import { annualBreakdown, monthlyRepayment } from "../utils/mortgageCalculator";
+import {
+    DEFAULT_CAPITAL_GROWTH,
+    DEFAULT_LOAN_TERM,
+    DEFAULT_PROPERTY_TYPE,
+    DEFAULT_RENTAL_GROWTH,
+    DEFAULT_RENTAL_INCOME,
+    DEFAULT_STRATA_FEES,
+    getDefaultInterestRate,
+} from "../utils/mortgageDefaults";
 
 /**
  * Validates mortgage data and returns any errors
@@ -19,20 +28,6 @@ export function validateMortgageData(data: MortgageData): MortgageErrors {
         e.depositTooBig = "Deposit cannot exceed property value.";
     if (!data.propertyType) e.propertyType = "Select a property type.";
     return e;
-}
-
-/**
- * Calculates default interest rate based on loan type and repayment type
- */
-function getDefaultInterestRate(
-    isOwnerOccupied: boolean,
-    isInterestOnly: boolean,
-): number {
-    if (isOwnerOccupied) {
-        return isInterestOnly ? 5.8 : 5.5;
-    } else {
-        return isInterestOnly ? 6.3 : 6.0;
-    }
 }
 
 /**
@@ -69,7 +64,7 @@ export function calculateMortgageData(
     const loanInterest =
         inputData.loanInterest ||
         getDefaultInterestRate(isOwnerOccupied, isInterestOnly);
-    const loanTermYears = inputData.loanTerm || 30;
+    const loanTermYears = inputData.loanTerm || DEFAULT_LOAN_TERM;
 
     const monthlyMortgage = monthlyRepayment(
         totalLoan,
@@ -91,16 +86,16 @@ export function calculateMortgageData(
         deposit: inputData.deposit,
         firstHomeBuyer: inputData.firstHomeBuyer || false,
         isLivingHere: inputData.isLivingHere || false,
-        propertyType: inputData.propertyType || "house",
+        propertyType: inputData.propertyType || DEFAULT_PROPERTY_TYPE,
         isBrandNew: inputData.isBrandNew || false,
         isOwnerOccupiedLoan: isOwnerOccupied,
         isInterestOnly: isInterestOnly,
         loanTerm: loanTermYears,
         loanInterest: loanInterest,
-        rentalIncome: inputData.rentalIncome ?? 600,
-        rentalGrowth: inputData.rentalGrowth || 30,
-        strataFees: inputData.strataFees ?? 1500,
-        capitalGrowth: inputData.capitalGrowth || 3,
+        rentalIncome: inputData.rentalIncome ?? DEFAULT_RENTAL_INCOME,
+        rentalGrowth: inputData.rentalGrowth || DEFAULT_RENTAL_GROWTH,
+        strataFees: inputData.strataFees ?? DEFAULT_STRATA_FEES,
+        capitalGrowth: inputData.capitalGrowth || DEFAULT_CAPITAL_GROWTH,
         stampDuty,
         lvr,
         lmi,

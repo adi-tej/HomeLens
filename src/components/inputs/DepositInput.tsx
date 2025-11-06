@@ -4,14 +4,13 @@ import { TextInput, useTheme } from "react-native-paper";
 import { spacing } from "../../theme/spacing";
 import { formatCurrency, parseNumber } from "../../utils/parser";
 import { PercentageInput } from "./PercentageInput";
+import { DEPOSIT_PERCENTAGE_PRESETS } from "../../utils/mortgageDefaults";
 
 export type DepositInputProps = {
     propertyValue?: number;
     deposit?: number;
     onChange: (v: number | undefined) => void;
 };
-
-const PERCENT_PRESETS = [5, 10, 15, 20];
 
 export function DepositInput({
     propertyValue,
@@ -141,7 +140,7 @@ export function DepositInput({
                             }
                         }}
                         onChangeRaw={handlePercentChangeRaw}
-                        presets={PERCENT_PRESETS}
+                        presets={DEPOSIT_PERCENTAGE_PRESETS}
                     />
                 </View>
             </View>
