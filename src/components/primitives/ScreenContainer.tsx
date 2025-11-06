@@ -30,6 +30,7 @@ export default function ScreenContainer({
                 keyboardShouldPersistTaps="handled"
                 contentInset={{ bottom: contentInsetBottom }}
                 scrollIndicatorInsets={{ bottom: contentInsetBottom }}
+                showsVerticalScrollIndicator={false}
                 {...scrollProps}
             >
                 {children}
