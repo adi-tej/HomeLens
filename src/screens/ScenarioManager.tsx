@@ -1,61 +1,13 @@
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import {
-    Divider,
-    IconButton,
-    Text,
-    TextInput,
-    useTheme,
-} from "react-native-paper";
+import { Divider, IconButton, Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppContext } from "../state/AppContext";
 import { useScenarios } from "../state/ScenarioContext";
 import Scenario from "../components/Scenario";
+import ScenarioInput from "../components/ScenarioInput";
 import CompareButton from "../components/CompareButton";
 import { spacing } from "../theme/spacing";
-
-// Reusable input component for adding/editing scenarios
-function ScenarioInput({
-    value,
-    onChangeText,
-    onSubmit,
-    onBlur,
-    onCancel,
-    placeholder = "Enter scenario name",
-}: {
-    value: string;
-    onChangeText: (text: string) => void;
-    onSubmit: () => void;
-    onBlur: () => void;
-    onCancel: () => void;
-    placeholder?: string;
-}) {
-    const theme = useTheme();
-
-    return (
-        <View style={styles.inputContainer}>
-            <TextInput
-                mode="outlined"
-                placeholder={placeholder}
-                value={value}
-                onChangeText={onChangeText}
-                onSubmitEditing={onSubmit}
-                onBlur={onBlur}
-                autoFocus
-                style={styles.inputField}
-                outlineColor={theme.colors.outline}
-                activeOutlineColor={theme.colors.primary}
-                right={
-                    <TextInput.Icon
-                        icon="close"
-                        color={theme.colors.error}
-                        onPress={onCancel}
-                    />
-                }
-            />
-        </View>
-    );
-}
 
 export default function ScenarioManager() {
     const theme = useTheme();

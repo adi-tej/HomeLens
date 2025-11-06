@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Divider, Text, useTheme } from "react-native-paper";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
     CurrencySelect,
     DepositInput,
@@ -165,20 +166,40 @@ export default function Calculator() {
                 />
 
                 {/* Advanced Section Toggle */}
-                <Divider
-                    style={[
-                        styles.divider,
-                        {
-                            backgroundColor: theme.colors.outline,
-                            marginTop: spacing.sm,
-                        },
-                    ]}
-                />
-                <Toggle
-                    label="Advanced options"
-                    checked={showAdvanced}
-                    onToggle={() => setShowAdvanced(!showAdvanced)}
-                />
+                <View style={styles.advancedToggleContainer}>
+                    <Pressable
+                        style={[
+                            styles.advancedToggle,
+                            showAdvanced && {
+                                backgroundColor: theme.colors.tertiaryContainer,
+                                borderRadius: 6,
+                            },
+                        ]}
+                        onPress={() => setShowAdvanced(!showAdvanced)}
+                    >
+                        <MaterialCommunityIcons
+                            name="cog-outline"
+                            size={14}
+                            color={
+                                showAdvanced
+                                    ? theme.colors.onTertiaryContainer
+                                    : theme.colors.onSurfaceVariant
+                            }
+                        />
+                        <Text
+                            style={[
+                                styles.advancedToggleText,
+                                {
+                                    color: showAdvanced
+                                        ? theme.colors.onTertiaryContainer
+                                        : theme.colors.onSurfaceVariant,
+                                },
+                            ]}
+                        >
+                            Advanced
+                        </Text>
+                    </Pressable>
+                </View>
 
                 {/* Advanced Section Content */}
                 {showAdvanced && (
@@ -238,13 +259,13 @@ export default function Calculator() {
                             }}
                         />
 
-                        <CurrencySelect
+                        <PercentageInput
                             label="Interest rate (% p.a.)"
                             value={data.loanInterest}
                             onChange={(v) =>
                                 updateData({ loanInterest: v || 5.5 })
                             }
-                            allowPresets={false}
+                            presets={[5.5, 5.8, 6.0, 6.3, 6.5, 7.0]}
                         />
 
                         <CurrencySelect
@@ -280,12 +301,16 @@ export default function Calculator() {
                             Property Details
                         </Text>
 
-                        <CurrencySelect
-                            label="Strata levy (per quarter)"
-                            value={data.strataFees}
-                            onChange={(v) => updateData({ strataFees: v })}
-                            allowPresets={false}
-                        />
+                        {/* Strata levy - Only show for townhouse and apartment */}
+                        {(data.propertyType === "townhouse" ||
+                            data.propertyType === "apartment") && (
+                            <CurrencySelect
+                                label="Strata levy (per quarter)"
+                                value={data.strataFees}
+                                onChange={(v) => updateData({ strataFees: v })}
+                                allowPresets={false}
+                            />
+                        )}
 
                         {/* Rental Income - Only show if investment */}
                         {isInvestment && (
@@ -401,7 +426,7 @@ export default function Calculator() {
                         {
                             key: "interest",
                             label: "Interest rate",
-                            value: `${data.loanInterest || 5.5}% p.a.`,
+                            value: `${(data.loanInterest || 5.5).toFixed(2)}% p.a.`,
                         },
                         {
                             key: "mm",
@@ -494,6 +519,21 @@ const styles = StyleSheet.create({
         display: "flex",
         flexDirection: "column",
         gap: spacing.md,
+    },
+    advancedToggleContainer: {
+        alignItems: "flex-end",
+        marginTop: spacing.sm,
+    },
+    advancedToggle: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+    },
+    advancedToggleText: {
+        fontSize: 12,
+        fontWeight: "500",
     },
     advancedContent: {
         padding: spacing.md,
