@@ -60,6 +60,9 @@ importers:
       '@types/react':
         specifier: ~19.1.0
         version: 19.1.17
+      babel-preset-expo:
+        specifier: ^54.0.6
+        version: 54.0.6(@babel/core@7.28.5)(@babel/runtime@7.28.4)(expo@54.0.22(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-refresh@0.14.2)
       typescript:
         specifier: ~5.9.2
         version: 5.9.3
