@@ -16,6 +16,20 @@ import {
 } from "../utils/mortgageDefaults";
 
 /**
+ * Calculate deposit from LVR and property value
+ * LVR = (loan amount / property value) * 100
+ * Therefore: deposit = property value * (1 - LVR/100)
+ */
+export function calculateDepositFromLVR(
+    propertyValue: number,
+    lvr: number,
+): number {
+    if (!propertyValue || propertyValue <= 0 || !lvr || lvr <= 0) return 0;
+    if (lvr >= 100) return 0;
+    return Math.round(propertyValue * (1 - lvr / 100));
+}
+
+/**
  * Validates mortgage data and returns any errors
  */
 export function validateMortgageData(data: MortgageData): MortgageErrors {
@@ -46,17 +60,16 @@ export function calculateMortgageData(
         inputData.propertyType === "land",
     );
 
-    // lvr = 100 - (deposit / (propertyvalue + stampduty)) * 100
-    const lvr =
-        pv + stampDuty > 0 && dep > 0
-            ? 100 - (dep / (pv + stampDuty)) * 100
-            : 0;
+    // New: LVR = (loan amount / property value) * 100
+    // loan amount = property value - deposit
+    const lvr = pv > 0 && dep > 0 ? ((pv - dep) / pv) * 100 : 0;
 
-    // Base loan before LMI
-    const baseLoan = pv - dep + stampDuty;
+    // Base loan before LMI (stamp duty NOT included in loan)
+    const baseLoan = pv - dep;
     // LMI uses provided util
     const lmi = calculateLMI(lvr, baseLoan);
 
+    // Total loan includes only base loan + LMI (no stamp duty)
     const totalLoan = baseLoan + (Number.isFinite(lmi) ? lmi : 0);
 
     const isOwnerOccupied = inputData.isOwnerOccupiedLoan ?? true;

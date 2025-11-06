@@ -60,6 +60,11 @@ export const DEFAULT_PROPERTY_TYPE = "house" as const;
 export const DEPOSIT_PERCENTAGE_PRESETS = [5, 10, 15, 20];
 
 /**
+ * LVR (Loan to Value Ratio) presets
+ */
+export const LVR_PRESETS = [60, 70, 80, 85, 90, 95];
+
+/**
  * Get the appropriate interest rate based on loan type and repayment type
  */
 export function getDefaultInterestRate(

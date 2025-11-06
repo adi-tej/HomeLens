@@ -18,7 +18,9 @@ import {
     CAPITAL_GROWTH_PRESETS,
     getDefaultInterestRate,
     INTEREST_RATE_PRESETS,
+    LVR_PRESETS,
 } from "../utils/mortgageDefaults";
+import { calculateDepositFromLVR } from "../hooks/useMortgageCalculations";
 
 export type PropertyFormProps = {
     data: MortgageData;
@@ -35,7 +37,30 @@ export default function PropertyForm({
 }: PropertyFormProps) {
     const theme = useTheme();
     const [showAdvanced, setShowAdvanced] = React.useState(false);
+    const [isEditingLVR, setIsEditingLVR] = React.useState(false);
+    const [lvrText, setLvrText] = React.useState("");
+    // Track the deposit value we requested so we know when it has been applied
+    const pendingDepositRef = React.useRef<number | null>(null);
     const isInvestment = !data.isLivingHere;
+
+    // Update LVR text only when not editing; when editing, wait until pending deposit is applied
+    React.useEffect(() => {
+        // If we are waiting for a deposit change to land in context, check and clear once it does
+        if (pendingDepositRef.current != null && data.deposit != null) {
+            if (data.deposit === pendingDepositRef.current) {
+                pendingDepositRef.current = null;
+                setIsEditingLVR(false);
+            }
+        }
+        // When not editing, keep display value in sync with latest data
+        if (!isEditingLVR && data.propertyValue && data.deposit != null) {
+            const calculatedLVR = (
+                ((data.propertyValue - data.deposit) / data.propertyValue) *
+                100
+            ).toFixed(2);
+            setLvrText(calculatedLVR);
+        }
+    }, [data.propertyValue, data.deposit, isEditingLVR]);
 
     return (
         <View
@@ -227,12 +252,58 @@ export default function PropertyForm({
                         }}
                     />
 
+                    <PercentageInput
+                        label="LVR (%)"
+                        displayValue={lvrText}
+                        value={undefined}
+                        onChangeRaw={(text: string) => {
+                            // User is actively editing
+                            setIsEditingLVR(true);
+                            setLvrText(text);
+                            const parsed = parseFloat(text);
+                            if (
+                                !isNaN(parsed) &&
+                                data.propertyValue &&
+                                parsed > 0 &&
+                                parsed <= 100
+                            ) {
+                                const newDeposit = calculateDepositFromLVR(
+                                    data.propertyValue,
+                                    parsed,
+                                );
+                                // Record what we expect deposit to be after update
+                                pendingDepositRef.current = newDeposit ?? null;
+                                onUpdate({ deposit: newDeposit });
+                            }
+                        }}
+                        onChange={(v: number | undefined) => {
+                            if (v && data.propertyValue) {
+                                // Selecting from presets; treat like edit start/update
+                                setIsEditingLVR(true);
+                                setLvrText(v.toFixed(2));
+                                const newDeposit = calculateDepositFromLVR(
+                                    data.propertyValue,
+                                    v,
+                                );
+                                pendingDepositRef.current = newDeposit ?? null;
+                                onUpdate({ deposit: newDeposit });
+                            }
+                        }}
+                        onBlurCallback={() => {
+                            // If no pending update, end editing so the field snaps back to computed value
+                            if (pendingDepositRef.current == null) {
+                                setIsEditingLVR(false);
+                            }
+                        }}
+                        presets={LVR_PRESETS}
+                    />
+
                     <View style={styles.rowInputs}>
                         <View style={styles.flexInput}>
                             <PercentageInput
                                 label="Interest rate (%)"
                                 value={data.loanInterest}
-                                onChange={(v) =>
+                                onChange={(v: number | undefined) =>
                                     onUpdate({ loanInterest: v || 5.5 })
                                 }
                                 presets={INTEREST_RATE_PRESETS}
@@ -327,7 +398,9 @@ export default function PropertyForm({
                     <PercentageInput
                         label="Annual property growth (%)"
                         value={data.capitalGrowth}
-                        onChange={(v) => onUpdate({ capitalGrowth: v || 3 })}
+                        onChange={(v: number | undefined) =>
+                            onUpdate({ capitalGrowth: v || 3 })
+                        }
                         presets={CAPITAL_GROWTH_PRESETS}
                     />
 

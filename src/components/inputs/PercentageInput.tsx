@@ -8,9 +8,10 @@ export type PercentageInputProps = {
     label?: string;
     value?: number;
     onChange: (v: number | undefined) => void;
-    onChangeRaw?: (text: string) => void; // Optional: for custom text handling
+    onChangeRaw?: (text: string) => void;
+    onBlurCallback?: () => void;
     presets?: number[];
-    displayValue?: string; // Optional: override display value
+    displayValue?: string;
 };
 
 const DEFAULT_PRESETS = [2, 3, 5, 8, 10];
@@ -20,28 +21,35 @@ export function PercentageInput({
     value,
     onChange,
     onChangeRaw,
+    onBlurCallback,
     presets = DEFAULT_PRESETS,
     displayValue,
 }: PercentageInputProps) {
     const [open, setOpen] = useState(false);
     const [focused, setFocused] = useState(false);
-    const [text, setText] = useState(displayValue || value?.toString() || "");
+    const [text, setText] = useState(
+        displayValue ||
+            (value !== undefined && value !== null ? value.toFixed(2) : ""),
+    );
     const theme = useTheme();
 
     React.useEffect(() => {
-        setText(displayValue || value?.toString() || "");
-    }, [value, displayValue]);
+        if (!focused) {
+            const formattedValue =
+                displayValue ||
+                (value !== undefined && value !== null ? value.toFixed(2) : "");
+            setText(formattedValue);
+        }
+    }, [value, displayValue, focused]);
 
     const handleTextChange = (t: string) => {
         setText(t);
 
-        // If custom raw handler provided, use it
         if (onChangeRaw) {
             onChangeRaw(t);
             return;
         }
 
-        // Otherwise use default number parsing
         const parsed = parseNumber(t);
         if (parsed !== undefined) {
             onChange(parsed);
@@ -50,14 +58,24 @@ export function PercentageInput({
         }
     };
 
+    const handleBlur = () => {
+        setFocused(false);
+        if (value !== undefined && value !== null && !displayValue) {
+            setText(value.toFixed(2));
+        }
+        if (onBlurCallback) {
+            onBlurCallback();
+        }
+    };
+
     const handleSelect = (selected: number) => {
         onChange(selected);
-        setText(selected.toString());
+        setText(selected.toFixed(2));
         setOpen(false);
     };
 
     const options: Option[] = presets.map((p) => ({
-        label: `${p}%`,
+        label: `${p.toFixed(2)}%`,
         value: p,
     }));
 
@@ -72,7 +90,7 @@ export function PercentageInput({
                 value={text}
                 onChangeText={handleTextChange}
                 onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
+                onBlur={handleBlur}
                 keyboardType={Platform.select({
                     ios: "decimal-pad",
                     android: "numeric",
