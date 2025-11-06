@@ -121,6 +121,7 @@ export default function ScenarioManager() {
                 {
                     backgroundColor: theme.colors.surface,
                     paddingTop: insets.top + spacing.xl,
+                    paddingBottom: insets.bottom + spacing.xs,
                 },
             ]}
         >

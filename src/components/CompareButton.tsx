@@ -1,7 +1,6 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { IconButton, Text, useTheme } from "react-native-paper";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { spacing } from "../theme/spacing";
 
 type Props = {
@@ -20,17 +19,11 @@ export default function CompareButton({
     onProceed,
 }: Props) {
     const theme = useTheme();
-    const insets = useSafeAreaInsets();
 
     return (
-        <View
-            style={[
-                styles.compareButtonContainer,
-                { paddingBottom: insets.bottom + spacing.lg },
-            ]}
-        >
+        <View style={styles.compareButtonContainer}>
             {comparisonMode ? (
-                <View style={styles.buttonRow}>
+                <View style={styles.proceedButtonContainer}>
                     <View style={styles.buttonWithLabel}>
                         <IconButton
                             icon="close"
@@ -107,7 +100,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: "rgba(0,0,0,0.1)",
     },
-    buttonRow: {
+    proceedButtonContainer: {
         flexDirection: "row",
         justifyContent: "space-evenly",
         width: "100%",
