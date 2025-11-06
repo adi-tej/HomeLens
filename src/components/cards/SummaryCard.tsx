@@ -39,6 +39,8 @@ export type SummaryCardProps = {
     footnote?: string;
     /** Whether the card should be expanded by default */
     defaultExpanded?: boolean;
+    /** Callback fired when card expands/collapses */
+    onExpand?: (isExpanding: boolean) => void;
 };
 
 // Animation constants for consistent timing
@@ -77,6 +79,7 @@ function SummaryCard({
     icon,
     rows,
     defaultExpanded = false,
+    onExpand,
 }: SummaryCardProps) {
     const theme = useTheme();
     const [expanded, setExpanded] = useState(defaultExpanded);
@@ -86,11 +89,12 @@ function SummaryCard({
     const onToggle = useCallback(() => {
         const next = !expanded;
         setExpanded(next);
+        onExpand?.(next); // Notify parent that card is expanding/collapsing
         progress.value = withTiming(next ? 1 : 0, {
             duration: next ? ANIMATION_DURATION_OPEN : ANIMATION_DURATION_CLOSE,
             easing: ANIMATION_EASING,
         });
-    }, [expanded, progress]);
+    }, [expanded, progress, onExpand]);
 
     // Memoize icon color to avoid recalculation
     const iconColor = useMemo(

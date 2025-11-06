@@ -1,5 +1,5 @@
-import React, { memo, useMemo } from "react";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import React, { memo, useCallback, useMemo, useRef } from "react";
+import { View } from "react-native";
 import type { SummaryCardProps } from "./cards/SummaryCard";
 import SummaryCard from "./cards/SummaryCard";
 import type { MortgageData } from "../utils/mortgageCalculator";
@@ -11,12 +11,9 @@ import { formatCurrency } from "../utils/parser";
 export type SummaryProps = {
     /** Mortgage calculation data to display across all summary cards */
     data: MortgageData;
+    /** Optional scroll view ref for auto-scrolling to expanded cards */
+    scrollViewRef?: React.RefObject<any>;
 };
-
-// Animation constants
-const CARD_ANIMATION_DURATION = 300;
-const CARD_ANIMATION_BASE_DELAY = 100;
-const CARD_ANIMATION_STAGGER = 50;
 
 /**
  * Summary - Displays financial data in animated accordion cards
@@ -32,7 +29,7 @@ const CARD_ANIMATION_STAGGER = 50;
  * <Summary data={mortgageData} />
  * ```
  */
-function Summary({ data }: SummaryProps) {
+function Summary({ data, scrollViewRef }: SummaryProps) {
     // Destructure with safe defaults
     const {
         stampDuty = 0,
@@ -41,6 +38,38 @@ function Summary({ data }: SummaryProps) {
         monthlyMortgage = 0,
         loanInterest = 5.5,
     } = data;
+
+    // Create refs for each card to measure their positions
+    const cardRefs = useRef<{ [key: string]: View | null }>({});
+    const cardPositions = useRef<{ [key: string]: number }>({});
+
+    // Track card position when layout changes
+    const handleCardLayout = useCallback((cardTitle: string, y: number) => {
+        cardPositions.current[cardTitle] = y;
+    }, []);
+
+    // Handle card expansion - scroll to bring it into view
+    const handleCardExpand = useCallback(
+        (cardTitle: string, isExpanding: boolean) => {
+            if (!isExpanding || !scrollViewRef?.current) return;
+
+            // Use the stored position from onLayout
+            const storedY = cardPositions.current[cardTitle];
+            if (storedY === undefined) return;
+
+            // Wait for the card to start expanding
+            setTimeout(() => {
+                if (scrollViewRef.current) {
+                    // Scroll to show card with padding from top
+                    scrollViewRef.current.scrollTo({
+                        y: Math.max(0, storedY - 20),
+                        animated: true,
+                    });
+                }
+            }, 150);
+        },
+        [scrollViewRef],
+    );
 
     // Memoize cards configuration to prevent recreation on every render
     const cards = useMemo<SummaryCardProps[]>(
@@ -192,18 +221,24 @@ function Summary({ data }: SummaryProps) {
 
     return (
         <>
-            {cards.map((card, index) => (
-                <Animated.View
+            {cards.map((card) => (
+                <View
                     key={card.title}
-                    entering={FadeInDown.duration(
-                        CARD_ANIMATION_DURATION,
-                    ).delay(
-                        CARD_ANIMATION_BASE_DELAY +
-                            index * CARD_ANIMATION_STAGGER,
-                    )}
+                    ref={(ref) => {
+                        cardRefs.current[card.title] = ref;
+                    }}
+                    onLayout={(event) => {
+                        const { y } = event.nativeEvent.layout;
+                        handleCardLayout(card.title, y);
+                    }}
                 >
-                    <SummaryCard {...card} />
-                </Animated.View>
+                    <SummaryCard
+                        {...card}
+                        onExpand={(isExpanding) =>
+                            handleCardExpand(card.title, isExpanding)
+                        }
+                    />
+                </View>
             ))}
         </>
     );

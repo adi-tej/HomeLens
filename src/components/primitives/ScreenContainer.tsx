@@ -6,7 +6,8 @@ import { spacing } from "../../theme/spacing";
 
 export type ScreenContainerProps = PropsWithChildren<{
     scroll?: boolean;
-    scrollProps?: KeyboardAwareScrollViewProps;
+    scrollProps?: Omit<KeyboardAwareScrollViewProps, "ref">;
+    scrollRef?: React.RefObject<any>;
     viewProps?: ViewProps;
 }>;
 
@@ -14,11 +15,13 @@ export default function ScreenContainer({
     children,
     scroll = true,
     scrollProps,
+    scrollRef,
     viewProps,
 }: ScreenContainerProps) {
     if (scroll) {
         return (
             <KeyboardAwareScrollView
+                ref={scrollRef}
                 style={styles.scroll}
                 contentContainerStyle={styles.content}
                 bottomOffset={40}

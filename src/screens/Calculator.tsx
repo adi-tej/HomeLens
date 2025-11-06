@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import ScreenContainer from "../components/primitives/ScreenContainer";
@@ -13,6 +13,7 @@ export default function Calculator() {
     const { currentScenario, currentScenarioId, updateScenarioData } =
         useScenarios();
     const [touched] = useState(false);
+    const scrollViewRef = useRef<any>(null);
 
     if (!currentScenario || !currentScenarioId) {
         return (
@@ -34,7 +35,7 @@ export default function Calculator() {
     };
 
     return (
-        <ScreenContainer>
+        <ScreenContainer scrollRef={scrollViewRef}>
             {/* Property Form */}
             <PropertyForm
                 data={data}
@@ -62,7 +63,7 @@ export default function Calculator() {
                 </View>
             )}
             {/* Summary Cards */}
-            <Summary data={data} />
+            <Summary data={data} scrollViewRef={scrollViewRef} />
         </ScreenContainer>
     );
 }
