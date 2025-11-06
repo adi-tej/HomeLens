@@ -23,10 +23,19 @@ import {
 export function calculateDepositFromLVR(
     propertyValue: number,
     lvr: number,
+    includeStampDuty = false,
+    stampDuty = 0,
 ): number {
-    if (!propertyValue || propertyValue <= 0 || !lvr || lvr <= 0) return 0;
-    if (lvr >= 100) return 0;
-    return Math.round(propertyValue * (1 - lvr / 100));
+    const pv = Number(propertyValue) || 0;
+    const lv = Number(lvr) || 0;
+    const sd = Number(stampDuty) || 0;
+    if (pv <= 0 || lv <= 0 || lv >= 100) return 0;
+    // If including stamp duty, Deposit = PV*(1 - LVR/100) + SD
+    // Else, Deposit = PV*(1 - LVR/100)
+    const deposit = includeStampDuty
+        ? pv * (1 - lv / 100) + sd
+        : pv * (1 - lv / 100);
+    return Math.round(deposit);
 }
 
 /**
@@ -60,16 +69,21 @@ export function calculateMortgageData(
         inputData.propertyType === "land",
     );
 
-    // New: LVR = (loan amount / property value) * 100
-    // loan amount = property value - deposit
-    const lvr = pv > 0 && dep > 0 ? ((pv - dep) / pv) * 100 : 0;
+    const includeStampDuty = Boolean(inputData.includeStampDuty);
 
-    // Base loan before LMI (stamp duty NOT included in loan)
-    const baseLoan = pv - dep;
-    // LMI uses provided util
+    // LVR definition depends on includeStampDuty toggle
+    // If included: lvr = (loan amount incl. stamp duty) / property value * 100
+    // Else: lvr = (property value - deposit) / property value * 100
+    const loanWithoutLMI = includeStampDuty ? pv - dep + stampDuty : pv - dep;
+    const lvr = pv > 0 && loanWithoutLMI > 0 ? (loanWithoutLMI / pv) * 100 : 0;
+
+    // Base loan before LMI
+    const baseLoan = loanWithoutLMI;
+
+    // LMI
     const lmi = calculateLMI(lvr, baseLoan);
 
-    // Total loan includes only base loan + LMI (no stamp duty)
+    // Total loan includes base loan + LMI
     const totalLoan = baseLoan + (Number.isFinite(lmi) ? lmi : 0);
 
     const isOwnerOccupied = inputData.isOwnerOccupiedLoan ?? true;
@@ -109,6 +123,7 @@ export function calculateMortgageData(
         rentalGrowth: inputData.rentalGrowth || DEFAULT_RENTAL_GROWTH,
         strataFees: inputData.strataFees ?? DEFAULT_STRATA_FEES,
         capitalGrowth: inputData.capitalGrowth || DEFAULT_CAPITAL_GROWTH,
+        includeStampDuty,
         stampDuty,
         lvr,
         lmi,

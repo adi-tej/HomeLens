@@ -99,5 +99,6 @@ export function getDefaultMortgageData() {
         rentalGrowth: DEFAULT_RENTAL_GROWTH,
         strataFees: DEFAULT_STRATA_FEES,
         capitalGrowth: DEFAULT_CAPITAL_GROWTH,
-    };
+        includeStampDuty: false,
+    } as const;
 }

@@ -254,10 +254,13 @@ export default function PropertyForm({
 
                     <PercentageInput
                         label="LVR (%)"
-                        displayValue={lvrText}
+                        displayValue={
+                            data.lvr != null
+                                ? Number(data.lvr).toFixed(2)
+                                : lvrText
+                        }
                         value={undefined}
                         onChangeRaw={(text: string) => {
-                            // User is actively editing
                             setIsEditingLVR(true);
                             setLvrText(text);
                             const parsed = parseFloat(text);
@@ -270,27 +273,28 @@ export default function PropertyForm({
                                 const newDeposit = calculateDepositFromLVR(
                                     data.propertyValue,
                                     parsed,
+                                    Boolean(data.includeStampDuty),
+                                    data.stampDuty || 0,
                                 );
-                                // Record what we expect deposit to be after update
                                 pendingDepositRef.current = newDeposit ?? null;
                                 onUpdate({ deposit: newDeposit });
                             }
                         }}
                         onChange={(v: number | undefined) => {
                             if (v && data.propertyValue) {
-                                // Selecting from presets; treat like edit start/update
                                 setIsEditingLVR(true);
                                 setLvrText(v.toFixed(2));
                                 const newDeposit = calculateDepositFromLVR(
                                     data.propertyValue,
                                     v,
+                                    Boolean(data.includeStampDuty),
+                                    data.stampDuty || 0,
                                 );
                                 pendingDepositRef.current = newDeposit ?? null;
                                 onUpdate({ deposit: newDeposit });
                             }
                         }}
                         onBlurCallback={() => {
-                            // If no pending update, end editing so the field snaps back to computed value
                             if (pendingDepositRef.current == null) {
                                 setIsEditingLVR(false);
                             }
@@ -321,6 +325,19 @@ export default function PropertyForm({
                             />
                         </View>
                     </View>
+
+                    {/* Include Stamp Duty in Loan */}
+                    <Toggle
+                        label="Finance stamp duty"
+                        checked={Boolean(data.includeStampDuty)}
+                        onToggle={() =>
+                            onUpdate({
+                                includeStampDuty: !Boolean(
+                                    data.includeStampDuty,
+                                ),
+                            })
+                        }
+                    />
 
                     <Text style={styles.helpText}>
                         💡 Owner-occupied loans typically have lower interest

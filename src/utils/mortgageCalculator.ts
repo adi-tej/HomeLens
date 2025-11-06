@@ -19,6 +19,7 @@ export interface MortgageData {
     rentalGrowth: number;
     strataFees?: number;
     capitalGrowth: number;
+    includeStampDuty?: boolean;
     // Calculated values (stored)
     stampDuty?: number;
     lvr?: number;
