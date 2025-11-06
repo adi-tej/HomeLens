@@ -75,7 +75,7 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
     const cards = useMemo<SummaryCardProps[]>(
         () => [
             {
-                title: "Mortgage",
+                title: "Loan Details",
                 icon: "home-city",
                 defaultExpanded: true,
                 rows: [
@@ -110,8 +110,8 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                     "💡 Loan amount includes stamp duty & LMI. Values are estimates.",
             },
             {
-                title: "Net Expenditure",
-                icon: "calculator-variant",
+                title: "Annual Cash Flow",
+                icon: "cash-multiple",
                 rows: [
                     {
                         key: "rental",
@@ -120,52 +120,13 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                     },
                     {
                         key: "strata",
-                        label: "Strata fees",
+                        label: "Strata Levy",
                         value: formatCurrency(0), // Placeholder
                     },
                     {
-                        key: "expenses-first",
-                        label: "Expenses (first year)",
+                        key: "expenses",
+                        label: "Expenses",
                         value: formatCurrency(0), // Placeholder
-                    },
-                    {
-                        key: "expenses-ongoing",
-                        label: "Expenses (ongoing)",
-                        value: formatCurrency(0), // Placeholder
-                    },
-                    {
-                        key: "vacancy",
-                        label: "Vacancy rate",
-                        value: "0%", // Placeholder
-                    },
-                    {
-                        key: "depreciation",
-                        label: "Depreciation",
-                        value: formatCurrency(0), // Placeholder
-                    },
-                    {
-                        key: "net",
-                        label: "Net",
-                        value: formatCurrency(0), // Placeholder
-                        highlight: true,
-                    },
-                ],
-                footnote:
-                    "💡 Net expenditure after rental income and expenses.",
-            },
-            {
-                title: "Gross Expenditure",
-                icon: "cash-multiple",
-                rows: [
-                    {
-                        key: "taxable-income",
-                        label: "Taxable income",
-                        value: formatCurrency(0), // Placeholder
-                    },
-                    {
-                        key: "tax-bracket",
-                        label: "Tax bracket",
-                        value: "0%", // Placeholder
                     },
                     {
                         key: "tax-return",
@@ -179,15 +140,16 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                         highlight: true,
                     },
                 ],
-                footnote: "💡 Gross expenditure accounting for tax benefits.",
+                footnote:
+                    "💡 Net expenditure after rental income and expenses.",
             },
             {
-                title: "Future Returns",
+                title: "Year 1 Net Position",
                 icon: "chart-line",
                 rows: [
                     {
-                        key: "total-invested",
-                        label: "Total invested",
+                        key: "total-spent",
+                        label: "Total Spent",
                         value: formatCurrency(0), // Placeholder
                     },
                     {
@@ -196,8 +158,8 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                         value: formatCurrency(0), // Placeholder
                     },
                     {
-                        key: "property-value",
-                        label: "Property value",
+                        key: "property-growth",
+                        label: "Property value (Year 1)",
                         value: formatCurrency(0), // Placeholder
                     },
                     {
