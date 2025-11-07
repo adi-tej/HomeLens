@@ -1,12 +1,14 @@
-// Custom hook for mortgage data calculations and validation
-// Separates data management logic from pure calculation utilities
-
 import { calculateStampDuty } from "../utils/stampDuty";
 import { calculateLMI } from "../utils/lmi";
-import type { MortgageData, MortgageErrors } from "../utils/mortgageCalculator";
+import type {
+    Expenses,
+    MortgageErrors,
+    PropertyData,
+} from "../utils/mortgageCalculator";
 import { annualBreakdown, monthlyRepayment } from "../utils/mortgageCalculator";
 import {
     DEFAULT_CAPITAL_GROWTH,
+    DEFAULT_DEPRECIATION_RATE,
     DEFAULT_EXPENSES,
     DEFAULT_LOAN_TERM,
     DEFAULT_PROPERTY_TYPE,
@@ -14,6 +16,8 @@ import {
     DEFAULT_RENTAL_INCOME,
     DEFAULT_STRATA_FEES,
     DEFAULT_TAX_BRACKET,
+    DEFAULT_VACANCY_RATE,
+    getDefaultExpensesTotal,
     getDefaultInterestRate,
 } from "../utils/mortgageDefaults";
 
@@ -43,7 +47,7 @@ export function calculateDepositFromLVR(
 /**
  * Validates mortgage data and returns any errors
  */
-export function validateMortgageData(data: MortgageData): MortgageErrors {
+export function validateMortgageData(data: PropertyData): MortgageErrors {
     const e: MortgageErrors = {};
     if (!data.propertyValue || data.propertyValue <= 0)
         e.propertyValue = "Enter or select a valid property value.";
@@ -59,9 +63,36 @@ export function validateMortgageData(data: MortgageData): MortgageErrors {
  * Calculate all mortgage values from input data
  * Returns a complete MortgageData object with calculated values
  */
-export function calculateMortgageData(
-    inputData: Partial<MortgageData>,
-): MortgageData {
+export function calculateMortgageData(inputData: Partial<PropertyData>): {
+    loan: any;
+    rentalIncome: number;
+    strataFees: number;
+    taxReturn: number;
+    propertyValue: number | undefined;
+    annualNetCashFlow: number;
+    capitalGrowth: number;
+    firstHomeBuyer: boolean;
+    stampDuty: number;
+    isLivingHere: boolean;
+    propertyType: "" | "house" | "townhouse" | "apartment" | "land";
+    isBrandNew: boolean;
+    rentalGrowth: number;
+    deposit: number | undefined;
+    expenses:
+        | Expenses
+        | {
+              insurance: number;
+              additionalOneTime: number;
+              landTax: number;
+              propertyManager: number;
+              council: number;
+              transferFee: number;
+              solicitor: number;
+              mortgageRegistration: number;
+              water: number;
+              maintenance: number;
+          };
+} {
     const pv = Number(inputData.propertyValue) || 0;
     const dep = Number(inputData.deposit) || 0;
 
@@ -71,11 +102,8 @@ export function calculateMortgageData(
         inputData.propertyType === "land",
     );
 
-    const includeStampDuty = Boolean(inputData.includeStampDuty);
+    const includeStampDuty = Boolean(inputData.loan?.includeStampDuty);
 
-    // LVR definition depends on includeStampDuty toggle
-    // If included: lvr = (loan amount incl. stamp duty) / property value * 100
-    // Else: lvr = (property value - deposit) / property value * 100
     const loanWithoutLMI = includeStampDuty ? pv - dep + stampDuty : pv - dep;
     const lvr = pv > 0 && loanWithoutLMI > 0 ? (loanWithoutLMI / pv) * 100 : 0;
 
@@ -88,12 +116,12 @@ export function calculateMortgageData(
     // Total loan includes base loan + LMI
     const totalLoan = baseLoan + (Number.isFinite(lmi) ? lmi : 0);
 
-    const isOwnerOccupied = inputData.isOwnerOccupiedLoan ?? true;
-    const isInterestOnly = inputData.isInterestOnly || false;
+    const isOwnerOccupied = inputData.loan?.isOwnerOccupiedLoan ?? true;
+    const isInterestOnly = inputData.loan?.isInterestOnly || false;
     const loanInterest =
-        inputData.loanInterest ||
+        inputData.loan?.loanInterest ||
         getDefaultInterestRate(isOwnerOccupied, isInterestOnly);
-    const loanTermYears = inputData.loanTerm || DEFAULT_LOAN_TERM;
+    const loanTermYears = inputData.loan?.loanTerm || DEFAULT_LOAN_TERM;
 
     const monthlyMortgage = monthlyRepayment(
         totalLoan,
@@ -117,24 +145,53 @@ export function calculateMortgageData(
     const annualMortgage = Math.round(Number(monthlyMortgage || 0) * 12);
     const annualNetCashFlow = rentalAnnual - strataAnnual - annualMortgage;
 
-    const vacancyRate = 0.03; // 3%
-    const depreciationRate = 0.025; // 2.5%
+    const vacancyRate = DEFAULT_VACANCY_RATE;
+    const depreciationRate = DEFAULT_DEPRECIATION_RATE;
 
     const vacancyCost = Math.round(rentalAnnual * vacancyRate);
     const depreciation = Math.round(
         (Number(inputData.propertyValue) || 0) * depreciationRate,
     );
+
+    // Determine defaults based on property/investment flags
+    const isLand = inputData.propertyType === "land";
+    const isInvestment = !(inputData.isLivingHere ?? false);
+
+    // Resolve a single numeric total for expenses and use it throughout
+    const totalExpenses = Math.round(
+        Number(
+            inputData.expenses?.total ??
+                getDefaultExpensesTotal({ isLand, isInvestment }) ??
+                0,
+        ),
+    );
+
     const taxableCost =
         Math.round(Number(annualInterest || 0)) +
-        Number(DEFAULT_EXPENSES || 0) +
+        totalExpenses +
         strataAnnual +
         vacancyCost +
         depreciation -
         rentalAnnual;
 
     const taxReturn = Math.round(
-        taxableCost > 0 ? taxableCost * (Number(DEFAULT_TAX_BRACKET) / 100) : 0,
+        taxableCost > 0 ? taxableCost * DEFAULT_TAX_BRACKET : 0,
     );
+
+    // Build the nested loan object and expenses object for the PropertyData return
+    const loan: any = {
+        isOwnerOccupiedLoan: isOwnerOccupied,
+        isInterestOnly: isInterestOnly,
+        loanTerm: loanTermYears,
+        loanInterest: loanInterest,
+        includeStampDuty: includeStampDuty,
+        lvr,
+        lmi,
+        totalLoan,
+        monthlyMortgage,
+        annualPrincipal,
+        annualInterest,
+    };
 
     return {
         propertyValue: inputData.propertyValue,
@@ -143,24 +200,14 @@ export function calculateMortgageData(
         isLivingHere: inputData.isLivingHere ?? false,
         propertyType: inputData.propertyType ?? DEFAULT_PROPERTY_TYPE,
         isBrandNew: inputData.isBrandNew ?? false,
-        isOwnerOccupiedLoan: isOwnerOccupied,
-        isInterestOnly: isInterestOnly,
-        loanTerm: loanTermYears,
-        loanInterest: loanInterest,
+        loan,
         rentalIncome: inputData.rentalIncome ?? DEFAULT_RENTAL_INCOME,
         rentalGrowth: inputData.rentalGrowth ?? DEFAULT_RENTAL_GROWTH,
         strataFees: inputData.strataFees ?? DEFAULT_STRATA_FEES,
         capitalGrowth: inputData.capitalGrowth ?? DEFAULT_CAPITAL_GROWTH,
-        includeStampDuty,
         stampDuty,
-        lvr,
-        lmi,
-        totalLoan,
-        monthlyMortgage,
-        annualPrincipal,
-        annualInterest,
-        expenses: DEFAULT_EXPENSES,
-        taxReturn,
         annualNetCashFlow,
+        expenses: inputData.expenses ?? DEFAULT_EXPENSES,
+        taxReturn,
     };
 }

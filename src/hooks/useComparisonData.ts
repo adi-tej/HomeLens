@@ -67,17 +67,18 @@ export function useComparisonData() {
             {
                 key: "lmi",
                 label: "LMI",
-                accessor: (s: any) => formatCurrency(s.data.lmi),
+                accessor: (s: any) => formatCurrency(s.data.loan?.lmi),
             },
             {
                 key: "totalLoan",
                 label: "Total Loan",
-                accessor: (s: any) => formatCurrency(s.data.totalLoan),
+                accessor: (s: any) => formatCurrency(s.data.loan?.totalLoan),
             },
             {
                 key: "monthlyMortgage",
                 label: "Monthly Mortgage",
-                accessor: (s: any) => formatCurrency(s.data.monthlyMortgage),
+                accessor: (s: any) =>
+                    formatCurrency(s.data.loan?.monthlyMortgage),
                 highlight: true,
             },
             {
