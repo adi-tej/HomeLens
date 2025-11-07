@@ -43,6 +43,8 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
         loanInterest = 5.5,
         rentalIncome = DEFAULT_RENTAL_INCOME,
         strataFees = DEFAULT_STRATA_FEES,
+        expenses,
+        taxReturn,
         annualNetCashFlow,
     } = data;
 
@@ -133,12 +135,12 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                     {
                         key: "expenses",
                         label: "Expenses",
-                        value: formatCurrency(0), // TODO: wire other expense inputs
+                        value: formatCurrency(expenses),
                     },
                     {
                         key: "tax-return",
                         label: "Tax return",
-                        value: formatCurrency(0), // TODO: calculate tax return
+                        value: formatCurrency(taxReturn),
                     },
                     {
                         key: "net",

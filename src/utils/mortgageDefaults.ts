@@ -65,6 +65,16 @@ export const DEPOSIT_PERCENTAGE_PRESETS = [5, 10, 15, 20];
 export const LVR_PRESETS = [60, 70, 80, 85, 90, 95];
 
 /**
+ * Expenses
+ */
+export const DEFAULT_EXPENSES = 4000;
+
+/**
+ * Tax Bracket
+ */
+export const DEFAULT_TAX_BRACKET = 30;
+
+/**
  * Get the appropriate interest rate based on loan type and repayment type
  */
 export function getDefaultInterestRate(

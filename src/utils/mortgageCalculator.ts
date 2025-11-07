@@ -28,6 +28,8 @@ export interface MortgageData {
     monthlyMortgage?: number;
     annualPrincipal?: number;
     annualInterest?: number;
+    expenses?: number;
+    taxReturn?: number;
     annualNetCashFlow?: number;
 }
 

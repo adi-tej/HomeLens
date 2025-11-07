@@ -7,11 +7,13 @@ import type { MortgageData, MortgageErrors } from "../utils/mortgageCalculator";
 import { annualBreakdown, monthlyRepayment } from "../utils/mortgageCalculator";
 import {
     DEFAULT_CAPITAL_GROWTH,
+    DEFAULT_EXPENSES,
     DEFAULT_LOAN_TERM,
     DEFAULT_PROPERTY_TYPE,
     DEFAULT_RENTAL_GROWTH,
     DEFAULT_RENTAL_INCOME,
     DEFAULT_STRATA_FEES,
+    DEFAULT_TAX_BRACKET,
     getDefaultInterestRate,
 } from "../utils/mortgageDefaults";
 
@@ -108,13 +110,31 @@ export function calculateMortgageData(
     const annualPrincipal = breakdown.principal;
     const annualInterest = breakdown.interest;
 
-    // Compute annual net cash flow: rental (weekly->annual) - strata (quarterly->annual) - annual mortgage
     const rentalWeekly = inputData.rentalIncome ?? DEFAULT_RENTAL_INCOME;
     const strataQuarterly = inputData.strataFees ?? DEFAULT_STRATA_FEES;
     const rentalAnnual = Math.round(Number(rentalWeekly || 0) * 52);
     const strataAnnual = Math.round(Number(strataQuarterly || 0) * 4);
     const annualMortgage = Math.round(Number(monthlyMortgage || 0) * 12);
     const annualNetCashFlow = rentalAnnual - strataAnnual - annualMortgage;
+
+    const vacancyRate = 0.03; // 3%
+    const depreciationRate = 0.025; // 2.5%
+
+    const vacancyCost = Math.round(rentalAnnual * vacancyRate);
+    const depreciation = Math.round(
+        (Number(inputData.propertyValue) || 0) * depreciationRate,
+    );
+    const taxableCost =
+        Math.round(Number(annualInterest || 0)) +
+        Number(DEFAULT_EXPENSES || 0) +
+        strataAnnual +
+        vacancyCost +
+        depreciation -
+        rentalAnnual;
+
+    const taxReturn = Math.round(
+        taxableCost > 0 ? taxableCost * (Number(DEFAULT_TAX_BRACKET) / 100) : 0,
+    );
 
     return {
         propertyValue: inputData.propertyValue,
@@ -139,6 +159,8 @@ export function calculateMortgageData(
         monthlyMortgage,
         annualPrincipal,
         annualInterest,
+        expenses: DEFAULT_EXPENSES,
+        taxReturn,
         annualNetCashFlow,
     };
 }
