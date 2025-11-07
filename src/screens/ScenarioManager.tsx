@@ -6,7 +6,7 @@ import ScreenContainer from "../components/primitives/ScreenContainer";
 import { useAppContext } from "../state/AppContext";
 import { useScenarios } from "../state/ScenarioContext";
 import Scenario from "../components/Scenario";
-import ScenarioInput from "../components/ScenarioInput";
+import ScenarioInput from "../components/inputs/ScenarioInput";
 import CompareButton from "../components/CompareButton";
 import { spacing } from "../theme/spacing";
 
