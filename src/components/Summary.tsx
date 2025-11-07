@@ -2,12 +2,9 @@ import React, { memo, useCallback, useMemo, useRef } from "react";
 import { View } from "react-native";
 import type { SummaryCardProps } from "./cards/SummaryCard";
 import SummaryCard from "./cards/SummaryCard";
-import type { PropertyData } from "../utils/mortgageCalculator";
+import type { PropertyData } from "../types";
 import { formatCurrency } from "../utils/parser";
-import {
-    DEFAULT_RENTAL_INCOME,
-    DEFAULT_STRATA_FEES,
-} from "../utils/mortgageDefaults";
+import { DEFAULT_RENTAL_INCOME, DEFAULT_STRATA_FEES } from "../utils/defaults";
 
 /**
  * Props for the Summary component

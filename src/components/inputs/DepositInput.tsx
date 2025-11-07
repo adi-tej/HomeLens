@@ -4,7 +4,7 @@ import { TextInput, useTheme } from "react-native-paper";
 import { spacing } from "../../theme/spacing";
 import { formatCurrency, parseNumber } from "../../utils/parser";
 import { PercentageInput } from "./PercentageInput";
-import { DEPOSIT_PERCENTAGE_PRESETS } from "../../utils/mortgageDefaults";
+import { DEPOSIT_PERCENTAGE_PRESETS } from "../../utils/defaults";
 
 export type DepositInputProps = {
     propertyValue?: number;

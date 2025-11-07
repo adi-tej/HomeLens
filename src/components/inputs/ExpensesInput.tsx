@@ -3,8 +3,8 @@ import { Modal, Portal, TextInput, useTheme } from "react-native-paper";
 import { Platform, StyleSheet, View } from "react-native";
 import { spacing } from "../../theme/spacing";
 import ExpensesForm from "../forms/ExpensesForm";
-import type { Expenses } from "../../utils/mortgageCalculator";
-import { DEFAULT_EXPENSES } from "../../utils/mortgageDefaults";
+import type { Expenses } from "../../types";
+import { DEFAULT_EXPENSES } from "../../utils/defaults";
 import { formatCurrency, parseNumber } from "../../utils/parser";
 
 export type ExpensesInputProps = {

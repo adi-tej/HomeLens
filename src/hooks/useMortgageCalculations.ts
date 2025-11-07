@@ -1,7 +1,15 @@
 import { calculateStampDuty } from "../utils/stampDuty";
-import { calculateLMI } from "../utils/lmi";
-import type { Expenses, LoanDetails, MortgageErrors, PropertyData } from "../utils/mortgageCalculator";
-import { annualBreakdown, monthlyRepayment } from "../utils/mortgageCalculator";
+import {
+    annualBreakdown,
+    calculateLMI,
+    monthlyRepayment,
+} from "../utils/helper";
+import type {
+    Expenses,
+    LoanDetails,
+    MortgageErrors,
+    PropertyData,
+} from "../types";
 import {
     DEFAULT_CAPITAL_GROWTH,
     DEFAULT_DEPRECIATION_RATE,
@@ -13,8 +21,8 @@ import {
     DEFAULT_STRATA_FEES,
     DEFAULT_TAX_BRACKET,
     DEFAULT_VACANCY_RATE,
-    getDefaultInterestRate
-} from "../utils/mortgageDefaults";
+    getDefaultInterestRate,
+} from "../utils/defaults";
 
 // Constants for expense calculation
 const ONE_TIME_EXPENSE_KEYS: (keyof Expenses)[] = [

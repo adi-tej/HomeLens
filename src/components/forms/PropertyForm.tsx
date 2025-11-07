@@ -2,18 +2,30 @@ import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Divider, Text, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { CurrencySelect, DepositInput, ExpensesInput, PercentageInput, Select, Toggle } from "./inputs";
-import { type Expenses, type LoanDetails, type PropertyData, type PropertyType } from "../utils/mortgageCalculator";
-import { spacing } from "../theme/spacing";
+import {
+    CurrencySelect,
+    DepositInput,
+    ExpensesInput,
+    PercentageInput,
+    Select,
+    Toggle,
+} from "../inputs";
+import type {
+    Expenses,
+    LoanDetails,
+    PropertyData,
+    PropertyType,
+} from "../../types";
+import { spacing } from "../../theme/spacing";
 import {
     CAPITAL_GROWTH_PRESETS,
     getDefaultInterestRate,
     INTEREST_RATE_PRESETS,
-    LVR_PRESETS
-} from "../utils/mortgageDefaults";
-import { calculateDepositFromLVR } from "../hooks/useMortgageCalculations";
-import { formatCurrency } from "../utils/parser";
-import { useScenarios } from "../state/ScenarioContext";
+    LVR_PRESETS,
+} from "../../utils/defaults";
+import { calculateDepositFromLVR } from "../../hooks/useMortgageCalculations";
+import { formatCurrency } from "../../utils/parser";
+import { useScenarios } from "../../state/ScenarioContext";
 
 export default function PropertyForm() {
     const theme = useTheme();

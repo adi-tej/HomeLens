@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import ScreenContainer from "../components/primitives/ScreenContainer";
-import PropertyForm from "../components/PropertyForm";
+import PropertyForm from "../components/forms/PropertyForm";
 import Summary from "../components/Summary";
 import { validateMortgageData } from "../hooks/useMortgageCalculations";
 import { useScenarios } from "../state/ScenarioContext";
@@ -10,8 +10,7 @@ import { spacing } from "../theme/spacing";
 
 export default function Calculator() {
     const theme = useTheme();
-    const { currentScenario, currentScenarioId } =
-        useScenarios();
+    const { currentScenario, currentScenarioId } = useScenarios();
     const [touched] = useState(false);
     const scrollViewRef = useRef<any>(null);
 

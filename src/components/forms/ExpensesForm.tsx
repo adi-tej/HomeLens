@@ -3,7 +3,7 @@ import { KeyboardTypeOptions, Platform, StyleSheet, View } from "react-native";
 import type { MD3Theme } from "react-native-paper";
 import { Button, Divider, Text, TextInput, useTheme } from "react-native-paper";
 import { spacing } from "../../theme/spacing";
-import type { Expenses } from "../../utils/mortgageCalculator";
+import type { Expenses } from "../../types";
 import { formatCurrency, parseNumber } from "../../utils/parser";
 
 export type ExpensesFormProps = {

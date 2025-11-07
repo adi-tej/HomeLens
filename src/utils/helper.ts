@@ -1,61 +1,3 @@
-// Utilities for mortgage/loan calculations
-
-export type PropertyType = "" | "house" | "townhouse" | "apartment" | "land";
-
-export interface PropertyData {
-    propertyValue?: number;
-    deposit?: number;
-    firstHomeBuyer: boolean;
-    isLivingHere: boolean;
-    propertyType: PropertyType;
-    isBrandNew: boolean;
-    loan: LoanDetails;
-    rentalIncome?: number;
-    rentalGrowth: number;
-    strataFees?: number;
-    capitalGrowth: number;
-    stampDuty?: number;
-    annualNetCashFlow?: number;
-    expenses: Expenses;
-    taxReturn?: number;
-}
-export type LoanDetails = {
-    isOwnerOccupiedLoan: boolean;
-    isInterestOnly: boolean;
-    loanTerm: number;
-    loanInterest: number;
-    includeStampDuty?: boolean;
-    lvr?: number;
-    lmi?: number;
-    totalLoan?: number;
-    monthlyMortgage?: number;
-    annualPrincipal?: number;
-    annualInterest?: number;
-};
-
-export type Expenses = {
-    // one-time
-    mortgageRegistration: number;
-    transferFee: number;
-    solicitor: number;
-    additionalOneTime: number;
-    // ongoing
-    council: number;
-    water: number;
-    landTax: number;
-    insurance: number;
-    propertyManager: number;
-    maintenance: number;
-    total: number;
-};
-
-export type MortgageErrors = Partial<
-    Record<
-        "propertyValue" | "deposit" | "depositTooBig" | "propertyType",
-        string
-    >
->;
-
 export function monthlyRepayment(
     principal: number,
     annualRatePct: number,
@@ -104,4 +46,35 @@ export function annualBreakdown(
         principal: Math.round(principalPaidYear * 100) / 100,
         interest: Math.round(interestPaidYear * 100) / 100,
     };
+}
+
+export function calculateLMI(lvr: number, la: number): number {
+    // Guard invalid loan amount
+    if (!Number.isFinite(la) || la <= 0) return 0;
+
+    // Normalize LVR to [0, 100] and 2 decimal places
+    const normalizedLvrRaw = Number.isFinite(lvr)
+        ? Math.max(0, Math.min(100, lvr))
+        : NaN;
+    if (!Number.isFinite(normalizedLvrRaw)) return 0;
+    const normalizedLvr = Math.round(normalizedLvrRaw * 100) / 100;
+
+    // No LMI at or below 80% LVR
+    if (normalizedLvr <= 80) return 0;
+
+    let rate = 0;
+    if (normalizedLvr <= 82) rate = 0.0037;
+    else if (normalizedLvr <= 84) rate = 0.007;
+    else if (normalizedLvr <= 86) rate = 0.0125;
+    else if (normalizedLvr <= 88) rate = 0.0175;
+    else if (normalizedLvr <= 90) rate = 0.023;
+    else if (normalizedLvr <= 91) rate = 0.028;
+    else if (normalizedLvr <= 92) rate = 0.033;
+    else if (normalizedLvr <= 93) rate = 0.042;
+    else if (normalizedLvr <= 94) rate = 0.052;
+    else if (normalizedLvr <= 95) rate = 0.06;
+    else return NaN; // >95% LVR often not supported
+
+    const lmi = la * rate;
+    return Math.round(lmi);
 }
