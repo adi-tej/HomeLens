@@ -10,7 +10,7 @@ import { spacing } from "../theme/spacing";
 
 export default function Calculator() {
     const theme = useTheme();
-    const { currentScenario, currentScenarioId, updateScenarioData } =
+    const { currentScenario, currentScenarioId } =
         useScenarios();
     const [touched] = useState(false);
     const scrollViewRef = useRef<any>(null);
@@ -29,20 +29,10 @@ export default function Calculator() {
     const errors = validateMortgageData(data);
     const isInvalid = Object.keys(errors).length > 0;
 
-    // Helper to update scenario data (will trigger recalculation in context)
-    const updateData = (updates: Partial<typeof data>) => {
-        updateScenarioData(currentScenarioId, updates);
-    };
-
     return (
         <ScreenContainer scrollRef={scrollViewRef}>
             {/* Property Form */}
-            <PropertyForm
-                data={data}
-                scenarioName={currentScenario.name}
-                currentScenarioId={currentScenarioId}
-                onUpdate={updateData}
-            />
+            <PropertyForm />
 
             {/* Validation Errors */}
             {touched && isInvalid && (

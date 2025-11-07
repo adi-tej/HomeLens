@@ -14,6 +14,38 @@ export type ExpensesFormProps = {
     onSave: (expenses: Expenses) => void;
 };
 
+// Label mapping for expense fields
+const EXPENSE_LABELS: Record<keyof Omit<Expenses, "total">, string> = {
+    mortgageRegistration: "Mortgage registration",
+    transferFee: "Transfer fee",
+    solicitor: "Solicitor",
+    additionalOneTime: "Additional",
+    council: "Council",
+    water: "Water",
+    landTax: "Land tax",
+    insurance: "Insurance",
+    propertyManager: "Property manager",
+    maintenance: "Maintenance",
+};
+
+// One-time expense field keys
+const ONE_TIME_FIELDS: Array<keyof Expenses> = [
+    "mortgageRegistration",
+    "transferFee",
+    "solicitor",
+    "additionalOneTime",
+];
+
+// All possible ongoing expense field keys
+const ONGOING_FIELDS: Array<keyof Expenses> = [
+    "council",
+    "water",
+    "landTax",
+    "insurance",
+    "propertyManager",
+    "maintenance",
+];
+
 export default function ExpensesForm({
     isLand,
     isInvestment,
@@ -25,10 +57,33 @@ export default function ExpensesForm({
     const [local, setLocal] = React.useState<Expenses>(value);
 
     React.useEffect(() => setLocal(value), [value]);
-    // generate styles using theme so we avoid inline styles in JSX
+
     const styles = getStyles(theme);
 
-    // common TextInput props to avoid repetition and keep consistent styling
+    // Recalculate total when isLand or isInvestment changes
+    React.useEffect(() => {
+        const getVisibleFields = (): Array<keyof Expenses> => {
+            return ONGOING_FIELDS.filter((key) => {
+                if (key === "water" || key === "insurance") return !isLand;
+                if (key === "propertyManager") return isInvestment && !isLand;
+                return true;
+            });
+        };
+
+        const visibleOngoing = getVisibleFields();
+        const total = [...ONE_TIME_FIELDS, ...visibleOngoing].reduce(
+            (sum, key) => sum + (Number(local[key]) || 0),
+            0,
+        );
+
+        // Only update if total actually changed
+        if (total !== local.total) {
+            const updated = { ...local, total };
+            setLocal(updated);
+            onSave(updated);
+        }
+    }, [isLand, isInvestment]); // Only depend on these flags
+
     const inputCommon = {
         mode: "outlined" as const,
         keyboardType: Platform.select({
@@ -41,196 +96,183 @@ export default function ExpensesForm({
         style: styles.input,
     };
 
-    // Update a single field and immediately autosave the updated config
-    const set = (k: keyof Expenses, v: number) => {
-        const next = { ...local, [k]: v } as Expenses;
-        setLocal(next);
-        onSave(next);
+    // Filter ongoing fields based on property type and investment status
+    const getVisibleOngoingFields = (): Array<keyof Expenses> => {
+        return ONGOING_FIELDS.filter((key) => {
+            // No water or insurance for land
+            if (key === "water" || key === "insurance") return !isLand;
+            // Property manager only for investment properties (and not land)
+            if (key === "propertyManager") return isInvestment && !isLand;
+            // All other fields (council, landTax, maintenance) are always visible
+            return true;
+        });
     };
 
-    // Helper to render two fields per row
-    const renderRow = (fields: { key: keyof Expenses; label: string }[]) => {
-        const pairs: Array<{
-            left?: (typeof fields)[0];
-            right?: (typeof fields)[0];
-        }> = [];
-        for (let i = 0; i < fields.length; i += 2) {
-            pairs.push({ left: fields[i], right: fields[i + 1] });
-        }
-        return pairs.map((p, i) => (
-            <View key={i} style={styles.rowPair}>
-                {p.left ? (
-                    <TextInput
-                        {...inputCommon}
-                        label={p.left.label}
-                        value={formatCurrency(Number(local[p.left.key] || 0))}
-                        onChangeText={(t) =>
-                            set(p.left!.key, Number(parseNumber(t) ?? 0))
-                        }
-                        style={p.right ? styles.inputLeft : styles.inputFull}
-                    />
-                ) : (
-                    <View style={styles.flex} />
-                )}
-                {p.right ? (
-                    <TextInput
-                        {...inputCommon}
-                        label={p.right.label}
-                        value={formatCurrency(Number(local[p.right.key] || 0))}
-                        onChangeText={(t) =>
-                            set(p.right!.key, Number(parseNumber(t) ?? 0))
-                        }
-                        style={styles.inputRight}
-                    />
-                ) : (
-                    <View style={styles.flex} />
-                )}
-            </View>
-        ));
+    const ongoingFields = getVisibleOngoingFields();
+
+    // Calculate total for a set of fields
+    const calculateTotal = (fields: Array<keyof Expenses>): number => {
+        return fields.reduce((sum, key) => sum + (Number(local[key]) || 0), 0);
     };
 
-    // Totals for display
-    const oneTimeKeys: (keyof Expenses)[] = [
-        "mortgageRegistration",
-        "transferFee",
-        "solicitor",
-        "additionalOneTime",
-    ];
-    const ongoingKeysBase: (keyof Expenses)[] = [
-        "council",
-        "water",
-        "landTax",
-        "insurance",
-        "propertyManager",
-        "maintenance",
-    ];
+    const oneTimeTotal = calculateTotal(ONE_TIME_FIELDS);
+    const ongoingTotal = calculateTotal(ongoingFields);
 
-    const oneTimeTotal = oneTimeKeys.reduce(
-        (s, k) => s + (Number(local[k] || 0) || 0),
-        0,
+    // Update a field and auto-save with computed total
+    const updateField = (key: keyof Expenses, value: number) => {
+        const updated = { ...local, [key]: value };
+        setLocal(updated);
+
+        // Recalculate total using only the visible fields
+        const visibleOngoing = getVisibleOngoingFields();
+        const total = calculateTotal([...ONE_TIME_FIELDS, ...visibleOngoing]);
+        onSave({ ...updated, total });
+    };
+
+    // Render a single input field
+    const renderInput = (key: keyof Expenses, styleOverride: any) => (
+        <TextInput
+            {...inputCommon}
+            label={EXPENSE_LABELS[key as keyof typeof EXPENSE_LABELS]}
+            value={formatCurrency(Number(local[key]) || 0)}
+            onChangeText={(text) =>
+                updateField(key, Number(parseNumber(text) ?? 0))
+            }
+            style={styleOverride}
+        />
     );
-    const ongoingKeys = ongoingKeysBase.filter((k) => {
-        if (k === "water" || k === "insurance") return !isLand;
-        if (k === "propertyManager") return isInvestment && !isLand;
-        return true;
-    });
-    const ongoingTotal = ongoingKeys.reduce(
-        (s, k) => s + (Number(local[k] || 0) || 0),
-        0,
+
+    // Render a row with two inputs (or one if second is null)
+    const renderRow = (
+        leftKey: keyof Expenses | null,
+        rightKey: keyof Expenses | null,
+    ) => (
+        <View style={styles.rowPair}>
+            {leftKey ? (
+                renderInput(leftKey, styles.inputLeft)
+            ) : (
+                <View style={styles.flex} />
+            )}
+            {rightKey ? (
+                renderInput(rightKey, styles.inputRight)
+            ) : (
+                <View style={styles.flex} />
+            )}
+        </View>
     );
 
     return (
         <View style={styles.container}>
+            {/* Header */}
+            <View style={styles.header}>
+                <Text variant="titleMedium" style={styles.headerTitle}>
+                    Expenses
+                </Text>
+            </View>
+
+            <Divider style={styles.divider} />
+
+            {/* One-time Expenses Section */}
             <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>One-time expenses</Text>
-                <Text style={styles.totalBadge}>
+                <Text variant="labelLarge" style={styles.sectionTitle}>
+                    One-time
+                </Text>
+                <Text variant="labelMedium" style={styles.subtotal}>
                     {formatCurrency(oneTimeTotal)}
                 </Text>
             </View>
-            {renderRow([
-                { key: "mortgageRegistration", label: "Mortgage registration" },
-                { key: "transferFee", label: "Transfer fee" },
-                { key: "solicitor", label: "Solicitor" },
-                { key: "additionalOneTime", label: "Additional one-time" },
-            ])}
 
-            <Divider style={styles.sectionDivider} />
+            {renderRow("mortgageRegistration", "transferFee")}
+            {renderRow("solicitor", "additionalOneTime")}
 
-            <View style={styles.sectionHeaderWithSpacing}>
-                <Text style={styles.sectionTitle}>Ongoing expenses</Text>
-                <Text style={styles.totalBadge}>
+            {/* Ongoing Expenses Section */}
+            <Divider style={styles.divider} />
+
+            <View style={styles.sectionHeader}>
+                <Text variant="labelLarge" style={styles.sectionTitle}>
+                    Ongoing
+                </Text>
+                <Text variant="labelMedium" style={styles.subtotal}>
                     {formatCurrency(ongoingTotal)}
                 </Text>
             </View>
-            {renderRow(
-                ongoingKeys.map((k) => ({
-                    key: k,
-                    label: (() => {
-                        switch (k) {
-                            case "council":
-                                return "Council";
-                            case "water":
-                                return "Water";
-                            case "landTax":
-                                return "Land tax";
-                            case "insurance":
-                                return "Insurance";
-                            case "propertyManager":
-                                return "Property manager";
-                            case "maintenance":
-                                return "Maintenance";
-                            default:
-                                return String(k);
-                        }
-                    })(),
-                })),
-            )}
 
+            {ongoingFields.map((key, index) => {
+                if (index % 2 === 0) {
+                    const nextKey = ongoingFields[index + 1] || null;
+                    return <View key={key}>{renderRow(key, nextKey)}</View>;
+                }
+                return null;
+            })}
+
+            {/* Close Button */}
             <View style={styles.closeRow}>
-                <Button onPress={() => onCancel()}>Close</Button>
+                <Button mode="contained" onPress={onCancel}>
+                    Close
+                </Button>
             </View>
         </View>
     );
 }
 
-// theme-aware styles factory to avoid inline styles in JSX
+// Styles
 function getStyles(theme: MD3Theme) {
     return StyleSheet.create({
         container: {
             backgroundColor: theme.colors.surface,
             padding: spacing.md,
-            borderRadius: 20,
-            paddingBottom: spacing.md,
+            borderRadius: 8,
+            gap: spacing.md,
+        },
+        header: {
+            alignItems: "center",
+        },
+        headerTitle: {
+            color: theme.colors.onSurface,
+            fontWeight: "600",
+        },
+        divider: {
+            height: 1,
+            backgroundColor: theme.colors.outlineVariant,
         },
         sectionHeader: {
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: spacing.md,
+            marginBottom: spacing.xs,
         },
-        sectionHeaderWithSpacing: {
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: spacing.md,
-            marginBottom: spacing.md,
+        sectionTitle: {
+            color: theme.colors.primary,
         },
-        sectionTitle: { fontWeight: "600" },
-        totalBadge: {
-            fontWeight: "800",
-            fontSize: 18,
-            backgroundColor: theme.colors.tertiaryContainer,
-            color: theme.colors.onTertiaryContainer,
-            paddingHorizontal: 12,
-            paddingVertical: 6,
-            borderRadius: 8,
-            textAlign: "center",
-            minWidth: 88,
+        subtotal: {
+            color: theme.colors.onSurface,
+            fontWeight: "600",
         },
-        sectionDivider: {
-            height: 1,
-            marginVertical: spacing.sm,
-            backgroundColor: theme.colors.outlineVariant,
+        input: {
+            marginTop: 0,
+            marginBottom: 0,
         },
-        // give each input a small bottom margin so rows have vertical breathing room
-        input: { marginTop: 0, marginBottom: spacing.sm },
-        // outline style used by TextInput (moved here to avoid inline objects)
-        inputOutline: { borderWidth: 1 },
-        // flex helpers for layout (avoid inline styles)
-        inputLeft: { flex: 1, marginRight: spacing.sm },
-        inputRight: { flex: 1 },
-        inputFull: { flex: 1 },
-        flex: { flex: 1 },
-        // larger gap between rows to separate logical groups
+        inputOutline: {
+            borderWidth: 1,
+        },
+        inputLeft: {
+            flex: 1,
+        },
+        inputRight: {
+            flex: 1,
+        },
+        flex: {
+            flex: 1,
+        },
         rowPair: {
             flexDirection: "row",
             alignItems: "center",
-            marginTop: spacing.md,
+            gap: spacing.md,
         },
         closeRow: {
             flexDirection: "row",
-            justifyContent: "flex-end",
-            marginTop: spacing.md,
+            justifyContent: "center",
+            marginTop: spacing.sm,
         },
     });
 }

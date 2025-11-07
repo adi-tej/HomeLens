@@ -2,69 +2,42 @@ import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Divider, Text, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import {
-    CurrencySelect,
-    DepositInput,
-    ExpensesInput,
-    PercentageInput,
-    Select,
-    Toggle,
-} from "./inputs";
-import {
-    type Expenses,
-    type LoanDetails,
-    type PropertyData,
-    type PropertyType,
-} from "../utils/mortgageCalculator";
+import { CurrencySelect, DepositInput, ExpensesInput, PercentageInput, Select, Toggle } from "./inputs";
+import { type Expenses, type LoanDetails, type PropertyData, type PropertyType } from "../utils/mortgageCalculator";
 import { spacing } from "../theme/spacing";
 import {
     CAPITAL_GROWTH_PRESETS,
-    DEFAULT_EXPENSES,
     getDefaultInterestRate,
     INTEREST_RATE_PRESETS,
-    LVR_PRESETS,
+    LVR_PRESETS
 } from "../utils/mortgageDefaults";
 import { calculateDepositFromLVR } from "../hooks/useMortgageCalculations";
+import { formatCurrency } from "../utils/parser";
+import { useScenarios } from "../state/ScenarioContext";
 
-export type PropertyFormProps = {
-    data: PropertyData;
-    scenarioName: string;
-    currentScenarioId: string;
-    onUpdate: (updates: Partial<PropertyData>) => void;
-};
-
-export default function PropertyForm({
-    data,
-    scenarioName,
-    currentScenarioId,
-    onUpdate,
-}: PropertyFormProps) {
-    const isLand = data.propertyType === "land";
+export default function PropertyForm() {
     const theme = useTheme();
-    // helper to get nested loan safely
-    const loan = (data.loan as LoanDetails) || ({} as LoanDetails);
-    // compute numeric expenses value from data.expenses (could be number or object)
-    const computeExpensesValue = (exp: any): number | undefined => {
-        if (exp == null) return undefined;
-        if (typeof exp === "number") return exp;
-        if (typeof exp === "object") {
-            if (exp.total != null && Number.isFinite(Number(exp.total)))
-                return Number(exp.total);
-            let sum = 0;
-            for (const k of Object.keys(exp)) {
-                const v = Number(exp[k]);
-                if (Number.isFinite(v)) sum += v;
-            }
-            return sum > 0 ? sum : undefined;
-        }
-        return undefined;
-    };
-    const expensesValue = computeExpensesValue(data.expenses);
+    const { currentScenario, currentScenarioId, updateScenarioData } =
+        useScenarios();
+
     const [showAdvanced, setShowAdvanced] = React.useState(false);
     const [isEditingLVR, setIsEditingLVR] = React.useState(false);
     const [lvrText, setLvrText] = React.useState("");
-    // Track the deposit value we requested so we know when it has been applied
     const pendingDepositRef = React.useRef<number | null>(null);
+
+    // Early return if no scenario selected (after hooks)
+    if (!currentScenario || !currentScenarioId) {
+        return null;
+    }
+
+    const data = currentScenario.data;
+    const scenarioName = currentScenario.name;
+    const onUpdate = (updates: Partial<PropertyData>) => {
+        updateScenarioData(currentScenarioId, updates);
+    };
+
+    const loan = (data.loan as LoanDetails) || ({} as LoanDetails);
+    const isLand = data.propertyType === "land";
     const isInvestment = !data.isLivingHere;
 
     // Update LVR text only when not editing; when editing, wait until pending deposit is applied
@@ -145,6 +118,8 @@ export default function PropertyForm({
                             isOwnerOccupiedLoan: newIsLivingHere,
                             loanInterest: newRate,
                         },
+                        // pass through current expenses so calculateMortgageData can recompute visibility-based total
+                        expenses: data.expenses,
                     });
                 }}
                 disabled={data.firstHomeBuyer}
@@ -437,17 +412,35 @@ export default function PropertyForm({
                     {/* Expenses input with settings (encapsulated) */}
                     <ExpensesInput
                         label="Annual expenses"
-                        value={expensesValue}
-                        onChange={(v) => {
-                            const newExpenses: Expenses | undefined =
-                                v != null
-                                    ? { ...DEFAULT_EXPENSES, total: v }
-                                    : undefined;
-                            onUpdate({ expenses: newExpenses });
+                        value={data.expenses}
+                        onChange={(expenses) => {
+                            onUpdate({ expenses });
                         }}
                         isLand={isLand}
                         isInvestment={isInvestment}
                     />
+
+                    {/* Calculate and display one-time expenses note */}
+                    {data.expenses &&
+                        typeof data.expenses === "object" &&
+                        (() => {
+                            const expenses = data.expenses as Expenses;
+                            const oneTimeTotal =
+                                (Number(expenses.mortgageRegistration) || 0) +
+                                (Number(expenses.transferFee) || 0) +
+                                (Number(expenses.solicitor) || 0) +
+                                (Number(expenses.additionalOneTime) || 0);
+
+                            if (oneTimeTotal > 0) {
+                                return (
+                                    <Text style={styles.helpText}>
+                                        💡 From next year, expenses will be{" "}
+                                        {formatCurrency(oneTimeTotal)} less
+                                    </Text>
+                                );
+                            }
+                            return null;
+                        })()}
 
                     {/* Assumptions */}
                     <Divider

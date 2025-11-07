@@ -9,8 +9,8 @@ import { formatCurrency, parseNumber } from "../../utils/parser";
 
 export type ExpensesInputProps = {
     label?: string;
-    value?: number;
-    onChange: (v: number | undefined) => void;
+    value?: Expenses;
+    onChange: (expenses: Expenses | undefined) => void;
     isLand?: boolean;
     isInvestment?: boolean;
 };
@@ -26,57 +26,82 @@ export function ExpensesInput({
     const [modalVisible, setModalVisible] = useState(false);
     const [focused, setFocused] = useState(false);
     const [text, setText] = useState(
-        value != null ? formatCurrency(value) : "",
+        value?.total != null ? formatCurrency(value.total) : "",
     );
     const [config, setConfig] = useState<Expenses>(
-        DEFAULT_EXPENSES as Expenses,
+        value || (DEFAULT_EXPENSES as Expenses),
     );
 
     const openModal = () => setModalVisible(true);
     const closeModal = () => setModalVisible(false);
 
+    // Recompute total locally when land / investment flags change (before parent context recalculates)
     useEffect(() => {
-        setText(value != null ? formatCurrency(value) : "");
         setConfig((prev) => {
-            if (value != null)
-                return { ...(prev || {}), total: value } as Expenses;
-            const { total, ...rest } = (prev || {}) as any;
-            return rest as Expenses;
+            const base = { ...(prev || DEFAULT_EXPENSES) } as Expenses;
+            const oneTime: (keyof Expenses)[] = [
+                "mortgageRegistration",
+                "transferFee",
+                "solicitor",
+                "additionalOneTime",
+            ];
+            const ongoingAll: (keyof Expenses)[] = [
+                "council",
+                "water",
+                "landTax",
+                "insurance",
+                "propertyManager",
+                "maintenance",
+            ];
+            const visibleOngoing = ongoingAll.filter((k) => {
+                if (k === "water" || k === "insurance") return !isLand;
+                if (k === "propertyManager") return isInvestment && !isLand;
+                return true;
+            });
+            const total = [...oneTime, ...visibleOngoing].reduce((sum, key) => {
+                const n = Number(base[key]);
+                return sum + (Number.isFinite(n) ? n : 0);
+            }, 0);
+            const next = { ...base, total } as Expenses;
+            // Update text & bubble to parent only if total changed relative to incoming value
+            if (value && value.total === total) return next; // already in sync
+            setText(formatCurrency(total));
+            onChange(next); // propagate to parent so context updates
+            return next;
         });
-    }, [value]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLand, isInvestment]);
+
+    useEffect(() => {
+        if (value) {
+            setText(formatCurrency(value.total));
+            setConfig(value);
+        } else {
+            setText("");
+            setConfig(DEFAULT_EXPENSES as Expenses);
+        }
+    }, [value?.total, value]);
 
     const handleTextChange = (t: string) => {
         const parsed = parseNumber(t);
         if (parsed !== undefined) {
             setText(formatCurrency(parsed));
-            setConfig(
-                (prev) => ({ ...(prev || {}), total: parsed }) as Expenses,
-            );
-            onChange(parsed);
+            const updated = { ...config, total: parsed };
+            setConfig(updated);
+            onChange(updated);
         } else {
             setText(t);
             if (t === "") {
-                setConfig((prev) => {
-                    const { total, ...rest } = (prev || {}) as any;
-                    return rest as Expenses;
-                });
+                setConfig(DEFAULT_EXPENSES as Expenses);
                 onChange(undefined);
             }
         }
     };
 
     const handleSave = (expenses: Expenses) => {
-        // Sum total of all numeric expense fields (exclude `total` if present)
-        const total = Object.entries(expenses).reduce((sum, [key, val]) => {
-            if (key === "total") return sum; // avoid double-counting
-            const n = Number(val as any);
-            return sum + (Number.isFinite(n) ? n : 0);
-        }, 0);
-
-        const rounded = total > 0 ? Math.round(total) : undefined;
-        // persist config with the computed total
-        setConfig({ ...(expenses as Expenses), total: rounded } as Expenses);
-        onChange(rounded);
+        setConfig(expenses);
+        setText(formatCurrency(expenses.total));
+        onChange(expenses);
     };
 
     const isActive = modalVisible || focused;
@@ -103,7 +128,7 @@ export function ExpensesInput({
                     outlineStyle={{ borderWidth: isActive ? 2 : 1 }}
                     right={
                         <TextInput.Icon
-                            icon="cog-outline"
+                            icon="tune"
                             onPress={openModal}
                             forceTextInputFocus={false}
                         />
@@ -123,10 +148,7 @@ export function ExpensesInput({
                         isInvestment={isInvestment}
                         value={config}
                         onCancel={closeModal}
-                        onSave={(expenses) => {
-                            handleSave(expenses);
-                            closeModal();
-                        }}
+                        onSave={handleSave}
                     />
                 </Modal>
             </Portal>
