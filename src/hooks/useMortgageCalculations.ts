@@ -69,7 +69,9 @@ export function calculateDepositFromLVR(
     const baseDeposit = validPropertyValue * (1 - validLvr / 100);
 
     // Add stamp duty if required
-    const deposit = includeStampDuty ? baseDeposit + validStampDuty : baseDeposit;
+    const deposit = includeStampDuty
+        ? baseDeposit + validStampDuty
+        : baseDeposit;
 
     return Math.round(deposit);
 }
@@ -94,7 +96,11 @@ export function validateMortgageData(data: PropertyData): MortgageErrors {
     }
 
     // Validate deposit doesn't exceed property value
-    if (data.propertyValue && data.deposit && data.deposit > data.propertyValue) {
+    if (
+        data.propertyValue &&
+        data.deposit &&
+        data.deposit > data.propertyValue
+    ) {
         errors.depositTooBig = "Deposit cannot exceed property value.";
     }
 
@@ -152,7 +158,9 @@ function normalizeExpenses(
  * @param inputData - Partial property data with user inputs
  * @returns Complete PropertyData with all calculations performed
  */
-export function calculateMortgageData(inputData: Partial<PropertyData>): PropertyData {
+export function calculateMortgageData(
+    inputData: Partial<PropertyData>,
+): PropertyData {
     // === Property and Deposit ===
     const propertyValue = Number(inputData.propertyValue) || 0;
     const deposit = Number(inputData.deposit) || 0;
@@ -172,9 +180,10 @@ export function calculateMortgageData(inputData: Partial<PropertyData>): Propert
         ? propertyValue - deposit + stampDuty
         : propertyValue - deposit;
 
-    const lvr = propertyValue > 0 && loanWithoutLMI > 0
-        ? (loanWithoutLMI / propertyValue) * 100
-        : 0;
+    const lvr =
+        propertyValue > 0 && loanWithoutLMI > 0
+            ? (loanWithoutLMI / propertyValue) * 100
+            : 0;
 
     const lmi = calculateLMI(lvr, loanWithoutLMI);
     const totalLoan = loanWithoutLMI + (Number.isFinite(lmi) ? lmi : 0);
@@ -182,15 +191,25 @@ export function calculateMortgageData(inputData: Partial<PropertyData>): Propert
     // === Loan Details ===
     const isOwnerOccupied = inputData.loan?.isOwnerOccupiedLoan ?? true;
     const isInterestOnly = inputData.loan?.isInterestOnly || false;
-    const loanInterest = inputData.loan?.loanInterest ||
+    const loanInterest =
+        inputData.loan?.loanInterest ||
         getDefaultInterestRate(isOwnerOccupied, isInterestOnly);
     const loanTermYears = inputData.loan?.loanTerm || DEFAULT_LOAN_TERM;
 
     // === Mortgage Payments ===
-    const monthlyMortgage = monthlyRepayment(totalLoan, loanInterest, loanTermYears);
+    const monthlyMortgage = monthlyRepayment(
+        totalLoan,
+        loanInterest,
+        loanTermYears,
+    );
     const annualMortgage = Math.round(monthlyMortgage * MONTHS_PER_YEAR);
 
-    const breakdown = annualBreakdown(1, totalLoan, loanInterest, loanTermYears);
+    const breakdown = annualBreakdown(
+        1,
+        totalLoan,
+        loanInterest,
+        loanTermYears,
+    );
     const annualPrincipal = breakdown.principal;
     const annualInterest = breakdown.interest;
 
@@ -210,7 +229,11 @@ export function calculateMortgageData(inputData: Partial<PropertyData>): Propert
     const depreciation = Math.round(propertyValue * DEFAULT_DEPRECIATION_RATE);
 
     // === Expenses ===
-    const expenses = normalizeExpenses(inputData.expenses, isLand, isInvestment);
+    const expenses = normalizeExpenses(
+        inputData.expenses,
+        isLand,
+        isInvestment,
+    );
 
     // === Tax Calculations ===
     const taxableCost =
