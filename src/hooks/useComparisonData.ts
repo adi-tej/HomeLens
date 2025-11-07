@@ -65,12 +65,6 @@ export function useComparisonData() {
                 accessor: (s: any) => formatCurrency(s.data.stampDuty),
             },
             {
-                key: "lvr",
-                label: "LVR",
-                accessor: (s: any) =>
-                    `${Number.isFinite(s.data.lvr) ? Math.round((s.data.lvr || 0) * 100) / 100 : 0}%`,
-            },
-            {
                 key: "lmi",
                 label: "LMI",
                 accessor: (s: any) => formatCurrency(s.data.lmi),
@@ -87,14 +81,10 @@ export function useComparisonData() {
                 highlight: true,
             },
             {
-                key: "annualPrincipal",
-                label: "Annual Principal",
-                accessor: (s: any) => formatCurrency(s.data.annualPrincipal),
-            },
-            {
-                key: "annualInterest",
-                label: "Annual Interest",
-                accessor: (s: any) => formatCurrency(s.data.annualInterest),
+                key: "annualNetCashFlow",
+                label: "Annual Net Cash Flow",
+                accessor: (s: any) => formatCurrency(s.data.annualNetCashFlow),
+                highlight: true,
             },
         ],
         [],

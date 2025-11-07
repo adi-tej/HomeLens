@@ -4,6 +4,10 @@ import type { SummaryCardProps } from "./cards/SummaryCard";
 import SummaryCard from "./cards/SummaryCard";
 import type { MortgageData } from "../utils/mortgageCalculator";
 import { formatCurrency } from "../utils/parser";
+import {
+    DEFAULT_RENTAL_INCOME,
+    DEFAULT_STRATA_FEES,
+} from "../utils/mortgageDefaults";
 
 /**
  * Props for the Summary component
@@ -37,6 +41,9 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
         totalLoan = 0,
         monthlyMortgage = 0,
         loanInterest = 5.5,
+        rentalIncome = DEFAULT_RENTAL_INCOME,
+        strataFees = DEFAULT_STRATA_FEES,
+        annualNetCashFlow,
     } = data;
 
     // Create refs for each card to measure their positions
@@ -92,7 +99,7 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                     {
                         key: "interest",
                         label: "Interest rate",
-                        value: `${(data.loanInterest || 5.5).toFixed(2)}% p.a.`,
+                        value: `${(Number(loanInterest) || 5.5).toFixed(2)}% p.a.`,
                     },
                     {
                         key: "loan",
@@ -116,27 +123,27 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                     {
                         key: "rental",
                         label: "Rental income",
-                        value: formatCurrency(0), // Placeholder
+                        value: formatCurrency(rentalIncome),
                     },
                     {
                         key: "strata",
                         label: "Strata Levy",
-                        value: formatCurrency(0), // Placeholder
+                        value: formatCurrency(strataFees),
                     },
                     {
                         key: "expenses",
                         label: "Expenses",
-                        value: formatCurrency(0), // Placeholder
+                        value: formatCurrency(0), // TODO: wire other expense inputs
                     },
                     {
                         key: "tax-return",
                         label: "Tax return",
-                        value: formatCurrency(0), // Placeholder
+                        value: formatCurrency(0), // TODO: calculate tax return
                     },
                     {
-                        key: "gross",
-                        label: "Gross",
-                        value: formatCurrency(0), // Placeholder
+                        key: "net",
+                        label: "Net Cash Flow",
+                        value: formatCurrency(annualNetCashFlow),
                         highlight: true,
                     },
                 ],
@@ -178,7 +185,16 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                     "💡 Projected returns at end of year based on assumptions.",
             },
         ],
-        [stampDuty, lmi, loanInterest, totalLoan, monthlyMortgage],
+        [
+            stampDuty,
+            lmi,
+            loanInterest,
+            totalLoan,
+            monthlyMortgage,
+            rentalIncome,
+            strataFees,
+            annualNetCashFlow,
+        ],
     );
 
     return (

@@ -28,6 +28,7 @@ export interface MortgageData {
     monthlyMortgage?: number;
     annualPrincipal?: number;
     annualInterest?: number;
+    annualNetCashFlow?: number;
 }
 
 export type MortgageErrors = Partial<

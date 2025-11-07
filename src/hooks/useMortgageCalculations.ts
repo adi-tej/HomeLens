@@ -108,21 +108,29 @@ export function calculateMortgageData(
     const annualPrincipal = breakdown.principal;
     const annualInterest = breakdown.interest;
 
+    // Compute annual net cash flow: rental (weekly->annual) - strata (quarterly->annual) - annual mortgage
+    const rentalWeekly = inputData.rentalIncome ?? DEFAULT_RENTAL_INCOME;
+    const strataQuarterly = inputData.strataFees ?? DEFAULT_STRATA_FEES;
+    const rentalAnnual = Math.round(Number(rentalWeekly || 0) * 52);
+    const strataAnnual = Math.round(Number(strataQuarterly || 0) * 4);
+    const annualMortgage = Math.round(Number(monthlyMortgage || 0) * 12);
+    const annualNetCashFlow = rentalAnnual - strataAnnual - annualMortgage;
+
     return {
         propertyValue: inputData.propertyValue,
         deposit: inputData.deposit,
-        firstHomeBuyer: inputData.firstHomeBuyer || false,
-        isLivingHere: inputData.isLivingHere || false,
-        propertyType: inputData.propertyType || DEFAULT_PROPERTY_TYPE,
-        isBrandNew: inputData.isBrandNew || false,
+        firstHomeBuyer: inputData.firstHomeBuyer ?? false,
+        isLivingHere: inputData.isLivingHere ?? false,
+        propertyType: inputData.propertyType ?? DEFAULT_PROPERTY_TYPE,
+        isBrandNew: inputData.isBrandNew ?? false,
         isOwnerOccupiedLoan: isOwnerOccupied,
         isInterestOnly: isInterestOnly,
         loanTerm: loanTermYears,
         loanInterest: loanInterest,
         rentalIncome: inputData.rentalIncome ?? DEFAULT_RENTAL_INCOME,
-        rentalGrowth: inputData.rentalGrowth || DEFAULT_RENTAL_GROWTH,
+        rentalGrowth: inputData.rentalGrowth ?? DEFAULT_RENTAL_GROWTH,
         strataFees: inputData.strataFees ?? DEFAULT_STRATA_FEES,
-        capitalGrowth: inputData.capitalGrowth || DEFAULT_CAPITAL_GROWTH,
+        capitalGrowth: inputData.capitalGrowth ?? DEFAULT_CAPITAL_GROWTH,
         includeStampDuty,
         stampDuty,
         lvr,
@@ -131,5 +139,6 @@ export function calculateMortgageData(
         monthlyMortgage,
         annualPrincipal,
         annualInterest,
+        annualNetCashFlow,
     };
 }

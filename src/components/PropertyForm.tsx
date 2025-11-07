@@ -375,23 +375,12 @@ export default function PropertyForm({
 
                     {/* Rental Income - Only show if investment */}
                     {isInvestment && (
-                        <>
-                            <CurrencySelect
-                                label="Weekly rent"
-                                value={data.rentalIncome}
-                                onChange={(v) => onUpdate({ rentalIncome: v })}
-                                allowPresets={false}
-                            />
-
-                            <CurrencySelect
-                                label="Annual rent increase ($/week)"
-                                value={data.rentalGrowth}
-                                onChange={(v) =>
-                                    onUpdate({ rentalGrowth: v || 30 })
-                                }
-                                allowPresets={false}
-                            />
-                        </>
+                        <CurrencySelect
+                            label="Weekly rent"
+                            value={data.rentalIncome}
+                            onChange={(v) => onUpdate({ rentalIncome: v })}
+                            allowPresets={false}
+                        />
                     )}
 
                     {/* Assumptions */}
@@ -420,6 +409,17 @@ export default function PropertyForm({
                         }
                         presets={CAPITAL_GROWTH_PRESETS}
                     />
+
+                    {isInvestment && (
+                        <CurrencySelect
+                            label="Annual rent increase ($/week)"
+                            value={data.rentalGrowth}
+                            onChange={(v) =>
+                                onUpdate({ rentalGrowth: v || 30 })
+                            }
+                            allowPresets={false}
+                        />
+                    )}
 
                     <Text style={styles.helpText}>
                         💡 For future value estimates and scenario planning.
