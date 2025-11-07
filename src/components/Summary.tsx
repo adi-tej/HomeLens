@@ -2,7 +2,7 @@ import React, { memo, useCallback, useMemo, useRef } from "react";
 import { View } from "react-native";
 import type { SummaryCardProps } from "./cards/SummaryCard";
 import SummaryCard from "./cards/SummaryCard";
-import type { MortgageData } from "../utils/mortgageCalculator";
+import type { PropertyData } from "../utils/mortgageCalculator";
 import { formatCurrency } from "../utils/parser";
 import {
     DEFAULT_RENTAL_INCOME,
@@ -14,7 +14,7 @@ import {
  */
 export type SummaryProps = {
     /** Mortgage calculation data to display across all summary cards */
-    data: MortgageData;
+    data: PropertyData;
     /** Optional scroll view ref for auto-scrolling to expanded cards */
     scrollViewRef?: React.RefObject<any>;
 };
@@ -37,16 +37,21 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
     // Destructure with safe defaults
     const {
         stampDuty = 0,
+        strataFees = DEFAULT_STRATA_FEES,
+        rentalIncome = DEFAULT_RENTAL_INCOME,
+        annualNetCashFlow,
+        taxReturn,
+        expenses,
+        loan,
+    } = data;
+
+    // Loan-specific destructure
+    const {
         lmi = 0,
         totalLoan = 0,
         monthlyMortgage = 0,
         loanInterest = 5.5,
-        rentalIncome = DEFAULT_RENTAL_INCOME,
-        strataFees = DEFAULT_STRATA_FEES,
-        expenses,
-        taxReturn,
-        annualNetCashFlow,
-    } = data;
+    } = loan || {};
 
     // Create refs for each card to measure their positions
     const cardRefs = useRef<{ [key: string]: View | null }>({});
@@ -135,7 +140,7 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                     {
                         key: "expenses",
                         label: "Expenses",
-                        value: formatCurrency(expenses),
+                        value: formatCurrency(expenses.total),
                     },
                     {
                         key: "tax-return",

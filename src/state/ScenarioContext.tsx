@@ -5,7 +5,7 @@ import React, {
     useContext,
     useState,
 } from "react";
-import { type MortgageData } from "../utils/mortgageCalculator";
+import { type PropertyData } from "../utils/mortgageCalculator";
 import { calculateMortgageData } from "../hooks/useMortgageCalculations";
 import { getDefaultMortgageData } from "../utils/mortgageDefaults";
 
@@ -17,7 +17,7 @@ export interface Scenario {
     createdAt: number;
     updatedAt: number;
     // Mortgage calculation data
-    data: MortgageData;
+    data: PropertyData;
 }
 
 interface ScenarioContextType {
@@ -31,7 +31,7 @@ interface ScenarioContextType {
     getAllScenarios: () => Scenario[];
     comparisonMode: boolean;
     selectedScenarios: Set<ScenarioId>;
-    updateScenarioData: (id: ScenarioId, data: Partial<MortgageData>) => void;
+    updateScenarioData: (id: ScenarioId, data: Partial<PropertyData>) => void;
     setComparisonMode: (mode: boolean) => void;
     toggleScenarioSelection: (id: ScenarioId) => void;
     clearSelectedScenarios: () => void;
@@ -158,7 +158,7 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
     );
 
     const updateScenarioData = useCallback(
-        (id: ScenarioId, data: Partial<MortgageData>) => {
+        (id: ScenarioId, data: Partial<PropertyData>) => {
             setScenarios((prev) => {
                 const scenario = prev.get(id);
                 if (!scenario) return prev;

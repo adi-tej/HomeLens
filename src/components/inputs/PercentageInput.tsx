@@ -10,7 +10,7 @@ export type PercentageInputProps = {
     onChange: (v: number | undefined) => void;
     onChangeRaw?: (text: string) => void;
     onBlurCallback?: () => void;
-    presets?: number[];
+    presets?: readonly number[];
     displayValue?: string;
 };
 

@@ -2,45 +2,42 @@ import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Divider, Text, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import {
-    CurrencySelect,
-    DepositInput,
-    PercentageInput,
-    Select,
-    Toggle,
-} from "./inputs";
-import {
-    type MortgageData,
-    type PropertyType,
-} from "../utils/mortgageCalculator";
+import { CurrencySelect, DepositInput, ExpensesInput, PercentageInput, Select, Toggle } from "./inputs";
+import { type Expenses, type LoanDetails, type PropertyData, type PropertyType } from "../utils/mortgageCalculator";
 import { spacing } from "../theme/spacing";
 import {
     CAPITAL_GROWTH_PRESETS,
     getDefaultInterestRate,
     INTEREST_RATE_PRESETS,
-    LVR_PRESETS,
+    LVR_PRESETS
 } from "../utils/mortgageDefaults";
 import { calculateDepositFromLVR } from "../hooks/useMortgageCalculations";
+import { formatCurrency } from "../utils/parser";
+import { useScenarios } from "../state/ScenarioContext";
 
-export type PropertyFormProps = {
-    data: MortgageData;
-    scenarioName: string;
-    currentScenarioId: string;
-    onUpdate: (updates: Partial<MortgageData>) => void;
-};
-
-export default function PropertyForm({
-    data,
-    scenarioName,
-    currentScenarioId,
-    onUpdate,
-}: PropertyFormProps) {
+export default function PropertyForm() {
     const theme = useTheme();
+    const { currentScenario, currentScenarioId, updateScenarioData } =
+        useScenarios();
+
     const [showAdvanced, setShowAdvanced] = React.useState(false);
     const [isEditingLVR, setIsEditingLVR] = React.useState(false);
     const [lvrText, setLvrText] = React.useState("");
-    // Track the deposit value we requested so we know when it has been applied
     const pendingDepositRef = React.useRef<number | null>(null);
+
+    // Early return if no scenario selected (after hooks)
+    if (!currentScenario || !currentScenarioId) {
+        return null;
+    }
+
+    const data = currentScenario.data;
+    const scenarioName = currentScenario.name;
+    const onUpdate = (updates: Partial<PropertyData>) => {
+        updateScenarioData(currentScenarioId, updates);
+    };
+
+    const loan = (data.loan as LoanDetails) || ({} as LoanDetails);
+    const isLand = data.propertyType === "land";
     const isInvestment = !data.isLivingHere;
 
     // Update LVR text only when not editing; when editing, wait until pending deposit is applied
@@ -95,7 +92,10 @@ export default function PropertyForm({
                         firstHomeBuyer: newFHB,
                         ...(newFHB && {
                             isLivingHere: true,
-                            isOwnerOccupiedLoan: true,
+                            loan: {
+                                ...(loan || {}),
+                                isOwnerOccupiedLoan: true,
+                            },
                         }),
                     });
                 }}
@@ -109,12 +109,17 @@ export default function PropertyForm({
                     const newIsLivingHere = !data.isLivingHere;
                     const newRate = getDefaultInterestRate(
                         newIsLivingHere,
-                        data.isInterestOnly,
+                        loan?.isInterestOnly ?? false,
                     );
                     onUpdate({
                         isLivingHere: newIsLivingHere,
-                        isOwnerOccupiedLoan: newIsLivingHere,
-                        loanInterest: newRate,
+                        loan: {
+                            ...(loan || {}),
+                            isOwnerOccupiedLoan: newIsLivingHere,
+                            loanInterest: newRate,
+                        },
+                        // pass through current expenses so calculateMortgageData can recompute visibility-based total
+                        expenses: data.expenses,
                     });
                 }}
                 disabled={data.firstHomeBuyer}
@@ -221,33 +226,42 @@ export default function PropertyForm({
 
                     <Toggle
                         label="Owner-occupied loan"
-                        checked={data.isOwnerOccupiedLoan}
+                        checked={loan?.isOwnerOccupiedLoan ?? true}
                         onToggle={() => {
-                            const newIsOwnerOccupied =
-                                !data.isOwnerOccupiedLoan;
+                            const newIsOwnerOccupied = !(
+                                loan?.isOwnerOccupiedLoan ?? true
+                            );
                             const newRate = getDefaultInterestRate(
                                 newIsOwnerOccupied,
-                                data.isInterestOnly,
+                                loan?.isInterestOnly ?? false,
                             );
                             onUpdate({
-                                isOwnerOccupiedLoan: newIsOwnerOccupied,
-                                loanInterest: newRate,
+                                loan: {
+                                    ...(loan || {}),
+                                    isOwnerOccupiedLoan: newIsOwnerOccupied,
+                                    loanInterest: newRate,
+                                },
                             });
                         }}
                     />
 
                     <Toggle
                         label="Interest only"
-                        checked={data.isInterestOnly}
+                        checked={loan?.isInterestOnly ?? false}
                         onToggle={() => {
-                            const newIsInterestOnly = !data.isInterestOnly;
+                            const newIsInterestOnly = !(
+                                loan?.isInterestOnly ?? false
+                            );
                             const newRate = getDefaultInterestRate(
-                                data.isOwnerOccupiedLoan,
+                                loan?.isOwnerOccupiedLoan ?? true,
                                 newIsInterestOnly,
                             );
                             onUpdate({
-                                isInterestOnly: newIsInterestOnly,
-                                loanInterest: newRate,
+                                loan: {
+                                    ...(loan || {}),
+                                    isInterestOnly: newIsInterestOnly,
+                                    loanInterest: newRate,
+                                },
                             });
                         }}
                     />
@@ -255,8 +269,8 @@ export default function PropertyForm({
                     <PercentageInput
                         label="LVR (%)"
                         displayValue={
-                            data.lvr != null
-                                ? Number(data.lvr).toFixed(2)
+                            loan?.lvr != null
+                                ? Number(loan.lvr).toFixed(2)
                                 : lvrText
                         }
                         value={undefined}
@@ -273,7 +287,7 @@ export default function PropertyForm({
                                 const newDeposit = calculateDepositFromLVR(
                                     data.propertyValue,
                                     parsed,
-                                    Boolean(data.includeStampDuty),
+                                    Boolean(loan?.includeStampDuty),
                                     data.stampDuty || 0,
                                 );
                                 pendingDepositRef.current = newDeposit ?? null;
@@ -287,7 +301,7 @@ export default function PropertyForm({
                                 const newDeposit = calculateDepositFromLVR(
                                     data.propertyValue,
                                     v,
-                                    Boolean(data.includeStampDuty),
+                                    Boolean(loan?.includeStampDuty),
                                     data.stampDuty || 0,
                                 );
                                 pendingDepositRef.current = newDeposit ?? null;
@@ -306,9 +320,14 @@ export default function PropertyForm({
                         <View style={styles.flexInput}>
                             <PercentageInput
                                 label="Interest rate (%)"
-                                value={data.loanInterest}
+                                value={loan?.loanInterest}
                                 onChange={(v: number | undefined) =>
-                                    onUpdate({ loanInterest: v || 5.5 })
+                                    onUpdate({
+                                        loan: {
+                                            ...(loan || {}),
+                                            loanInterest: v || 5.5,
+                                        },
+                                    })
                                 }
                                 presets={INTEREST_RATE_PRESETS}
                             />
@@ -317,9 +336,14 @@ export default function PropertyForm({
                         <View style={styles.flexInput}>
                             <CurrencySelect
                                 label="Loan term (years)"
-                                value={data.loanTerm}
+                                value={loan?.loanTerm}
                                 onChange={(v) =>
-                                    onUpdate({ loanTerm: v || 30 })
+                                    onUpdate({
+                                        loan: {
+                                            ...(loan || {}),
+                                            loanTerm: v || 30,
+                                        },
+                                    })
                                 }
                                 allowPresets={false}
                             />
@@ -329,12 +353,15 @@ export default function PropertyForm({
                     {/* Include Stamp Duty in Loan */}
                     <Toggle
                         label="Finance stamp duty"
-                        checked={Boolean(data.includeStampDuty)}
+                        checked={Boolean(loan?.includeStampDuty)}
                         onToggle={() =>
                             onUpdate({
-                                includeStampDuty: !Boolean(
-                                    data.includeStampDuty,
-                                ),
+                                loan: {
+                                    ...(loan || {}),
+                                    includeStampDuty: !Boolean(
+                                        loan?.includeStampDuty,
+                                    ),
+                                },
                             })
                         }
                     />
@@ -382,6 +409,38 @@ export default function PropertyForm({
                             allowPresets={false}
                         />
                     )}
+                    {/* Expenses input with settings (encapsulated) */}
+                    <ExpensesInput
+                        label="Annual expenses"
+                        value={data.expenses}
+                        onChange={(expenses) => {
+                            onUpdate({ expenses });
+                        }}
+                        isLand={isLand}
+                        isInvestment={isInvestment}
+                    />
+
+                    {/* Calculate and display one-time expenses note */}
+                    {data.expenses &&
+                        typeof data.expenses === "object" &&
+                        (() => {
+                            const expenses = data.expenses as Expenses;
+                            const oneTimeTotal =
+                                (Number(expenses.mortgageRegistration) || 0) +
+                                (Number(expenses.transferFee) || 0) +
+                                (Number(expenses.solicitor) || 0) +
+                                (Number(expenses.additionalOneTime) || 0);
+
+                            if (oneTimeTotal > 0) {
+                                return (
+                                    <Text style={styles.helpText}>
+                                        💡 From next year, expenses will be{" "}
+                                        {formatCurrency(oneTimeTotal)} less
+                                    </Text>
+                                );
+                            }
+                            return null;
+                        })()}
 
                     {/* Assumptions */}
                     <Divider
@@ -426,6 +485,7 @@ export default function PropertyForm({
                     </Text>
                 </View>
             )}
+            {/* Expenses modal handled by ExpensesInput */}
         </View>
     );
 }
