@@ -38,19 +38,49 @@ export default function Insights() {
                 { backgroundColor: theme.colors.surface },
             ]}
         >
-            <View style={styles.header}>
-                <Text variant="headlineSmall" style={styles.title}>
-                    5-Year Projection
-                </Text>
+            <View
+                style={[
+                    styles.header,
+                    {
+                        backgroundColor: theme.colors.surfaceVariant,
+                        borderColor: theme.colors.outlineVariant,
+                    },
+                ]}
+            >
+                <View
+                    style={[
+                        styles.accent,
+                        { backgroundColor: theme.colors.primary },
+                    ]}
+                />
                 <Text
-                    variant="bodyMedium"
-                    style={{ color: theme.colors.onSurfaceVariant }}
+                    variant="titleMedium"
+                    style={[styles.title, { color: theme.colors.onSurface }]}
                 >
-                    {currentScenario.name}
+                    Future Performance
                 </Text>
             </View>
 
-            <Table columns={columns} rows={insightsRows} data={projections} />
+            <Table
+                columns={columns}
+                rows={insightsRows}
+                data={projections}
+                cornerCell={
+                    <View style={styles.cornerCell}>
+                        <Text
+                            variant="labelMedium"
+                            style={[
+                                styles.scenarioName,
+                                { color: theme.colors.tertiary },
+                            ]}
+                            numberOfLines={2}
+                            ellipsizeMode="tail"
+                        >
+                            {currentScenario.name}
+                        </Text>
+                    </View>
+                }
+            />
         </View>
     );
 }
@@ -61,15 +91,38 @@ const styles = StyleSheet.create({
         padding: spacing.md,
     },
     header: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: spacing.xs,
+        paddingHorizontal: spacing.sm,
+        borderRadius: spacing.xs,
+        borderWidth: 1,
+        gap: spacing.sm,
         marginBottom: spacing.md,
+    },
+    accent: {
+        width: 4,
+        alignSelf: "stretch",
+        borderRadius: 2,
     },
     title: {
         fontWeight: "600",
-        marginBottom: spacing.xs,
+        letterSpacing: 0.25,
     },
     emptyState: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
+    },
+    cornerCell: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: spacing.xs,
+        paddingVertical: spacing.xs,
+    },
+    scenarioName: {
+        fontWeight: "600",
+        textAlign: "center",
     },
 });

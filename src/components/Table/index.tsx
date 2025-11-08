@@ -29,6 +29,7 @@ interface TableProps<T> {
     rows: Row<T>[];
     data: T[];
     getRowHeight?: (row: Row<T>) => number;
+    cornerCell?: React.ReactNode; // Optional custom corner cell content
 }
 
 /**
@@ -40,6 +41,7 @@ export default function Table<T>({
     rows,
     data,
     getRowHeight,
+    cornerCell,
 }: TableProps<T>) {
     const theme = useTheme();
 
@@ -82,11 +84,13 @@ export default function Table<T>({
                 />
             )}
             cornerIcon={
-                <Image
-                    source={require("../../../assets/icon.png")}
-                    style={styles.cornerIcon}
-                    accessibilityLabel="App icon"
-                />
+                cornerCell || (
+                    <Image
+                        source={require("../../../assets/icon.png")}
+                        style={styles.cornerIcon}
+                        accessibilityLabel="App icon"
+                    />
+                )
             }
         />
     );

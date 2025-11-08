@@ -56,10 +56,11 @@ export default function ScenarioManager() {
         const trimmedName = newScenarioName.trim();
         if (!trimmedName) return;
 
-        createScenario(trimmedName);
+        const newId = createScenario(trimmedName);
+        setCurrentScenario(newId); // Automatically select the newly created scenario
         setNewScenarioName("");
         setIsAddingNew(false);
-    }, [newScenarioName, createScenario]);
+    }, [newScenarioName, createScenario, setCurrentScenario]);
 
     const handleAddScenario = useCallback(() => {
         handleSubmit(addScenario);
