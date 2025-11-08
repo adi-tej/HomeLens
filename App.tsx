@@ -13,7 +13,6 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { ThemeMode, ThemeModeContext } from "./src/state/ThemeModeContext";
 import { AppProvider } from "./src/state/AppContext";
-import { ScenarioProvider } from "./src/state/ScenarioContext";
 import { darkTheme, lightTheme } from "./src/theme/theme";
 
 function toNavigationTheme(
@@ -55,9 +54,7 @@ export default function App() {
                         <GestureHandlerRootView style={styles.flex}>
                             <NavigationContainer theme={navTheme}>
                                 <AppProvider>
-                                    <ScenarioProvider>
-                                        <RootNavigator />
-                                    </ScenarioProvider>
+                                    <RootNavigator />
                                 </AppProvider>
                             </NavigationContainer>
                         </GestureHandlerRootView>

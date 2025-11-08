@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useScenarios } from "../state/ScenarioContext";
+import { useScenarios } from "../state/useScenarioStore";
 import { formatCurrency } from "../utils/parser";
 
 export interface ComparisonRow {

@@ -4,7 +4,7 @@ import { Divider, IconButton, Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenContainer from "../components/primitives/ScreenContainer";
 import { useAppContext } from "../state/AppContext";
-import { useScenarios } from "../state/ScenarioContext";
+import { useScenarios } from "../state/useScenarioStore";
 import Scenario from "../components/Scenario";
 import ScenarioInput from "../components/inputs/ScenarioInput";
 import CompareButton from "../components/CompareButton";

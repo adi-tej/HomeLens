@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "react-native-paper";
 import { useDrawer } from "../hooks/useDrawer";
 import { useAppContext } from "../state/AppContext";
-import { useScenarios } from "../state/ScenarioContext";
+import { useScenarios } from "../state/useScenarioStore";
 
 type Side = "left" | "right";
 

@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { Divider, Text, useTheme } from "react-native-paper";
 import type { PropertyData } from "../../types";
 import { spacing } from "../../theme/spacing";
-import { useScenarios } from "../../state/ScenarioContext";
+import { useScenarios } from "../../state/useScenarioStore";
 import {
     AssumptionsSection,
     BasicDetailsSection,

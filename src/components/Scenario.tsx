@@ -10,7 +10,7 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated";
 import { spacing } from "../theme/spacing";
-import type { Scenario as ScenarioType } from "../state/ScenarioContext";
+import type { Scenario as ScenarioType } from "../state/useScenarioStore";
 
 const DELETE_WIDTH = 60;
 const CHECKBOX_SIZE = 24;

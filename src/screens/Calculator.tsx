@@ -5,7 +5,7 @@ import ScreenContainer from "../components/primitives/ScreenContainer";
 import PropertyForm from "../components/forms/PropertyForm";
 import Summary from "../components/Summary";
 import { validateMortgageData } from "../hooks/useCalculations";
-import { useScenarios } from "../state/ScenarioContext";
+import { useScenarios } from "../state/useScenarioStore";
 import { spacing } from "../theme/spacing";
 
 export default function Calculator() {
