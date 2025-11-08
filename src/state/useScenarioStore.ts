@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { type PropertyData } from "../types";
-import { calculatePropertyData } from "../hooks/useCalculations";
+import { calculatePropertyData } from "../utils/calculations";
 import { getDefaultMortgageData } from "../utils/defaults";
 
 export type ScenarioId = string;

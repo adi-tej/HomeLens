@@ -4,7 +4,7 @@ import { Text, useTheme } from "react-native-paper";
 import ScreenContainer from "../components/primitives/ScreenContainer";
 import PropertyForm from "../components/forms/PropertyForm";
 import Summary from "../components/Summary";
-import { validateMortgageData } from "../hooks/useCalculations";
+import { validateMortgageData } from "../utils/calculations";
 import { useScenarios } from "../state/useScenarioStore";
 import { spacing } from "../theme/spacing";
 

@@ -9,7 +9,7 @@ import {
     INTEREST_RATE_PRESETS,
     LVR_PRESETS,
 } from "../../../utils/defaults";
-import { calculateDepositFromLVR } from "../../../hooks/useCalculations";
+import { calculateDepositFromLVR } from "../../../utils/calculations";
 
 interface LoanSettingsSectionProps {
     data: PropertyData;
