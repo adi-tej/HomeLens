@@ -3,5 +3,5 @@ export { CurrencySelect } from "./CurrencySelect";
 export { DepositInput } from "./DepositInput";
 export { PercentageInput } from "./PercentageInput";
 export { Select } from "./Select";
-export { Toggle } from "./Toggle";
+export { CheckBox } from "./CheckBox";
 export { ExpensesInput } from "./ExpensesInput";

@@ -1,6 +1,6 @@
 import React from "react";
 import { View } from "react-native";
-import { CurrencySelect, DepositInput, Select, Toggle } from "../../inputs";
+import { CheckBox, CurrencySelect, DepositInput, Select } from "../../inputs";
 import type { LoanDetails, PropertyData, PropertyType } from "../../../types";
 import { getDefaultInterestRate } from "../../../utils/defaults";
 
@@ -20,7 +20,7 @@ export default function BasicDetailsSection({
     return (
         <View style={{ gap: 16 }}>
             {/* First home buyer */}
-            <Toggle
+            <CheckBox
                 label="First home buyer?"
                 checked={data.firstHomeBuyer}
                 onToggle={() => {
@@ -39,7 +39,7 @@ export default function BasicDetailsSection({
             />
 
             {/* Occupancy */}
-            <Toggle
+            <CheckBox
                 label="I'm living here"
                 checked={data.isLivingHere}
                 onToggle={() => {
@@ -100,7 +100,7 @@ export default function BasicDetailsSection({
             />
 
             {/* Brand New / Existing */}
-            <Toggle
+            <CheckBox
                 label="Brand new property"
                 checked={data.isBrandNew}
                 onToggle={() => onUpdate({ isBrandNew: !data.isBrandNew })}

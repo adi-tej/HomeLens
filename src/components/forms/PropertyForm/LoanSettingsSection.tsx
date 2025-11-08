@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { Text, useTheme } from "react-native-paper";
-import { CurrencySelect, PercentageInput, Toggle } from "../../inputs";
+import { Text, TextInput, useTheme } from "react-native-paper";
+import { CheckBox, PercentageInput } from "../../inputs";
 import type { LoanDetails, PropertyData } from "../../../types";
 import { spacing } from "../../../theme/spacing";
 import {
@@ -45,7 +45,7 @@ export default function LoanSettingsSection({
                 Loan Settings
             </Text>
 
-            <Toggle
+            <CheckBox
                 label="Owner-occupied loan"
                 checked={loan.isOwnerOccupied}
                 onToggle={() => {
@@ -64,7 +64,7 @@ export default function LoanSettingsSection({
                 }}
             />
 
-            <Toggle
+            <CheckBox
                 label="Interest only"
                 checked={loan.isInterestOnly}
                 onToggle={() => {
@@ -152,24 +152,35 @@ export default function LoanSettingsSection({
                 </View>
                 <View style={styles.gap} />
                 <View style={styles.flexInput}>
-                    <CurrencySelect
+                    <TextInput
+                        mode="outlined"
                         label="Loan term (years)"
-                        value={loan.term}
-                        onChange={(v) =>
-                            onUpdate({
-                                loan: {
-                                    ...loan,
-                                    term: v || DEFAULT_LOAN_TERM,
-                                },
-                            })
-                        }
-                        allowPresets={false}
+                        value={loan.term?.toString() || ""}
+                        onChangeText={(text) => {
+                            const parsed = parseInt(text, 10);
+                            if (!isNaN(parsed) && parsed > 0) {
+                                onUpdate({
+                                    loan: {
+                                        ...loan,
+                                        term: parsed,
+                                    },
+                                });
+                            } else if (text === "") {
+                                onUpdate({
+                                    loan: {
+                                        ...loan,
+                                        term: DEFAULT_LOAN_TERM,
+                                    },
+                                });
+                            }
+                        }}
+                        keyboardType="numeric"
                     />
                 </View>
             </View>
 
             {/* Include Stamp Duty in Loan */}
-            <Toggle
+            <CheckBox
                 label="Finance stamp duty"
                 checked={Boolean(loan.includeStampDuty)}
                 onToggle={() =>
