@@ -1,5 +1,6 @@
-import React from "react";
-import { ScrollView as RNScrollView, StyleSheet, View } from "react-native";
+import React, { useCallback } from "react";
+import { StyleSheet, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { ScrollView } from "react-native-gesture-handler";
 import { Divider, IconButton, Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,12 +8,8 @@ import { useAppContext } from "../state/AppContext";
 import { spacing } from "../theme/spacing";
 import ShareButton from "../components/ShareButton";
 import { useComparisonData } from "../hooks/useComparisonData";
-import {
-    DataCell,
-    HeaderCell,
-    LabelCell,
-    TABLE_CONFIG,
-} from "../components/table";
+import { HeaderCell, LabelCell, TABLE_CONFIG } from "../components/table";
+import ComparisonRow from "../components/comparison/ComparisonRow";
 
 export default function Compare() {
     const theme = useTheme();
@@ -23,6 +20,30 @@ export default function Compare() {
     const handleBack = () => {
         setCompareScreenActive(false);
     };
+
+    // Memoized render function for FlashList
+    const renderComparisonRow = useCallback(
+        ({
+            item,
+            index,
+        }: {
+            item: (typeof comparisonRows)[0];
+            index: number;
+        }) => (
+            <ComparisonRow
+                row={item}
+                scenarios={selectedScenarioList}
+                isLast={index === comparisonRows.length - 1}
+            />
+        ),
+        [selectedScenarioList, comparisonRows.length],
+    );
+
+    // Key extractor for FlashList
+    const keyExtractor = useCallback(
+        (item: (typeof comparisonRows)[0]) => item.key,
+        [],
+    );
 
     return (
         <View
@@ -52,135 +73,96 @@ export default function Compare() {
 
             <Divider style={{ marginBottom: spacing.md }} />
 
-            <RNScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollViewContent}
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
-            >
-                {selectedScenarioList.length === 0 ? (
-                    <View style={styles.emptyContainer}>
-                        <Text
-                            variant="bodyLarge"
-                            style={{ color: theme.colors.onSurfaceVariant }}
-                        >
-                            No scenarios selected for comparison
-                        </Text>
-                    </View>
-                ) : (
-                    <View
-                        style={[
-                            styles.comparisonContainer,
-                            {
-                                borderWidth: 1,
-                                borderColor: theme.colors.outline,
-                                borderRadius: TABLE_CONFIG.borderRadius,
-                            },
-                        ]}
+            {selectedScenarioList.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                    <Text
+                        variant="bodyLarge"
+                        style={{ color: theme.colors.onSurfaceVariant }}
                     >
-                        {/* Table: left fixed label column + right scrollable block (header + rows) */}
-                        <View style={styles.tableContainer}>
-                            {/* Left: fixed label column including the header label */}
-                            <View
-                                style={[
-                                    styles.fixedLabelColumn,
-                                    { backgroundColor: theme.colors.surface },
-                                ]}
-                            >
-                                <View style={styles.emptyHeaderCell} />
-                                <Divider />
-                                {comparisonRows.map((row, index) => (
+                        No scenarios selected for comparison
+                    </Text>
+                </View>
+            ) : (
+                <View
+                    style={[
+                        styles.comparisonContainer,
+                        {
+                            borderWidth: 1,
+                            borderColor: theme.colors.outline,
+                            borderRadius: TABLE_CONFIG.borderRadius,
+                        },
+                    ]}
+                >
+                    {/* Table: left fixed label column + right virtualized data */}
+                    <View style={styles.tableContainer}>
+                        {/* Left: fixed label column with FlashList for labels */}
+                        <View
+                            style={[
+                                styles.fixedLabelColumn,
+                                { backgroundColor: theme.colors.surface },
+                            ]}
+                        >
+                            <View style={styles.emptyHeaderCell} />
+                            <Divider />
+                            <FlashList
+                                data={comparisonRows}
+                                renderItem={({ item, index }) => (
                                     <LabelCell
-                                        key={row.key}
-                                        label={row.label}
-                                        highlight={row.highlight}
+                                        label={item.label}
+                                        highlight={item.highlight}
                                         isLast={
                                             index === comparisonRows.length - 1
                                         }
                                         theme={theme}
                                     />
-                                ))}
-                            </View>
+                                )}
+                                keyExtractor={keyExtractor}
+                                showsVerticalScrollIndicator={false}
+                            />
+                        </View>
 
-                            {/* Right: horizontal scroll block containing header row and all data rows stacked vertically */}
-                            <View style={{ flex: 1 }} pointerEvents="box-none">
-                                <ScrollView
-                                    horizontal
-                                    showsHorizontalScrollIndicator={false}
-                                    nestedScrollEnabled={true}
-                                    scrollEnabled={true}
-                                    style={{ flex: 1 }}
-                                >
-                                    <View
-                                        style={{
-                                            minWidth:
-                                                selectedScenarioList.length *
-                                                TABLE_CONFIG.cellWidth,
-                                        }}
-                                    >
-                                        {/* Header row */}
-                                        <View style={styles.headerRow}>
-                                            {selectedScenarioList.map(
-                                                (scenario) => (
-                                                    <HeaderCell
-                                                        key={scenario.id}
-                                                        name={scenario.name}
-                                                        theme={theme}
-                                                    />
-                                                ),
-                                            )}
-                                        </View>
-
-                                        <Divider />
-
-                                        {/* Data rows: for each metric, render a horizontal row of values aligned to the header columns */}
-                                        {comparisonRows.map((row, index) => (
-                                            <View
-                                                key={row.key}
-                                                style={[
-                                                    styles.dataRow,
-                                                    {
-                                                        borderBottomWidth:
-                                                            index ===
-                                                            comparisonRows.length -
-                                                                1
-                                                                ? 0
-                                                                : 1,
-                                                        borderBottomColor:
-                                                            theme.colors
-                                                                .outline,
-                                                        backgroundColor:
-                                                            row.highlight
-                                                                ? theme.colors
-                                                                      .secondaryContainer
-                                                                : theme.colors
-                                                                      .surfaceVariant,
-                                                    },
-                                                ]}
-                                            >
-                                                {selectedScenarioList.map(
-                                                    (scenario) => (
-                                                        <DataCell
-                                                            key={scenario.id}
-                                                            value={row.accessor(
-                                                                scenario,
-                                                            )}
-                                                            highlight={
-                                                                row.highlight
-                                                            }
-                                                            theme={theme}
-                                                        />
-                                                    ),
-                                                )}
-                                            </View>
-                                        ))}
+                        {/* Right: horizontal scroll block with virtualized rows */}
+                        <View style={{ flex: 1 }}>
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                nestedScrollEnabled={true}
+                                scrollEnabled={true}
+                                contentContainerStyle={{
+                                    minWidth:
+                                        selectedScenarioList.length *
+                                        TABLE_CONFIG.cellWidth,
+                                }}
+                            >
+                                <View style={{ flex: 1 }}>
+                                    {/* Header row */}
+                                    <View style={styles.headerRow}>
+                                        {selectedScenarioList.map(
+                                            (scenario) => (
+                                                <HeaderCell
+                                                    key={scenario.id}
+                                                    name={scenario.name}
+                                                    theme={theme}
+                                                />
+                                            ),
+                                        )}
                                     </View>
-                                </ScrollView>
-                            </View>
+
+                                    <Divider />
+
+                                    {/* Data rows - virtualized with FlashList */}
+                                    <FlashList
+                                        data={comparisonRows}
+                                        renderItem={renderComparisonRow}
+                                        keyExtractor={keyExtractor}
+                                        showsVerticalScrollIndicator={false}
+                                    />
+                                </View>
+                            </ScrollView>
                         </View>
                     </View>
-                )}
-            </RNScrollView>
+                </View>
+            )}
         </View>
     );
 }
@@ -200,12 +182,6 @@ const styles = StyleSheet.create({
         flex: 1,
         textAlign: "center",
     },
-    scrollView: {
-        flex: 1,
-    },
-    scrollViewContent: {
-        paddingBottom: spacing.xl,
-    },
     emptyContainer: {
         flex: 1,
         alignItems: "center",
@@ -213,9 +189,11 @@ const styles = StyleSheet.create({
         paddingTop: spacing.xl * 4,
     },
     comparisonContainer: {
+        flex: 1,
         paddingBottom: 0,
     },
     tableContainer: {
+        flex: 1,
         flexDirection: "row",
         overflow: "hidden",
         borderRadius: TABLE_CONFIG.borderRadius,
@@ -236,15 +214,8 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         paddingLeft: spacing.sm,
     },
-    horizontalScrollContent: {
-        paddingVertical: 0,
-    },
     headerRow: {
         flexDirection: "row",
         height: TABLE_CONFIG.headerHeight,
-    },
-    dataRow: {
-        flexDirection: "row",
-        height: TABLE_CONFIG.rowHeight,
     },
 });
