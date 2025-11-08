@@ -42,14 +42,10 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
     // Get first year's projection data
     const firstYearProjection = projections.length > 0 ? projections[0] : null;
 
-    // Loan-specific destructure
-    const {
-        lmi = 0,
-        totalLoan = 0,
-        monthlyMortgage = 0,
-        loanInterest = 5.5,
-    } = loan || {};
+    // Loan-specific destructure (loan is always present)
+    const { lmi = 0, amount = 0, monthlyMortgage = 0, interest = 0 } = loan;
 
+    // Projection-specific destructure (projection might be null if no projections calculated yet)
     const {
         netCashFlow = 0,
         rentalIncome = 0,
@@ -114,12 +110,12 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                     {
                         key: "interest",
                         label: "Interest rate",
-                        value: `${(Number(loanInterest) || 5.5).toFixed(2)}% p.a.`,
+                        value: `${Number(interest).toFixed(2)}% p.a.`,
                     },
                     {
                         key: "loan",
                         label: "Loan amount",
-                        value: formatCurrency(totalLoan),
+                        value: formatCurrency(amount),
                     },
                     {
                         key: "mm",
@@ -203,8 +199,8 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
         [
             stampDuty,
             lmi,
-            loanInterest,
-            totalLoan,
+            interest,
+            amount,
             monthlyMortgage,
             rentalIncome,
             strataFees,

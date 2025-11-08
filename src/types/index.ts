@@ -19,14 +19,14 @@ export interface PropertyData {
     projections?: Projection[];
 }
 export type LoanDetails = {
-    isOwnerOccupiedLoan: boolean;
+    isOwnerOccupied: boolean;
     isInterestOnly: boolean;
-    loanTerm: number;
-    loanInterest: number;
+    term: number;
+    interest: number;
     includeStampDuty?: boolean;
     lvr?: number;
     lmi?: number;
-    totalLoan?: number;
+    amount?: number;
     monthlyMortgage?: number;
 };
 
@@ -59,9 +59,18 @@ export type Projection = {
     annualInterest: number;
 };
 
-export type MortgageErrors = Partial<
+export type PropertyDataErrors = Partial<
     Record<
-        "propertyValue" | "deposit" | "depositTooBig" | "propertyType",
+        | "propertyValue"
+        | "deposit"
+        | "depositTooBig"
+        | "propertyType"
+        | "weeklyRent"
+        | "capitalGrowth"
+        | "rentalGrowth"
+        | "loanTerm"
+        | "loanInterest"
+        | "strataFees",
         string
     >
 >;

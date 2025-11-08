@@ -4,7 +4,11 @@ import { Divider, Text, useTheme } from "react-native-paper";
 import { CurrencySelect, PercentageInput } from "../../inputs";
 import type { PropertyData } from "../../../types";
 import { spacing } from "../../../theme/spacing";
-import { CAPITAL_GROWTH_PRESETS } from "../../../utils/defaults";
+import {
+    CAPITAL_GROWTH_PRESETS,
+    DEFAULT_CAPITAL_GROWTH,
+    DEFAULT_RENTAL_GROWTH,
+} from "../../../utils/defaults";
 
 interface AssumptionsSectionProps {
     data: PropertyData;
@@ -41,7 +45,7 @@ export default function AssumptionsSection({
                 label="Annual property growth (%)"
                 value={data.capitalGrowth}
                 onChange={(v: number | undefined) =>
-                    onUpdate({ capitalGrowth: v || 3 })
+                    onUpdate({ capitalGrowth: v || DEFAULT_CAPITAL_GROWTH })
                 }
                 presets={CAPITAL_GROWTH_PRESETS}
             />
@@ -50,7 +54,9 @@ export default function AssumptionsSection({
                 <CurrencySelect
                     label="Annual rent increase ($/week)"
                     value={data.rentalGrowth}
-                    onChange={(v) => onUpdate({ rentalGrowth: v || 30 })}
+                    onChange={(v) =>
+                        onUpdate({ rentalGrowth: v || DEFAULT_RENTAL_GROWTH })
+                    }
                     allowPresets={false}
                 />
             )}

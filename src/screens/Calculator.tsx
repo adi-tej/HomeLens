@@ -4,7 +4,7 @@ import { Text, useTheme } from "react-native-paper";
 import ScreenContainer from "../components/primitives/ScreenContainer";
 import PropertyForm from "../components/forms/PropertyForm";
 import Summary from "../components/Summary";
-import { validateMortgageData } from "../utils/calculations";
+import { validatePropertyData } from "../utils/calculations";
 import { useScenarios } from "../state/useScenarioStore";
 import { spacing } from "../theme/spacing";
 
@@ -25,7 +25,7 @@ export default function Calculator() {
     const { data } = currentScenario;
 
     // Validate data
-    const errors = validateMortgageData(data);
+    const errors = validatePropertyData(data);
     const isInvalid = Object.keys(errors).length > 0;
 
     return (
@@ -42,6 +42,12 @@ export default function Calculator() {
                             errors.deposit && `• ${errors.deposit}`,
                             errors.depositTooBig && `• ${errors.depositTooBig}`,
                             errors.propertyType && `• ${errors.propertyType}`,
+                            errors.loanTerm && `• ${errors.loanTerm}`,
+                            errors.loanInterest && `• ${errors.loanInterest}`,
+                            errors.weeklyRent && `• ${errors.weeklyRent}`,
+                            errors.capitalGrowth && `• ${errors.capitalGrowth}`,
+                            errors.rentalGrowth && `• ${errors.rentalGrowth}`,
+                            errors.strataFees && `• ${errors.strataFees}`,
                             !data.propertyValue &&
                                 touched &&
                                 "• Enter property value to use deposit %",

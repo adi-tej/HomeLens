@@ -96,10 +96,10 @@ export function calculatePropertyData(
         deposit,
         capitalGrowthRate,
         loan: {
-            total: loan.totalLoan ?? 0,
-            interestRate: loan.loanInterest ?? 0,
+            total: loan.amount ?? 0,
+            interestRate: loan.interest ?? 0,
             isInterestOnly: loan.isInterestOnly ?? false,
-            termYears: loan.loanTerm ?? 30,
+            termYears: loan.term ?? 30,
             monthlyMortgage: loan.monthlyMortgage ?? 0,
         },
         weeklyRent,

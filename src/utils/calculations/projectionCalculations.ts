@@ -119,54 +119,102 @@ export function calculateMultiYearProjections(params: {
 
     const projections: Projection[] = [];
 
-    // Derived static values
+    // ===================================================================
+    // STEP 1: Pre-calculate static values (constant across all years)
+    // ===================================================================
+
+    // Depreciation: 2.5% of property value per year (for tax deductions)
     const depreciation = calculateDepreciation(propertyValue);
+
+    // Convert monthly mortgage to annual
     const annualMortgage = loan.monthlyMortgage * MONTHS_PER_YEAR;
+
+    // Convert quarterly strata to annual
     const strataAnnual = strataQuarterly * QUARTERS_PER_YEAR;
+
+    // Calculate initial annual rental income (50 weeks to account for 2-week vacancy)
     const annualRentalIncomeInitial = Math.round(
         weeklyRent * WEEKS_PER_YEAR_AFTER_VACANCY,
     );
+
+    // Calculate annual rental growth amount ($/week growth × 50 weeks)
     const annualRentalGrowth =
         rentalGrowthPerWeek * WEEKS_PER_YEAR_AFTER_VACANCY;
 
-    // One-time costs paid only once (year 0 basis)
+    // ===================================================================
+    // STEP 2: Calculate fixed costs
+    // ===================================================================
+
+    // Upfront costs: paid once at purchase (Year 0)
+    // Includes: deposit, stamp duty, LMI, one-time expenses (conveyancing, etc.)
     const upfrontCosts = deposit + stampDuty + lmi + expenses.oneTimeTotal;
+
+    // Recurring costs: paid every year
+    // Includes: mortgage, strata, ongoing expenses (rates, insurance, etc.)
     const recurringCosts =
         annualMortgage + strataAnnual + expenses.ongoingAnnualTotal;
 
-    // Cumulative trackers
+    // ===================================================================
+    // STEP 3: Initialize cumulative trackers
+    // ===================================================================
+
+    // Track total principal paid off over time (increases each year for P&I loans)
     let cumulativePrincipalPaid = 0;
+
+    // Track property value as it grows year-over-year
     let currentPropertyValue = propertyValue;
+
+    // Track rental income as it grows year-over-year
     let currentAnnualRent = annualRentalIncomeInitial;
+
+    // Track total rental income received to date
     let cumulativeRentalIncome = 0;
+
+    // Track total tax returns received to date
     let cumulativeTaxReturns = 0;
 
+    // ===================================================================
+    // STEP 4: Calculate year-by-year projections
+    // ===================================================================
+
     for (let yearIndex = 0; yearIndex < years; yearIndex++) {
-        // Apply property growth (growth starts with first projected year)
+        // --- Property Value Growth ---
+        // Apply capital growth to property value
+        // Note: Growth is applied even in Year 0 (first projected year)
         currentPropertyValue = calculatePropertyValueWithGrowth(
             currentPropertyValue,
             capitalGrowthRate,
         );
 
-        // Apply rental growth from second year onwards
+        // --- Rental Income Growth ---
+        // Apply rental growth from Year 1 onwards (Year 0 uses initial rent)
         if (yearIndex > 0) {
             currentAnnualRent = Math.round(
                 currentAnnualRent + annualRentalGrowth,
             );
         }
 
-        // Accurate principal & interest for this year using amortization
+        // --- Loan Calculations ---
+        // Calculate accurate principal & interest for this specific year
+        // Uses amortization schedule to get exact values (not approximations)
+        // For P&I: principal increases and interest decreases each year
+        // For IO: principal = 0, interest stays constant
         const { principal, interest } = annualBreakdown(
-            yearIndex + 1,
+            yearIndex + 1, // annualBreakdown uses 1-based year numbering
             loan.total,
             loan.interestRate,
             loan.termYears,
             loan.isInterestOnly,
         );
 
+        // Accumulate total principal paid to date
         cumulativePrincipalPaid += principal;
 
-        // Tax calculations
+        // --- Tax Calculations ---
+        // Calculate taxable cost (negative gearing calculation)
+        // Formula: Interest + Expenses + Strata + Depreciation - Rental Income
+        // If positive, investor gets tax return at 37% marginal rate
+        // Note: One-time expenses only included in Year 0
         const taxableCost =
             Math.round(interest) +
             (yearIndex === 0 ? expenses.oneTimeTotal : 0) +
@@ -175,21 +223,36 @@ export function calculateMultiYearProjections(params: {
             depreciation -
             currentAnnualRent;
 
+        // Calculate tax return (37% of taxable cost if negative gearing)
         const currentTaxReturn = calculateTaxReturn(taxableCost);
 
-        // Cumulative tallies
+        // --- Cumulative Totals ---
+        // Add this year's income to running totals
         cumulativeRentalIncome += currentAnnualRent;
         cumulativeTaxReturns += currentTaxReturn;
 
+        // --- Financial Position Calculations ---
+        // Equity = deposit + all principal paid off to date
         const equity = deposit + cumulativePrincipalPaid;
+
+        // Total spent = upfront costs (once) + recurring costs × number of years
         const spent = upfrontCosts + recurringCosts * (yearIndex + 1);
+
+        // Capital growth = current value - original purchase price
         const capitalGrowthTotal = currentPropertyValue - propertyValue;
+
+        // Total returns = all rental + all tax returns + capital growth
         const returns =
             cumulativeRentalIncome + cumulativeTaxReturns + capitalGrowthTotal;
 
-        // ROI
+        // --- Return on Investment ---
+        // ROI = (total returns / total spent) × 100
         const roi = calculateROI(returns, spent);
 
+        // --- Annual Cash Flow ---
+        // Net cash flow for THIS year only (not cumulative)
+        // Formula: Rental + Tax Return - Mortgage - Strata - Ongoing Expenses - One-time (Year 0 only)
+        // Note: One-time expenses hit cash flow in Year 0
         const netCashFlow =
             currentAnnualRent +
             currentTaxReturn -
@@ -198,6 +261,7 @@ export function calculateMultiYearProjections(params: {
             expenses.ongoingAnnualTotal -
             (yearIndex === 0 ? expenses.oneTimeTotal : 0);
 
+        // --- Store Projection ---
         projections.push({
             year: startYear + yearIndex,
             propertyValue: currentPropertyValue,

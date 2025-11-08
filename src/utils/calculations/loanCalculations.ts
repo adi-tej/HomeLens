@@ -1,4 +1,4 @@
-import { getDefaultInterestRate } from "../defaults";
+import { DEFAULT_LOAN_TERM, getDefaultInterestRate } from "../defaults";
 import { MONTHS_PER_YEAR } from "./cashFlowCalculations";
 import type { LoanDetails } from "../../types";
 
@@ -193,33 +193,33 @@ export function calculateLoanDetails(
             : 0;
 
     const lmi = calculateLMI(lvr, loanWithoutLMI);
-    const totalLoan = loanWithoutLMI + (Number.isFinite(lmi) ? lmi : 0);
+    const amount = loanWithoutLMI + (Number.isFinite(lmi) ? lmi : 0);
 
     // === Loan Details ===
-    const isOwnerOccupied = inputLoan?.isOwnerOccupiedLoan ?? true;
-    const isInterestOnly = inputLoan?.isInterestOnly || false;
-    const loanInterest =
-        inputLoan?.loanInterest ||
+    const isOwnerOccupied = inputLoan?.isOwnerOccupied ?? true;
+    const isInterestOnly = inputLoan?.isInterestOnly ?? false;
+    const interest =
+        inputLoan?.interest ??
         getDefaultInterestRate(isOwnerOccupied, isInterestOnly);
-    const loanTermYears = inputLoan?.loanTerm || 30;
+    const term = inputLoan?.term ?? DEFAULT_LOAN_TERM;
 
     // === Mortgage Payments ===
     const monthlyMortgage = monthlyRepayment(
-        totalLoan,
-        loanInterest,
-        loanTermYears,
+        amount,
+        interest,
+        term,
         isInterestOnly,
     );
 
     return {
-        isOwnerOccupiedLoan: isOwnerOccupied,
+        isOwnerOccupied,
         isInterestOnly,
-        loanTerm: loanTermYears,
-        loanInterest,
+        term,
+        interest,
         includeStampDuty,
         lvr,
         lmi,
-        totalLoan,
+        amount,
         monthlyMortgage,
     };
 }

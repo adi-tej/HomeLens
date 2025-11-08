@@ -15,7 +15,7 @@ export default function BasicDetailsSection({
     scenarioId,
     onUpdate,
 }: BasicDetailsSectionProps) {
-    const loan = (data.loan as LoanDetails) || ({} as LoanDetails);
+    const loan = data.loan as LoanDetails;
 
     return (
         <View style={{ gap: 16 }}>
@@ -30,8 +30,8 @@ export default function BasicDetailsSection({
                         ...(newFHB && {
                             isLivingHere: true,
                             loan: {
-                                ...(loan || {}),
-                                isOwnerOccupiedLoan: true,
+                                ...loan,
+                                isOwnerOccupied: true,
                             },
                         }),
                     });
@@ -46,14 +46,14 @@ export default function BasicDetailsSection({
                     const newIsLivingHere = !data.isLivingHere;
                     const newRate = getDefaultInterestRate(
                         newIsLivingHere,
-                        loan?.isInterestOnly ?? false,
+                        loan.isInterestOnly,
                     );
                     onUpdate({
                         isLivingHere: newIsLivingHere,
                         loan: {
-                            ...(loan || {}),
-                            isOwnerOccupiedLoan: newIsLivingHere,
-                            loanInterest: newRate,
+                            ...loan,
+                            isOwnerOccupied: newIsLivingHere,
+                            interest: newRate,
                         },
                         // pass through current expenses so calculateMortgageData can recompute visibility-based total
                         expenses: data.expenses,

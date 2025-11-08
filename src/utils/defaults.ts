@@ -196,11 +196,10 @@ export function getDefaultMortgageData(): PropertyData {
         capitalGrowth: DEFAULT_CAPITAL_GROWTH,
         stampDuty: 0,
         loan: {
-            isOwnerOccupiedLoan: true,
+            isOwnerOccupied: true,
             isInterestOnly: false,
-            loanTerm: DEFAULT_LOAN_TERM,
-            loanInterest:
-                DEFAULT_INTEREST_RATES.ownerOccupied.principalAndInterest,
+            term: DEFAULT_LOAN_TERM,
+            interest: DEFAULT_INTEREST_RATES.ownerOccupied.principalAndInterest,
             includeStampDuty: false,
         },
         expenses: { ...DEFAULT_EXPENSES },

@@ -5,6 +5,8 @@ import { CurrencySelect, PercentageInput, Toggle } from "../../inputs";
 import type { LoanDetails, PropertyData } from "../../../types";
 import { spacing } from "../../../theme/spacing";
 import {
+    DEFAULT_INTEREST_RATES,
+    DEFAULT_LOAN_TERM,
     getDefaultInterestRate,
     INTEREST_RATE_PRESETS,
     LVR_PRESETS,
@@ -45,22 +47,18 @@ export default function LoanSettingsSection({
 
             <Toggle
                 label="Owner-occupied loan"
-                checked={loan?.isOwnerOccupiedLoan ?? true}
+                checked={loan.isOwnerOccupied}
                 onToggle={() => {
-                    const newIsOwnerOccupied = !(
-                        loan?.isOwnerOccupiedLoan ?? true
-                    );
+                    const newIsOwnerOccupied = !loan.isOwnerOccupied;
                     const newRate = getDefaultInterestRate(
                         newIsOwnerOccupied,
-                        loan?.isInterestOnly ?? false,
+                        loan.isInterestOnly,
                     );
                     onUpdate({
                         loan: {
-                            isOwnerOccupiedLoan: newIsOwnerOccupied,
-                            isInterestOnly: loan?.isInterestOnly ?? false,
-                            loanTerm: loan?.loanTerm ?? 30,
-                            loanInterest: newRate,
-                            includeStampDuty: loan?.includeStampDuty,
+                            ...loan,
+                            isOwnerOccupied: newIsOwnerOccupied,
+                            interest: newRate,
                         },
                     });
                 }}
@@ -68,21 +66,18 @@ export default function LoanSettingsSection({
 
             <Toggle
                 label="Interest only"
-                checked={loan?.isInterestOnly ?? false}
+                checked={loan.isInterestOnly}
                 onToggle={() => {
-                    const newIsInterestOnly = !(loan?.isInterestOnly ?? false);
+                    const newIsInterestOnly = !loan.isInterestOnly;
                     const newRate = getDefaultInterestRate(
-                        loan?.isOwnerOccupiedLoan ?? true,
+                        loan.isOwnerOccupied,
                         newIsInterestOnly,
                     );
                     onUpdate({
                         loan: {
-                            isOwnerOccupiedLoan:
-                                loan?.isOwnerOccupiedLoan ?? true,
+                            ...loan,
                             isInterestOnly: newIsInterestOnly,
-                            loanTerm: loan?.loanTerm ?? 30,
-                            loanInterest: newRate,
-                            includeStampDuty: loan?.includeStampDuty,
+                            interest: newRate,
                         },
                     });
                 }}
@@ -91,7 +86,7 @@ export default function LoanSettingsSection({
             <PercentageInput
                 label="LVR (%)"
                 displayValue={
-                    loan?.lvr != null ? Number(loan.lvr).toFixed(2) : lvrText
+                    loan.lvr != null ? Number(loan.lvr).toFixed(2) : lvrText
                 }
                 value={undefined}
                 onChangeRaw={(text: string) => {
@@ -107,7 +102,7 @@ export default function LoanSettingsSection({
                         const newDeposit = calculateDepositFromLVR(
                             data.propertyValue,
                             parsed,
-                            Boolean(loan?.includeStampDuty),
+                            Boolean(loan.includeStampDuty),
                             data.stampDuty || 0,
                         );
                         pendingDepositRef.current = newDeposit ?? null;
@@ -121,7 +116,7 @@ export default function LoanSettingsSection({
                         const newDeposit = calculateDepositFromLVR(
                             data.propertyValue,
                             v,
-                            Boolean(loan?.includeStampDuty),
+                            Boolean(loan.includeStampDuty),
                             data.stampDuty || 0,
                         );
                         pendingDepositRef.current = newDeposit ?? null;
@@ -140,17 +135,15 @@ export default function LoanSettingsSection({
                 <View style={styles.flexInput}>
                     <PercentageInput
                         label="Interest rate (%)"
-                        value={loan?.loanInterest}
+                        value={loan.interest}
                         onChange={(v: number | undefined) =>
                             onUpdate({
                                 loan: {
-                                    isOwnerOccupiedLoan:
-                                        loan?.isOwnerOccupiedLoan ?? true,
-                                    isInterestOnly:
-                                        loan?.isInterestOnly ?? false,
-                                    loanTerm: loan?.loanTerm ?? 30,
-                                    loanInterest: v || 5.5,
-                                    includeStampDuty: loan?.includeStampDuty,
+                                    ...loan,
+                                    interest:
+                                        v ||
+                                        DEFAULT_INTEREST_RATES.ownerOccupied
+                                            .principalAndInterest,
                                 },
                             })
                         }
@@ -161,17 +154,12 @@ export default function LoanSettingsSection({
                 <View style={styles.flexInput}>
                     <CurrencySelect
                         label="Loan term (years)"
-                        value={loan?.loanTerm}
+                        value={loan.term}
                         onChange={(v) =>
                             onUpdate({
                                 loan: {
-                                    isOwnerOccupiedLoan:
-                                        loan?.isOwnerOccupiedLoan ?? true,
-                                    isInterestOnly:
-                                        loan?.isInterestOnly ?? false,
-                                    loanTerm: v || 30,
-                                    loanInterest: loan?.loanInterest,
-                                    includeStampDuty: loan?.includeStampDuty,
+                                    ...loan,
+                                    term: v || DEFAULT_LOAN_TERM,
                                 },
                             })
                         }
@@ -183,16 +171,12 @@ export default function LoanSettingsSection({
             {/* Include Stamp Duty in Loan */}
             <Toggle
                 label="Finance stamp duty"
-                checked={Boolean(loan?.includeStampDuty)}
+                checked={Boolean(loan.includeStampDuty)}
                 onToggle={() =>
                     onUpdate({
                         loan: {
-                            isOwnerOccupiedLoan:
-                                loan?.isOwnerOccupiedLoan ?? true,
-                            isInterestOnly: loan?.isInterestOnly ?? false,
-                            loanTerm: loan?.loanTerm ?? 30,
-                            loanInterest: loan?.loanInterest,
-                            includeStampDuty: !Boolean(loan?.includeStampDuty),
+                            ...loan,
+                            includeStampDuty: !loan.includeStampDuty,
                         },
                     })
                 }
