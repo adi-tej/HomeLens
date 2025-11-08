@@ -117,8 +117,10 @@ export function useComparisonData() {
             {
                 key: "rentalIncome",
                 label: "Rental Income",
-                accessor: (s: any) =>
-                    formatCurrency((s.data.rentalIncome || 0) * 52),
+                accessor: (s: any) => {
+                    const firstProjection = s.data.projections?.[0];
+                    return formatCurrency(firstProjection?.rentalIncome || 0);
+                },
             },
             {
                 key: "strataFees",
@@ -135,13 +137,18 @@ export function useComparisonData() {
             {
                 key: "taxReturn",
                 label: "Tax Return",
-                accessor: (s: any) => formatCurrency(s.data.taxReturn || 0),
+                accessor: (s: any) => {
+                    const firstProjection = s.data.projections?.[0];
+                    return formatCurrency(firstProjection?.taxReturn || 0);
+                },
             },
             {
-                key: "annualNetCashFlow",
+                key: "netCashFlow",
                 label: "Net Cash Flow",
-                accessor: (s: any) =>
-                    formatCurrency(s.data.annualNetCashFlow || 0),
+                accessor: (s: any) => {
+                    const firstProjection = s.data.projections?.[0];
+                    return formatCurrency(firstProjection?.netCashFlow || 0);
+                },
                 highlight: true,
             },
 

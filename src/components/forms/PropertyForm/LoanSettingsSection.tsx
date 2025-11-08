@@ -56,9 +56,11 @@ export default function LoanSettingsSection({
                     );
                     onUpdate({
                         loan: {
-                            ...(loan || {}),
                             isOwnerOccupiedLoan: newIsOwnerOccupied,
+                            isInterestOnly: loan?.isInterestOnly ?? false,
+                            loanTerm: loan?.loanTerm ?? 30,
                             loanInterest: newRate,
+                            includeStampDuty: loan?.includeStampDuty,
                         },
                     });
                 }}
@@ -75,9 +77,12 @@ export default function LoanSettingsSection({
                     );
                     onUpdate({
                         loan: {
-                            ...(loan || {}),
+                            isOwnerOccupiedLoan:
+                                loan?.isOwnerOccupiedLoan ?? true,
                             isInterestOnly: newIsInterestOnly,
+                            loanTerm: loan?.loanTerm ?? 30,
                             loanInterest: newRate,
+                            includeStampDuty: loan?.includeStampDuty,
                         },
                     });
                 }}
@@ -139,8 +144,13 @@ export default function LoanSettingsSection({
                         onChange={(v: number | undefined) =>
                             onUpdate({
                                 loan: {
-                                    ...(loan || {}),
+                                    isOwnerOccupiedLoan:
+                                        loan?.isOwnerOccupiedLoan ?? true,
+                                    isInterestOnly:
+                                        loan?.isInterestOnly ?? false,
+                                    loanTerm: loan?.loanTerm ?? 30,
                                     loanInterest: v || 5.5,
+                                    includeStampDuty: loan?.includeStampDuty,
                                 },
                             })
                         }
@@ -155,8 +165,13 @@ export default function LoanSettingsSection({
                         onChange={(v) =>
                             onUpdate({
                                 loan: {
-                                    ...(loan || {}),
+                                    isOwnerOccupiedLoan:
+                                        loan?.isOwnerOccupiedLoan ?? true,
+                                    isInterestOnly:
+                                        loan?.isInterestOnly ?? false,
                                     loanTerm: v || 30,
+                                    loanInterest: loan?.loanInterest,
+                                    includeStampDuty: loan?.includeStampDuty,
                                 },
                             })
                         }
@@ -172,7 +187,11 @@ export default function LoanSettingsSection({
                 onToggle={() =>
                     onUpdate({
                         loan: {
-                            ...(loan || {}),
+                            isOwnerOccupiedLoan:
+                                loan?.isOwnerOccupiedLoan ?? true,
+                            isInterestOnly: loan?.isInterestOnly ?? false,
+                            loanTerm: loan?.loanTerm ?? 30,
+                            loanInterest: loan?.loanInterest,
                             includeStampDuty: !Boolean(loan?.includeStampDuty),
                         },
                     })

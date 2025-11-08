@@ -1,4 +1,8 @@
 import type { Projection } from "../../types";
+import { WEEKS_PER_YEAR_AFTER_VACANCY } from "../defaults";
+import { MONTHS_PER_YEAR, QUARTERS_PER_YEAR } from "./cashFlowCalculations";
+import { calculateDepreciation, calculateTaxReturn } from "./taxCalculations";
+import { annualBreakdown } from "./loanCalculations";
 
 /**
  * Calculate property value after capital growth
@@ -68,64 +72,11 @@ export function calculateRemainingLoan(
 }
 
 /**
- * Calculate projection for a given year
- *
- * @param params - Parameters for projection calculation
- * @returns Projection array with year data
- */
-export function calculateProjection(params: {
-    year?: number;
-    propertyValue: number;
-    deposit: number;
-    capitalGrowthRate: number;
-    totalLoan: number;
-    annualPrincipal: number;
-    spent: number;
-    returns: number;
-}): Projection[] {
-    const {
-        year = new Date().getFullYear(),
-        propertyValue,
-        deposit,
-        capitalGrowthRate,
-        totalLoan,
-        annualPrincipal,
-        spent,
-        returns,
-    } = params;
-
-    // Property value with capital growth
-    const propertyValueYear1 = calculatePropertyValueWithGrowth(
-        propertyValue,
-        capitalGrowthRate,
-    );
-
-    // Equity = deposit + principal paid
-    const equity = calculateEquity(deposit, annualPrincipal);
-
-    // Total loan remaining after year
-    const loanYearEnd = calculateRemainingLoan(totalLoan, annualPrincipal);
-
-    // ROI = (returns / spent) * 100
-    const roi = calculateROI(returns, spent);
-
-    return [
-        {
-            year,
-            propertyValue: propertyValueYear1,
-            loan: loanYearEnd,
-            equity,
-            spent,
-            returns,
-            roi,
-        },
-    ];
-}
-
-/**
  * Calculate multi-year projections with compounding growth
  *
  * @param params - Parameters for multi-year projection
+ * @param params.rentalGrowth - Annual rental growth in dollars per week (e.g., 30 = $30/week increase per year)
+ * @param params.rentalIncome - Annual rental income in dollars (weekly rent × 52)
  * @returns Array of projections for each year
  */
 export function calculateMultiYearProjections(params: {
@@ -134,116 +85,130 @@ export function calculateMultiYearProjections(params: {
     propertyValue: number;
     deposit: number;
     capitalGrowthRate: number;
-    rentalGrowth: number;
-    totalLoan: number;
-    annualPrincipal: number;
-    annualInterest: number;
-    annualMortgage: number;
-    rentalIncome: number;
-    strataAnnual: number;
-    expensesTotal: number;
-    stampDuty: number;
-    lmi: number;
-    taxReturn: number;
-    vacancyCost: number;
+    loan: {
+        total: number;
+        interestRate: number;
+        isInterestOnly: boolean;
+        termYears: number;
+        monthlyMortgage: number;
+    };
+    weeklyRent: number; // base weekly rent (vacancy-adjusted externally if desired)
+    rentalGrowthPerWeek: number; // $ growth per week per year
+    strataQuarterly?: number;
+    expenses: {
+        oneTimeTotal: number;
+        ongoingAnnualTotal: number; // already annual value
+    };
+    stampDuty?: number;
+    lmi?: number;
 }): Projection[] {
     const {
         startYear = new Date().getFullYear(),
         years = 5,
-        propertyValue: initialPropertyValue,
+        propertyValue,
         deposit,
         capitalGrowthRate,
-        rentalGrowth,
-        totalLoan,
-        annualPrincipal,
-        annualMortgage,
-        rentalIncome: initialRentalIncome,
-        strataAnnual,
-        expensesTotal,
-        stampDuty,
-        lmi,
-        taxReturn: initialTaxReturn,
-        vacancyCost,
+        loan,
+        weeklyRent,
+        rentalGrowthPerWeek,
+        strataQuarterly = 0,
+        expenses,
+        stampDuty = 0,
+        lmi = 0,
     } = params;
 
     const projections: Projection[] = [];
 
-    // Cumulative values that compound over years
-    let cumulativePrincipalPaid = 0;
-    let currentPropertyValue = initialPropertyValue;
-    let currentRentalIncome = initialRentalIncome;
-    let currentTaxReturn = initialTaxReturn;
+    // Derived static values
+    const depreciation = calculateDepreciation(propertyValue);
+    const annualMortgage = loan.monthlyMortgage * MONTHS_PER_YEAR;
+    const strataAnnual = strataQuarterly * QUARTERS_PER_YEAR;
+    const annualRentalIncomeInitial = Math.round(
+        weeklyRent * WEEKS_PER_YEAR_AFTER_VACANCY,
+    );
+    const annualRentalGrowth =
+        rentalGrowthPerWeek * WEEKS_PER_YEAR_AFTER_VACANCY;
 
-    for (let year = 0; year < years; year++) {
-        // Year 1: Apply growth to initial values
-        // Year 2+: Apply growth to previous year's values
-        if (year > 0) {
-            currentPropertyValue = calculatePropertyValueWithGrowth(
-                currentPropertyValue,
-                capitalGrowthRate,
-            );
-            currentRentalIncome = Math.round(
-                currentRentalIncome * (1 + rentalGrowth / 100),
-            );
-            // Tax return grows with rental income
-            currentTaxReturn = Math.round(
-                currentTaxReturn * (1 + rentalGrowth / 100),
-            );
-        } else {
-            // First year: apply growth once
-            currentPropertyValue = calculatePropertyValueWithGrowth(
-                initialPropertyValue,
-                capitalGrowthRate,
+    // One-time costs paid only once (year 0 basis)
+    const upfrontCosts = deposit + stampDuty + lmi + expenses.oneTimeTotal;
+    const recurringCosts =
+        annualMortgage + strataAnnual + expenses.ongoingAnnualTotal;
+
+    // Cumulative trackers
+    let cumulativePrincipalPaid = 0;
+    let currentPropertyValue = propertyValue;
+    let currentAnnualRent = annualRentalIncomeInitial;
+    let cumulativeRentalIncome = 0;
+    let cumulativeTaxReturns = 0;
+
+    for (let yearIndex = 0; yearIndex < years; yearIndex++) {
+        // Apply property growth (growth starts with first projected year)
+        currentPropertyValue = calculatePropertyValueWithGrowth(
+            currentPropertyValue,
+            capitalGrowthRate,
+        );
+
+        // Apply rental growth from second year onwards
+        if (yearIndex > 0) {
+            currentAnnualRent = Math.round(
+                currentAnnualRent + annualRentalGrowth,
             );
         }
 
-        // Cumulative principal paid increases each year
-        cumulativePrincipalPaid += annualPrincipal;
-
-        // Ensure we don't exceed total loan
-        const principalPaid = Math.min(cumulativePrincipalPaid, totalLoan);
-
-        // Calculate capital growth for this year
-        const capitalGrowthAmount = calculateCapitalGrowthAmount(
-            year === 0
-                ? initialPropertyValue
-                : projections[year - 1].propertyValue,
-            currentPropertyValue,
+        // Accurate principal & interest for this year using amortization
+        const { principal, interest } = annualBreakdown(
+            yearIndex + 1,
+            loan.total,
+            loan.interestRate,
+            loan.termYears,
+            loan.isInterestOnly,
         );
 
-        // Calculate equity (deposit + cumulative principal paid)
-        const equity = calculateEquity(deposit, principalPaid);
+        cumulativePrincipalPaid += principal;
 
-        // Calculate total spent (cumulative)
-        const yearSpent =
-            deposit +
-            stampDuty +
-            lmi +
-            expensesTotal +
-            annualMortgage * (year + 1) +
-            strataAnnual * (year + 1) +
-            vacancyCost * (year + 1);
+        // Tax calculations
+        const taxableCost =
+            Math.round(interest) +
+            (yearIndex === 0 ? expenses.oneTimeTotal : 0) +
+            expenses.ongoingAnnualTotal +
+            strataAnnual +
+            depreciation -
+            currentAnnualRent;
 
-        // Calculate total returns (cumulative)
-        const yearReturns =
-            currentRentalIncome * (year + 1) +
-            currentTaxReturn * (year + 1) +
-            (currentPropertyValue - initialPropertyValue); // Total capital growth
+        const currentTaxReturn = calculateTaxReturn(taxableCost);
 
-        // Calculate ROI
-        const roi = calculateROI(yearReturns, yearSpent);
+        // Cumulative tallies
+        cumulativeRentalIncome += currentAnnualRent;
+        cumulativeTaxReturns += currentTaxReturn;
 
-        // Remaining loan
-        const loan = calculateRemainingLoan(totalLoan, principalPaid);
+        const equity = deposit + cumulativePrincipalPaid;
+        const spent = upfrontCosts + recurringCosts * (yearIndex + 1);
+        const capitalGrowthTotal = currentPropertyValue - propertyValue;
+        const returns =
+            cumulativeRentalIncome + cumulativeTaxReturns + capitalGrowthTotal;
+
+        // ROI
+        const roi = calculateROI(returns, spent);
+
+        const netCashFlow =
+            currentAnnualRent +
+            currentTaxReturn -
+            annualMortgage -
+            strataAnnual -
+            expenses.ongoingAnnualTotal -
+            (yearIndex === 0 ? expenses.oneTimeTotal : 0);
 
         projections.push({
-            year: startYear + year,
+            year: startYear + yearIndex,
             propertyValue: currentPropertyValue,
-            loan,
+            netCashFlow,
+            rentalIncome: currentAnnualRent,
+            taxReturn: currentTaxReturn,
             equity,
-            spent: yearSpent,
-            returns: yearReturns,
+            spent,
+            returns,
             roi,
+            annualInterest: interest,
         });
     }
 

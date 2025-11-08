@@ -4,6 +4,7 @@ import type { SummaryCardProps } from "./cards/SummaryCard";
 import SummaryCard from "./cards/SummaryCard";
 import type { PropertyData } from "../types";
 import { formatCurrency } from "../utils/parser";
+import { QUARTERS_PER_YEAR } from "../utils/calculations";
 
 /**
  * Props for the Summary component
@@ -33,9 +34,6 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
     const {
         stampDuty = 0,
         strataFees = 0,
-        rentalIncome = 0,
-        annualNetCashFlow = 0,
-        taxReturn = 0,
         expenses,
         loan,
         projections = [],
@@ -53,6 +51,9 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
     } = loan || {};
 
     const {
+        netCashFlow = 0,
+        rentalIncome = 0,
+        taxReturn = 0,
         equity = 0,
         spent = 0,
         returns = 0,
@@ -137,12 +138,12 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                     {
                         key: "rental",
                         label: "Rental income",
-                        value: formatCurrency(rentalIncome * 50),
+                        value: formatCurrency(rentalIncome),
                     },
                     {
                         key: "strata",
                         label: "Strata Levy",
-                        value: formatCurrency(strataFees * 4),
+                        value: formatCurrency(strataFees * QUARTERS_PER_YEAR),
                     },
                     {
                         key: "expenses",
@@ -157,7 +158,7 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                     {
                         key: "net",
                         label: "Net Cash Flow",
-                        value: formatCurrency(annualNetCashFlow),
+                        value: formatCurrency(netCashFlow),
                         highlight: true,
                     },
                 ],
@@ -207,7 +208,7 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
             monthlyMortgage,
             rentalIncome,
             strataFees,
-            annualNetCashFlow,
+            netCashFlow,
             expenses.total,
             taxReturn,
             spent,

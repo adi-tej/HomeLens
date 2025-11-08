@@ -30,7 +30,7 @@ export const DEFAULT_LOAN_TERM = 30;
 /**
  * Default rental income per week (in dollars)
  */
-export const DEFAULT_RENTAL_INCOME = 600;
+export const DEFAULT_WEEKLY_RENT = 600;
 
 /**
  * Default rental growth per week per year (in dollars)
@@ -99,6 +99,15 @@ export const DEFAULT_TAX_BRACKET = 0.3;
  * 0.03 = 3% annual vacancy
  */
 export const DEFAULT_VACANCY_RATE = 0.03;
+
+/**
+ * Weeks per year after accounting for vacancy
+ * Calculated as 52 weeks * (1 - vacancy rate)
+ * Used for converting weekly rental income to annual
+ */
+export const WEEKS_PER_YEAR_AFTER_VACANCY = Math.round(
+    52 * (1 - DEFAULT_VACANCY_RATE),
+);
 
 /**
  * Default depreciation rate for property depreciation calculations
@@ -181,13 +190,11 @@ export function getDefaultMortgageData(): PropertyData {
         isLivingHere: false,
         propertyType: DEFAULT_PROPERTY_TYPE,
         isBrandNew: false,
-        rentalIncome: DEFAULT_RENTAL_INCOME,
+        weeklyRent: DEFAULT_WEEKLY_RENT,
         rentalGrowth: DEFAULT_RENTAL_GROWTH,
         strataFees: DEFAULT_STRATA_FEES,
         capitalGrowth: DEFAULT_CAPITAL_GROWTH,
         stampDuty: 0,
-        annualNetCashFlow: 0,
-        taxReturn: 0,
         loan: {
             isOwnerOccupiedLoan: true,
             isInterestOnly: false,

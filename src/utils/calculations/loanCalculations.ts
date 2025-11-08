@@ -1,4 +1,5 @@
 import { getDefaultInterestRate } from "../defaults";
+import { MONTHS_PER_YEAR } from "./cashFlowCalculations";
 import type { LoanDetails } from "../../types";
 
 /**
@@ -17,8 +18,8 @@ export function monthlyRepayment(
     isInterestOnly = false,
 ): number {
     const P = Number(principal) || 0;
-    const r = (Number(annualRatePct) || 0) / 100 / 12; // monthly rate
-    const n = Math.max(1, Math.trunc(Number(termYears) || 0) * 12);
+    const r = (Number(annualRatePct) || 0) / 100 / MONTHS_PER_YEAR; // monthly rate
+    const n = Math.max(1, Math.trunc(Number(termYears) || 0) * MONTHS_PER_YEAR);
     if (P <= 0 || r <= 0) return 0;
 
     // Interest-only loans: just pay the interest each month
@@ -50,13 +51,13 @@ export function annualBreakdown(
 ): { principal: number; interest: number } {
     const Y = Math.max(1, Math.trunc(Number(year) || 0));
     const P0 = Number(principal) || 0;
-    const rateMonthly = (Number(annualRatePct) || 0) / 100 / 12;
-    const n = Math.max(1, Math.trunc(Number(termYears) || 0) * 12);
+    const rateMonthly = (Number(annualRatePct) || 0) / 100 / MONTHS_PER_YEAR;
+    const n = Math.max(1, Math.trunc(Number(termYears) || 0) * MONTHS_PER_YEAR);
     if (P0 <= 0 || rateMonthly <= 0) return { principal: 0, interest: 0 };
 
     // Interest-only loans: no principal paid, just interest
     if (isInterestOnly) {
-        const annualInterest = P0 * rateMonthly * 12;
+        const annualInterest = P0 * rateMonthly * MONTHS_PER_YEAR;
         return {
             principal: 0,
             interest: Math.round(annualInterest * 100) / 100,
@@ -69,8 +70,8 @@ export function annualBreakdown(
     let principalPaidYear = 0;
     let interestPaidYear = 0;
 
-    const startMonth = (Y - 1) * 12 + 1;
-    const endMonth = Math.min(Y * 12, n);
+    const startMonth = (Y - 1) * MONTHS_PER_YEAR + 1;
+    const endMonth = Math.min(Y * MONTHS_PER_YEAR, n);
 
     for (let m = 1; m <= n; m++) {
         const interest = balance * rateMonthly;
@@ -210,16 +211,6 @@ export function calculateLoanDetails(
         isInterestOnly,
     );
 
-    const breakdown = annualBreakdown(
-        1,
-        totalLoan,
-        loanInterest,
-        loanTermYears,
-        isInterestOnly,
-    );
-    const annualPrincipal = breakdown.principal;
-    const annualInterest = breakdown.interest;
-
     return {
         isOwnerOccupiedLoan: isOwnerOccupied,
         isInterestOnly,
@@ -230,7 +221,5 @@ export function calculateLoanDetails(
         lmi,
         totalLoan,
         monthlyMortgage,
-        annualPrincipal,
-        annualInterest,
     };
 }

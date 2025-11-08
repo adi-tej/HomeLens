@@ -53,8 +53,8 @@ export default function PropertyDetailsSection({
             {isInvestment && (
                 <CurrencySelect
                     label="Weekly rent"
-                    value={data.rentalIncome}
-                    onChange={(v) => onUpdate({ rentalIncome: v })}
+                    value={data.weeklyRent}
+                    onChange={(v) => onUpdate({ weeklyRent: v })}
                     allowPresets={false}
                 />
             )}

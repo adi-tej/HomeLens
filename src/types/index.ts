@@ -10,14 +10,12 @@ export interface PropertyData {
     propertyType: PropertyType;
     isBrandNew: boolean;
     loan: LoanDetails;
-    rentalIncome?: number;
+    weeklyRent: number;
     rentalGrowth: number;
     strataFees?: number;
     capitalGrowth: number;
     stampDuty?: number;
-    annualNetCashFlow?: number;
     expenses: Expenses;
-    taxReturn?: number;
     projections?: Projection[];
 }
 export type LoanDetails = {
@@ -30,8 +28,6 @@ export type LoanDetails = {
     lmi?: number;
     totalLoan?: number;
     monthlyMortgage?: number;
-    annualPrincipal?: number;
-    annualInterest?: number;
 };
 
 export type Expenses = {
@@ -53,11 +49,14 @@ export type Expenses = {
 export type Projection = {
     year: number;
     propertyValue: number;
-    loan: number;
+    netCashFlow: number;
+    rentalIncome: number;
+    taxReturn: number;
     equity: number;
     spent: number;
     returns: number;
     roi: number;
+    annualInterest: number;
 };
 
 export type MortgageErrors = Partial<

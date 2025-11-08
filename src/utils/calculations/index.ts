@@ -17,31 +17,17 @@ export * from "./stampDutyCalculations";
 import { calculateStampDuty } from "./stampDutyCalculations";
 import { calculateLoanDetails } from "./loanCalculations";
 import {
-    calculateDepreciation,
-    calculateTaxableCost,
-    calculateTaxReturn,
-    calculateVacancyCost,
-} from "./taxCalculations";
-import {
-    calculateAnnualRentalIncome,
-    calculateAnnualStrataFees,
     calculateExpenses,
-    calculateNetCashFlow,
-    calculateTotalReturns,
-    calculateTotalSpent,
-    MONTHS_PER_YEAR,
+    calculateOneTimeExpenses,
+    calculateOngoingExpenses,
 } from "./cashFlowCalculations";
-import {
-    calculateCapitalGrowthAmount,
-    calculateProjection,
-    calculatePropertyValueWithGrowth,
-} from "./projectionCalculations";
+import { calculateMultiYearProjections } from "./projectionCalculations";
 import {
     DEFAULT_CAPITAL_GROWTH,
     DEFAULT_PROPERTY_TYPE,
     DEFAULT_RENTAL_GROWTH,
-    DEFAULT_RENTAL_INCOME,
     DEFAULT_STRATA_FEES,
+    DEFAULT_WEEKLY_RENT,
 } from "../defaults";
 import type { PropertyData } from "../../types";
 
@@ -79,23 +65,10 @@ export function calculatePropertyData(
     );
 
     // === Rental Income ===
-    const rentalWeekly = inputData.rentalIncome ?? DEFAULT_RENTAL_INCOME;
-    const rentalAnnual = calculateAnnualRentalIncome(rentalWeekly);
+    const weeklyRent = inputData.weeklyRent ?? DEFAULT_WEEKLY_RENT;
 
     // === Strata Fees ===
     const strataQuarterly = inputData.strataFees ?? DEFAULT_STRATA_FEES;
-    const strataAnnual = calculateAnnualStrataFees(strataQuarterly);
-
-    // === Cash Flow ===
-    const annualNetCashFlow = calculateNetCashFlow({
-        rentalAnnual,
-        strataAnnual,
-        monthlyMortgage: loan.monthlyMortgage ?? 0,
-    });
-
-    // === Investment Property Calculations ===
-    const vacancyCost = calculateVacancyCost(rentalAnnual);
-    const depreciation = calculateDepreciation(propertyValue);
 
     // === Expenses ===
     const expenses = calculateExpenses(
@@ -104,57 +77,40 @@ export function calculatePropertyData(
         isInvestment,
     );
 
-    // === Tax Calculations ===
-    const taxableCost = calculateTaxableCost({
-        annualInterest: loan.annualInterest ?? 0,
-        expensesTotal: expenses.total,
-        strataAnnual,
-        vacancyCost,
-        depreciation,
-        rentalAnnual,
-    });
+    // Separate expenses for projections (sums already annual where applicable)
+    const oneTimeExpenses = calculateOneTimeExpenses(expenses); // one-time total
+    const ongoingExpenses = calculateOngoingExpenses(
+        expenses,
+        isLand,
+        isInvestment,
+    );
 
-    const taxReturn = calculateTaxReturn(taxableCost);
-
-    // === Calculate Cash Flow for Projections ===
-    const annualMortgage = (loan.monthlyMortgage ?? 0) * MONTHS_PER_YEAR;
+    // === Multi-Year Projections (5 years) ===
     const capitalGrowthRate = inputData.capitalGrowth ?? DEFAULT_CAPITAL_GROWTH;
-    const propertyValueProjected = calculatePropertyValueWithGrowth(
-        propertyValue,
-        capitalGrowthRate,
-    );
-    const capitalGrowthAmount = calculateCapitalGrowthAmount(
-        propertyValue,
-        propertyValueProjected,
-    );
+    const rentalGrowthPerWeek = inputData.rentalGrowth ?? DEFAULT_RENTAL_GROWTH;
 
-    // Spent (Total Expenses)
-    const spent = calculateTotalSpent({
+    const projections = calculateMultiYearProjections({
+        startYear: new Date().getFullYear(),
+        years: 5,
+        propertyValue: propertyValue,
         deposit,
+        capitalGrowthRate,
+        loan: {
+            total: loan.totalLoan ?? 0,
+            interestRate: loan.loanInterest ?? 0,
+            isInterestOnly: loan.isInterestOnly ?? false,
+            termYears: loan.loanTerm ?? 30,
+            monthlyMortgage: loan.monthlyMortgage ?? 0,
+        },
+        weeklyRent,
+        rentalGrowthPerWeek,
+        strataQuarterly,
+        expenses: {
+            oneTimeTotal: oneTimeExpenses,
+            ongoingAnnualTotal: ongoingExpenses,
+        },
         stampDuty,
         lmi: loan.lmi ?? 0,
-        expensesTotal: expenses.total,
-        annualMortgage,
-        strataAnnual,
-        vacancyCost,
-    });
-
-    // Returns (Total Income)
-    const returns = calculateTotalReturns({
-        rentalAnnual,
-        taxReturn,
-        capitalGrowthAmount,
-    });
-
-    // === Calculate Projections ===
-    const projections = calculateProjection({
-        propertyValue,
-        deposit,
-        capitalGrowthRate,
-        totalLoan: loan.totalLoan ?? 0,
-        annualPrincipal: loan.annualPrincipal ?? 0,
-        spent,
-        returns,
     });
 
     // === Return Complete Property Data ===
@@ -166,14 +122,12 @@ export function calculatePropertyData(
         propertyType: inputData.propertyType ?? DEFAULT_PROPERTY_TYPE,
         isBrandNew: inputData.isBrandNew ?? false,
         loan,
-        rentalIncome: inputData.rentalIncome ?? DEFAULT_RENTAL_INCOME,
-        rentalGrowth: inputData.rentalGrowth ?? DEFAULT_RENTAL_GROWTH,
+        weeklyRent: weeklyRent,
+        rentalGrowth: rentalGrowthPerWeek,
         strataFees: inputData.strataFees ?? DEFAULT_STRATA_FEES,
-        capitalGrowth: inputData.capitalGrowth ?? DEFAULT_CAPITAL_GROWTH,
+        capitalGrowth: capitalGrowthRate,
         stampDuty,
-        annualNetCashFlow,
         expenses,
-        taxReturn,
         projections,
     };
 }
