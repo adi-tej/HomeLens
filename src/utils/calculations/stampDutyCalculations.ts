@@ -1,4 +1,27 @@
-// From 1 July 2025
+/**
+ * Stamp Duty Calculations (NSW - from 1 July 2025)
+ *
+ * Calculates stamp duty for property purchases including first home buyer concessions
+ */
+
+/**
+ * Round to 2 decimal places
+ */
+function round2(n: number): number {
+    return Math.round(n * 100) / 100;
+}
+
+/**
+ * Calculate stamp duty for NSW property purchases
+ *
+ * Includes standard rates and first home buyer (FHB) concessions.
+ * FHB concessions apply to homes up to $1M and land up to $450K.
+ *
+ * @param value - Property value
+ * @param fhb - Is first home buyer
+ * @param land - Is land only (not dwelling)
+ * @returns Stamp duty amount in dollars
+ */
 export function calculateStampDuty(
     value?: number | null,
     fhb = false,
@@ -76,8 +99,4 @@ export function calculateStampDuty(
             return baseDuty(v);
         }
     }
-}
-
-function round2(n: number): number {
-    return Math.round(n * 100) / 100;
 }

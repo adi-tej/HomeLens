@@ -11,9 +11,10 @@ export * from "./taxCalculations";
 export * from "./cashFlowCalculations";
 export * from "./projectionCalculations";
 export * from "./validation";
+export * from "./stampDutyCalculations";
 
 // Import what we need for the main orchestrator
-import { calculateStampDuty } from "../stampDuty";
+import { calculateStampDuty } from "./stampDutyCalculations";
 import { calculateLoanDetails } from "./loanCalculations";
 import {
     calculateDepreciation,
