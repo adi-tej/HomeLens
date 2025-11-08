@@ -144,7 +144,7 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                     {
                         key: "expenses",
                         label: "Expenses",
-                        value: formatCurrency(expenses.total),
+                        value: formatCurrency(expenses.ongoingTotal),
                     },
                     {
                         key: "tax-return",
@@ -205,7 +205,7 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
             rentalIncome,
             strataFees,
             netCashFlow,
-            expenses.total,
+            expenses.ongoingTotal,
             taxReturn,
             spent,
             returns,

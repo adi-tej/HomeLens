@@ -12,6 +12,7 @@ export type PercentageInputProps = {
     onBlurCallback?: () => void;
     presets?: readonly number[];
     displayValue?: string;
+    allowPresets?: boolean; // Control whether to show dropdown and presets
 };
 
 const DEFAULT_PRESETS = [2, 3, 5, 8, 10];
@@ -24,6 +25,7 @@ export function PercentageInput({
     onBlurCallback,
     presets = DEFAULT_PRESETS,
     displayValue,
+    allowPresets = true,
 }: PercentageInputProps) {
     const [open, setOpen] = useState(false);
     const [focused, setFocused] = useState(false);
@@ -96,29 +98,33 @@ export function PercentageInput({
                     android: "numeric",
                 })}
                 right={
-                    <TextInput.Icon
-                        icon="chevron-down"
-                        onPress={() => {
-                            if (!options.length) return;
-                            Keyboard.dismiss();
-                            setOpen(true);
-                        }}
-                        forceTextInputFocus={false}
-                    />
+                    allowPresets ? (
+                        <TextInput.Icon
+                            icon="chevron-down"
+                            onPress={() => {
+                                if (!options.length) return;
+                                Keyboard.dismiss();
+                                setOpen(true);
+                            }}
+                            forceTextInputFocus={false}
+                        />
+                    ) : undefined
                 }
                 outlineColor={outlineColor}
                 activeOutlineColor={theme.colors.primary}
                 outlineStyle={{ borderWidth: active ? 2 : 1 }}
             />
 
-            <NativeSelectModal
-                visible={open}
-                onCancel={() => setOpen(false)}
-                options={options}
-                onSelect={(option) => {
-                    handleSelect(option.value as number);
-                }}
-            />
+            {allowPresets && (
+                <NativeSelectModal
+                    visible={open}
+                    onCancel={() => setOpen(false)}
+                    options={options}
+                    onSelect={(option) => {
+                        handleSelect(option.value as number);
+                    }}
+                />
+            )}
         </View>
     );
 }

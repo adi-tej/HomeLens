@@ -1,6 +1,6 @@
 // Central location for all mortgage-related default values and constants
 
-import type { Expenses, PropertyData } from "../types";
+import type { Expenses, PropertyData, StateCode } from "../types";
 
 /**
  * Default interest rates based on loan type and repayment type
@@ -47,20 +47,19 @@ export const DEFAULT_STRATA_FEES = 1500;
  * All amounts in dollars (AUD)
  */
 export const DEFAULT_EXPENSES: Expenses = {
-    // One-time expenses
-    mortgageRegistration: 170,
-    transferFee: 170,
-    solicitor: 1500,
-    additionalOneTime: 2000,
+    // One-time expenses total (calculated: solicitor + additional + state fees)
+    oneTimeTotal: 3500, // solicitor (1500) + additional (2000)
     // Ongoing annual expenses
-    council: 1200,
-    water: 800,
-    landTax: 1000,
-    insurance: 500,
-    propertyManager: 1500,
-    maintenance: 1500,
-    // Total (will be recalculated based on visibility)
-    total: 10340,
+    ongoing: {
+        council: 1200,
+        water: 800,
+        landTax: 1000,
+        insurance: 500,
+        propertyManager: 1500,
+        maintenance: 1500,
+    },
+    // Ongoing total (recomputed based on property type and investment status)
+    ongoingTotal: 6500,
 };
 
 /**
@@ -116,6 +115,28 @@ export const WEEKS_PER_YEAR_AFTER_VACANCY = Math.round(
 export const DEFAULT_DEPRECIATION_RATE = 0.025;
 
 /**
+ * Default state for mortgage calculations
+ */
+export const DEFAULT_STATE: StateCode = "NSW";
+
+/**
+ * State-based mortgage registration and discharge fees
+ */
+export const STATE_MORTGAGE_FEES: Record<
+    StateCode,
+    { registration: number; transfer: number }
+> = {
+    NSW: { registration: 175.7, transfer: 175.7 },
+    VIC: { registration: 135.8, transfer: 135.8 }, // higher of paper vs PEXA
+    QLD: { registration: 238.14, transfer: 238.14 },
+    SA: { registration: 198.0, transfer: 198.0 },
+    WA: { registration: 216.6, transfer: 216.6 },
+    TAS: { registration: 202.46, transfer: 202.46 }, // higher of the two
+    NT: { registration: 176.0, transfer: 176.0 }, // additional titles ignored for now
+    ACT: { registration: 178.0, transfer: 178.0 },
+};
+
+/**
  * Calculate the total expenses based on property type and investment status
  * This respects visibility rules:
  * - Water and Insurance are excluded for land
@@ -132,27 +153,21 @@ export function getDefaultExpensesTotal(options?: {
 }): number {
     const { isLand = false, isInvestment = false } = options || {};
 
-    // One-time expenses (always included)
-    const oneTimeExpenses =
-        DEFAULT_EXPENSES.mortgageRegistration +
-        DEFAULT_EXPENSES.transferFee +
-        DEFAULT_EXPENSES.solicitor +
-        DEFAULT_EXPENSES.additionalOneTime;
+    // One-time expenses total
+    const oneTimeExpenses = DEFAULT_EXPENSES.oneTimeTotal;
 
     // Ongoing expenses (conditional based on property type)
     let ongoingExpenses =
-        DEFAULT_EXPENSES.council +
-        DEFAULT_EXPENSES.landTax +
-        DEFAULT_EXPENSES.maintenance;
+        DEFAULT_EXPENSES.ongoing.council +
+        DEFAULT_EXPENSES.ongoing.landTax +
+        DEFAULT_EXPENSES.ongoing.maintenance;
 
-    // Add water and insurance for non-land properties
     if (!isLand) {
-        ongoingExpenses += DEFAULT_EXPENSES.water + DEFAULT_EXPENSES.insurance;
+        ongoingExpenses +=
+            DEFAULT_EXPENSES.ongoing.water + DEFAULT_EXPENSES.ongoing.insurance;
     }
-
-    // Add property manager for investment properties (excluding land)
     if (isInvestment && !isLand) {
-        ongoingExpenses += DEFAULT_EXPENSES.propertyManager;
+        ongoingExpenses += DEFAULT_EXPENSES.ongoing.propertyManager;
     }
 
     return Math.round(oneTimeExpenses + ongoingExpenses);
@@ -204,4 +219,14 @@ export function getDefaultMortgageData(): PropertyData {
         },
         expenses: { ...DEFAULT_EXPENSES },
     };
+}
+
+/**
+ * Get the mortgage registration fee for a specific state
+ */
+export function getGovtFee(state: StateCode | undefined): number {
+    return (
+        STATE_MORTGAGE_FEES[state ?? DEFAULT_STATE].registration +
+        STATE_MORTGAGE_FEES[state ?? DEFAULT_STATE].transfer
+    );
 }

@@ -9,7 +9,6 @@ import {
     DEFAULT_LOAN_TERM,
     getDefaultInterestRate,
     INTEREST_RATE_PRESETS,
-    LVR_PRESETS,
 } from "../../../utils/defaults";
 import { calculateDepositFromLVR } from "../../../utils/calculations";
 
@@ -83,58 +82,11 @@ export default function LoanSettingsSection({
                 }}
             />
 
-            <PercentageInput
-                label="LVR (%)"
-                displayValue={
-                    loan.lvr != null ? Number(loan.lvr).toFixed(2) : lvrText
-                }
-                value={undefined}
-                onChangeRaw={(text: string) => {
-                    setIsEditingLVR(true);
-                    setLvrText(text);
-                    const parsed = parseFloat(text);
-                    if (
-                        !isNaN(parsed) &&
-                        data.propertyValue &&
-                        parsed > 0 &&
-                        parsed <= 100
-                    ) {
-                        const newDeposit = calculateDepositFromLVR(
-                            data.propertyValue,
-                            parsed,
-                            Boolean(loan.includeStampDuty),
-                            data.stampDuty || 0,
-                        );
-                        pendingDepositRef.current = newDeposit ?? null;
-                        onUpdate({ deposit: newDeposit });
-                    }
-                }}
-                onChange={(v: number | undefined) => {
-                    if (v && data.propertyValue) {
-                        setIsEditingLVR(true);
-                        setLvrText(v.toFixed(2));
-                        const newDeposit = calculateDepositFromLVR(
-                            data.propertyValue,
-                            v,
-                            Boolean(loan.includeStampDuty),
-                            data.stampDuty || 0,
-                        );
-                        pendingDepositRef.current = newDeposit ?? null;
-                        onUpdate({ deposit: newDeposit });
-                    }
-                }}
-                onBlurCallback={() => {
-                    if (pendingDepositRef.current == null) {
-                        setIsEditingLVR(false);
-                    }
-                }}
-                presets={LVR_PRESETS}
-            />
-
+            {/* Interest rate, Loan term, and LVR in same row */}
             <View style={styles.rowInputs}>
                 <View style={styles.flexInput}>
                     <PercentageInput
-                        label="Interest rate (%)"
+                        label="Interest (%)"
                         value={loan.interest}
                         onChange={(v: number | undefined) =>
                             onUpdate({
@@ -154,7 +106,7 @@ export default function LoanSettingsSection({
                 <View style={styles.flexInput}>
                     <TextInput
                         mode="outlined"
-                        label="Loan term (years)"
+                        label="Term (years)"
                         value={loan.term?.toString() || ""}
                         onChangeText={(text) => {
                             const parsed = parseInt(text, 10);
@@ -175,6 +127,58 @@ export default function LoanSettingsSection({
                             }
                         }}
                         keyboardType="numeric"
+                    />
+                </View>
+                <View style={styles.gap} />
+                <View style={styles.flexInput}>
+                    <PercentageInput
+                        label="LVR (%)"
+                        displayValue={
+                            loan.lvr != null
+                                ? Number(loan.lvr).toFixed(2)
+                                : lvrText
+                        }
+                        value={undefined}
+                        onChangeRaw={(text: string) => {
+                            setIsEditingLVR(true);
+                            setLvrText(text);
+                            const parsed = parseFloat(text);
+                            if (
+                                !isNaN(parsed) &&
+                                data.propertyValue &&
+                                parsed > 0 &&
+                                parsed <= 100
+                            ) {
+                                const newDeposit = calculateDepositFromLVR(
+                                    data.propertyValue,
+                                    parsed,
+                                    Boolean(loan.includeStampDuty),
+                                    data.stampDuty || 0,
+                                );
+                                pendingDepositRef.current = newDeposit ?? null;
+                                onUpdate({ deposit: newDeposit });
+                            }
+                        }}
+                        onChange={(v: number | undefined) => {
+                            if (v && data.propertyValue) {
+                                setIsEditingLVR(true);
+                                setLvrText(v.toFixed(2));
+                                const newDeposit = calculateDepositFromLVR(
+                                    data.propertyValue,
+                                    v,
+                                    Boolean(loan.includeStampDuty),
+                                    data.stampDuty || 0,
+                                );
+                                pendingDepositRef.current = newDeposit ?? null;
+                                onUpdate({ deposit: newDeposit });
+                            }
+                        }}
+                        onBlurCallback={() => {
+                            if (pendingDepositRef.current == null) {
+                                setIsEditingLVR(false);
+                            }
+                        }}
+                        allowPresets={false}
                     />
                 </View>
             </View>

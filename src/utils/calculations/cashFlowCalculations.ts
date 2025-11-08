@@ -1,63 +1,52 @@
-import type { Expenses } from "../../types";
-import { DEFAULT_EXPENSES } from "../defaults";
-
-// Constants for expense calculation
-const ONE_TIME_EXPENSE_KEYS: (keyof Expenses)[] = [
-    "mortgageRegistration",
-    "transferFee",
-    "solicitor",
-    "additionalOneTime",
-];
-
-const ONGOING_EXPENSE_KEYS: (keyof Expenses)[] = [
-    "council",
-    "water",
-    "landTax",
-    "insurance",
-    "propertyManager",
-    "maintenance",
-];
+import type { Expenses, StateCode } from "../../types";
+import { DEFAULT_EXPENSES, getGovtFee } from "../defaults";
 
 // Conversion constants
 export const QUARTERS_PER_YEAR = 4;
 export const MONTHS_PER_YEAR = 12;
 
 /**
- * Normalize and recalculate expenses total based on property type and investment status
+ * Normalize and recalculate expenses based on property type and investment status
  * Applies visibility rules for conditional expense fields
  *
  * @param rawExpenses - Partial or complete expense data
  * @param isLand - Whether the property is land only
  * @param isInvestment - Whether this is an investment property
- * @returns Complete Expenses object with recalculated total
+ * @param state - Optional state code for calculating state-specific fees
+ * @returns Complete Expenses object with recalculated ongoingTotal
  */
 export function calculateExpenses(
     rawExpenses: Partial<Expenses> | undefined,
     isLand: boolean,
     isInvestment: boolean,
+    state?: StateCode,
 ): Expenses {
     // Merge with defaults
     const expenses = { ...DEFAULT_EXPENSES, ...(rawExpenses || {}) };
 
-    // Calculate total using inline helper functions
-    const total =
-        calculateOneTimeExpenses(expenses) +
-        calculateOngoingExpenses(expenses, isLand, isInvestment);
+    // Calculate ongoing total based on visibility rules
+    const ongoingTotal = calculateOngoingExpenses(
+        expenses,
+        isLand,
+        isInvestment,
+    );
 
-    return { ...expenses, total };
+    return { ...expenses, ongoingTotal };
 }
 
 /**
- * Calculate one-time expenses only
+ * Calculate one-time expenses total (includes state-based mortgage registration fee)
  *
- * @param expenses - Expenses object
- * @returns Sum of one-time expenses
+ * @param oneTimeTotal - Base one-time total from expenses
+ * @param state - Optional state code for state-specific mortgage registration fee
+ * @returns Sum of one-time expenses including state fees
  */
-export function calculateOneTimeExpenses(expenses: Expenses): number {
-    return ONE_TIME_EXPENSE_KEYS.reduce((sum, key) => {
-        const value = Number(expenses[key]);
-        return sum + (Number.isFinite(value) ? value : 0);
-    }, 0);
+export function calculateOneTimeExpenses(
+    oneTimeTotal: number,
+    state?: StateCode,
+): number {
+    const govtFees = getGovtFee(state);
+    return Math.round(oneTimeTotal + govtFees);
 }
 
 /**
@@ -73,17 +62,20 @@ export function calculateOngoingExpenses(
     isLand: boolean,
     isInvestment: boolean,
 ): number {
-    const visibleOngoingKeys = ONGOING_EXPENSE_KEYS.filter((key) => {
-        // Water and insurance excluded for land
-        if (key === "water" || key === "insurance") return !isLand;
-        // Property manager only for investment properties (not land)
-        if (key === "propertyManager") return isInvestment && !isLand;
-        // All other fields always visible
-        return true;
-    });
+    let total =
+        expenses.ongoing.council +
+        expenses.ongoing.landTax +
+        expenses.ongoing.maintenance;
 
-    return visibleOngoingKeys.reduce((sum, key) => {
-        const value = Number(expenses[key]);
-        return sum + (Number.isFinite(value) ? value : 0);
-    }, 0);
+    // Water and insurance excluded for land
+    if (!isLand) {
+        total += expenses.ongoing.water + expenses.ongoing.insurance;
+    }
+
+    // Property manager only for investment properties (not land)
+    if (isInvestment && !isLand) {
+        total += expenses.ongoing.propertyManager;
+    }
+
+    return Math.round(total);
 }

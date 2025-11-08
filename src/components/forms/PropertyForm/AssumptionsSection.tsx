@@ -41,23 +41,45 @@ export default function AssumptionsSection({
                 Assumptions
             </Text>
 
-            <PercentageInput
-                label="Annual property growth (%)"
-                value={data.capitalGrowth}
-                onChange={(v: number | undefined) =>
-                    onUpdate({ capitalGrowth: v || DEFAULT_CAPITAL_GROWTH })
-                }
-                presets={CAPITAL_GROWTH_PRESETS}
-            />
-
-            {isInvestment && (
-                <CurrencySelect
-                    label="Annual rent increase ($/week)"
-                    value={data.rentalGrowth}
-                    onChange={(v) =>
-                        onUpdate({ rentalGrowth: v || DEFAULT_RENTAL_GROWTH })
+            {/* Property growth and Rental increase - Show in row when both visible */}
+            {isInvestment ? (
+                // Both fields visible - show in row
+                <View style={styles.rowInputs}>
+                    <View style={styles.flexInput}>
+                        <PercentageInput
+                            label="Growth (%)"
+                            value={data.capitalGrowth}
+                            onChange={(v: number | undefined) =>
+                                onUpdate({
+                                    capitalGrowth: v || DEFAULT_CAPITAL_GROWTH,
+                                })
+                            }
+                            presets={CAPITAL_GROWTH_PRESETS}
+                        />
+                    </View>
+                    <View style={styles.gap} />
+                    <View style={styles.flexInput}>
+                        <CurrencySelect
+                            label="Rent increase (pw)"
+                            value={data.rentalGrowth}
+                            onChange={(v) =>
+                                onUpdate({
+                                    rentalGrowth: v || DEFAULT_RENTAL_GROWTH,
+                                })
+                            }
+                            allowPresets={false}
+                        />
+                    </View>
+                </View>
+            ) : (
+                // Only property growth - full width
+                <PercentageInput
+                    label="Capital growth (%)"
+                    value={data.capitalGrowth}
+                    onChange={(v: number | undefined) =>
+                        onUpdate({ capitalGrowth: v || DEFAULT_CAPITAL_GROWTH })
                     }
-                    allowPresets={false}
+                    presets={CAPITAL_GROWTH_PRESETS}
                 />
             )}
 
@@ -80,5 +102,15 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontStyle: "italic",
         marginTop: spacing.xs,
+    },
+    rowInputs: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    flexInput: {
+        flex: 1,
+    },
+    gap: {
+        width: spacing.sm,
     },
 });

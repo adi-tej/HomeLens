@@ -19,7 +19,6 @@ import { calculateLoanDetails } from "./loanCalculations";
 import {
     calculateExpenses,
     calculateOneTimeExpenses,
-    calculateOngoingExpenses,
 } from "./cashFlowCalculations";
 import { calculateMultiYearProjections } from "./projectionCalculations";
 import {
@@ -75,15 +74,15 @@ export function calculatePropertyData(
         inputData.expenses,
         isLand,
         isInvestment,
+        inputData.state,
     );
 
-    // Separate expenses for projections (sums already annual where applicable)
-    const oneTimeExpenses = calculateOneTimeExpenses(expenses); // one-time total
-    const ongoingExpenses = calculateOngoingExpenses(
-        expenses,
-        isLand,
-        isInvestment,
+    // Separate expenses for projections
+    const oneTimeExpenses = calculateOneTimeExpenses(
+        expenses.oneTimeTotal,
+        inputData.state,
     );
+    const ongoingExpenses = expenses.ongoingTotal;
 
     // === Multi-Year Projections (5 years) ===
     const capitalGrowthRate = inputData.capitalGrowth ?? DEFAULT_CAPITAL_GROWTH;

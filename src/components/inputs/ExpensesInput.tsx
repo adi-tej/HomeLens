@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Portal, TextInput, useTheme } from "react-native-paper";
-import { Platform, StyleSheet, View } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { spacing } from "../../theme/spacing";
 import ExpensesForm from "../forms/ExpensesForm";
 import type { Expenses } from "../../types";
@@ -17,7 +17,7 @@ export type ExpensesInputProps = {
 };
 
 export function ExpensesInput({
-    label = "Annual expenses",
+    label = "Ongoing expenses",
     value,
     onChange,
     isLand = false,
@@ -27,7 +27,7 @@ export function ExpensesInput({
     const [modalVisible, setModalVisible] = useState(false);
     const [focused, setFocused] = useState(false);
     const [text, setText] = useState(
-        value?.total != null ? formatCurrency(value.total) : "",
+        value?.ongoingTotal != null ? formatCurrency(value.ongoingTotal) : "",
     );
     const [config, setConfig] = useState<Expenses>(
         value || (DEFAULT_EXPENSES as Expenses),
@@ -36,38 +36,32 @@ export function ExpensesInput({
     const openModal = () => setModalVisible(true);
     const closeModal = () => setModalVisible(false);
 
-    // Recompute total locally when land / investment flags change (before parent context recalculates)
+    // Recompute ongoingTotal locally when land / investment flags change
     useEffect(() => {
         setConfig((prev) => {
             const base = { ...(prev || DEFAULT_EXPENSES) } as Expenses;
-            const oneTime: (keyof Expenses)[] = [
-                "mortgageRegistration",
-                "transferFee",
-                "solicitor",
-                "additionalOneTime",
-            ];
-            const ongoingAll: (keyof Expenses)[] = [
-                "council",
-                "water",
-                "landTax",
-                "insurance",
-                "propertyManager",
-                "maintenance",
-            ];
-            const visibleOngoing = ongoingAll.filter((k) => {
-                if (k === "water" || k === "insurance") return !isLand;
-                if (k === "propertyManager") return isInvestment && !isLand;
-                return true;
-            });
-            const total = [...oneTime, ...visibleOngoing].reduce((sum, key) => {
-                const n = Number(base[key]);
-                return sum + (Number.isFinite(n) ? n : 0);
-            }, 0);
-            const next = { ...base, total } as Expenses;
-            // Update text & bubble to parent only if total changed relative to incoming value
-            if (value && value.total === total) return next; // already in sync
-            setText(formatCurrency(total));
-            onChange(next); // propagate to parent so context updates
+
+            let ongoingTotal =
+                base.ongoing.council +
+                base.ongoing.landTax +
+                base.ongoing.maintenance;
+
+            // Water and insurance excluded for land
+            if (!isLand) {
+                ongoingTotal += base.ongoing.water + base.ongoing.insurance;
+            }
+
+            // Property manager only for investment properties (not land)
+            if (isInvestment && !isLand) {
+                ongoingTotal += base.ongoing.propertyManager;
+            }
+
+            const next = { ...base, ongoingTotal } as Expenses;
+
+            // Update text & bubble to parent only if total changed
+            if (value && value.ongoingTotal === ongoingTotal) return next;
+            setText(formatCurrency(ongoingTotal));
+            onChange(next);
             return next;
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -75,19 +69,19 @@ export function ExpensesInput({
 
     useEffect(() => {
         if (value) {
-            setText(formatCurrency(value.total));
+            setText(formatCurrency(value.ongoingTotal));
             setConfig(value);
         } else {
             setText("");
             setConfig(DEFAULT_EXPENSES as Expenses);
         }
-    }, [value?.total, value]);
+    }, [value?.ongoingTotal, value]);
 
     const handleTextChange = (t: string) => {
         const parsed = parseNumber(t);
         if (parsed !== undefined) {
             setText(formatCurrency(parsed));
-            const updated = { ...config, total: parsed };
+            const updated = { ...config, ongoingTotal: parsed };
             setConfig(updated);
             onChange(updated);
         } else {
@@ -101,42 +95,39 @@ export function ExpensesInput({
 
     const handleSave = (expenses: Expenses) => {
         setConfig(expenses);
-        setText(formatCurrency(expenses.total));
+        setText(formatCurrency(expenses.ongoingTotal));
         onChange(expenses);
     };
 
     const isActive = modalVisible || focused;
 
     return (
-        <View style={styles.container}>
-            <View style={styles.row}>
-                <TextInput
-                    mode="outlined"
-                    label={label}
-                    placeholder={label}
-                    value={text}
-                    onChangeText={handleTextChange}
-                    onFocus={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
-                    keyboardType={Platform.select({
-                        ios: "number-pad",
-                        android: "numeric",
-                    })}
-                    outlineColor={
-                        isActive ? theme.colors.primary : theme.colors.outline
-                    }
-                    activeOutlineColor={theme.colors.primary}
-                    outlineStyle={{ borderWidth: isActive ? 2 : 1 }}
-                    right={
-                        <TextInput.Icon
-                            icon="tune"
-                            onPress={openModal}
-                            forceTextInputFocus={false}
-                        />
-                    }
-                    style={{ flex: 1 }}
-                />
-            </View>
+        <>
+            <TextInput
+                mode="outlined"
+                label={label}
+                placeholder={label}
+                value={text}
+                onChangeText={handleTextChange}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                keyboardType={Platform.select({
+                    ios: "number-pad",
+                    android: "numeric",
+                })}
+                outlineColor={
+                    isActive ? theme.colors.primary : theme.colors.outline
+                }
+                activeOutlineColor={theme.colors.primary}
+                outlineStyle={{ borderWidth: isActive ? 2 : 1 }}
+                right={
+                    <TextInput.Icon
+                        icon="tune"
+                        onPress={openModal}
+                        forceTextInputFocus={false}
+                    />
+                }
+            />
 
             <Portal>
                 <Modal
@@ -161,13 +152,11 @@ export function ExpensesInput({
                     </ScreenContainer>
                 </Modal>
             </Portal>
-        </View>
+        </>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { marginTop: spacing.sm },
-    row: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
     modalContent: {
         marginHorizontal: spacing.md,
     },

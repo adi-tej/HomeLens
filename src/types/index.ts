@@ -1,6 +1,15 @@
 // Utilities for mortgage/loan calculations
 
 export type PropertyType = "" | "house" | "townhouse" | "apartment" | "land";
+export type StateCode =
+    | "NSW"
+    | "VIC"
+    | "QLD"
+    | "SA"
+    | "WA"
+    | "TAS"
+    | "NT"
+    | "ACT";
 
 export interface PropertyData {
     propertyValue?: number;
@@ -17,6 +26,7 @@ export interface PropertyData {
     stampDuty?: number;
     expenses: Expenses;
     projections?: Projection[];
+    state?: StateCode; // Australian state for state-based fees (defaults to NSW)
 }
 export type LoanDetails = {
     isOwnerOccupied: boolean;
@@ -31,19 +41,17 @@ export type LoanDetails = {
 };
 
 export type Expenses = {
-    // one-time
-    mortgageRegistration: number;
-    transferFee: number;
-    solicitor: number;
-    additionalOneTime: number;
+    oneTimeTotal: number;
     // ongoing
-    council: number;
-    water: number;
-    landTax: number;
-    insurance: number;
-    propertyManager: number;
-    maintenance: number;
-    total: number;
+    ongoing: {
+        council: number;
+        water: number;
+        landTax: number;
+        insurance: number;
+        propertyManager: number;
+        maintenance: number;
+    };
+    ongoingTotal: number; // includes removed fixed one-time fees in calculations, but not user-editable
 };
 
 export type Projection = {

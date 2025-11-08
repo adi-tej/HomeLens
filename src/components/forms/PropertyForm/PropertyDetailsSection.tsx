@@ -2,9 +2,8 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Divider, Text, useTheme } from "react-native-paper";
 import { CurrencySelect, ExpensesInput } from "../../inputs";
-import type { Expenses, PropertyData } from "../../../types";
+import type { PropertyData } from "../../../types";
 import { spacing } from "../../../theme/spacing";
-import { formatCurrency } from "../../../utils/parser";
 
 interface PropertyDetailsSectionProps {
     data: PropertyData;
@@ -38,59 +37,97 @@ export default function PropertyDetailsSection({
                 Property Details
             </Text>
 
-            {/* Strata levy - Only show for townhouse and apartment */}
+            {/* Strata levy and Rental Income - Show in row when both visible */}
             {(data.propertyType === "townhouse" ||
-                data.propertyType === "apartment") && (
-                <CurrencySelect
-                    label="Strata levy (per quarter)"
-                    value={data.strataFees}
-                    onChange={(v) => onUpdate({ strataFees: v })}
-                    allowPresets={false}
-                />
+                data.propertyType === "apartment") &&
+            isInvestment ? (
+                // Both strata and rental - show in row
+                <View style={styles.rowInputs}>
+                    <View style={styles.flexInput}>
+                        <CurrencySelect
+                            label="Strata fee (per quarter)"
+                            value={data.strataFees}
+                            onChange={(v) => onUpdate({ strataFees: v })}
+                            allowPresets={false}
+                        />
+                    </View>
+                    <View style={styles.gap} />
+                    <View style={styles.flexInput}>
+                        <CurrencySelect
+                            label="Rental income (pw)"
+                            value={data.weeklyRent}
+                            onChange={(v) => onUpdate({ weeklyRent: v })}
+                            allowPresets={false}
+                        />
+                    </View>
+                </View>
+            ) : (
+                <>
+                    {/* Strata levy only - full width */}
+                    {(data.propertyType === "townhouse" ||
+                        data.propertyType === "apartment") && (
+                        <CurrencySelect
+                            label="Strata fee (per quarter)"
+                            value={data.strataFees}
+                            onChange={(v) => onUpdate({ strataFees: v })}
+                            allowPresets={false}
+                        />
+                    )}
+
+                    {/* Rental Income only - full width */}
+                    {isInvestment && (
+                        <CurrencySelect
+                            label="Rental income (pw)"
+                            value={data.weeklyRent}
+                            onChange={(v) => onUpdate({ weeklyRent: v })}
+                            allowPresets={false}
+                        />
+                    )}
+                </>
             )}
 
-            {/* Rental Income - Only show if investment */}
-            {isInvestment && (
-                <CurrencySelect
-                    label="Weekly rent"
-                    value={data.weeklyRent}
-                    onChange={(v) => onUpdate({ weeklyRent: v })}
-                    allowPresets={false}
-                />
-            )}
+            {/* Expenses - One-time and Ongoing in same row */}
+            <View style={styles.rowInputs}>
+                <View style={styles.flexInput}>
+                    <CurrencySelect
+                        label="One-time expenses"
+                        value={data.expenses?.oneTimeTotal}
+                        onChange={(v) =>
+                            onUpdate({
+                                expenses: {
+                                    ...data.expenses,
+                                    oneTimeTotal: v || 0,
+                                },
+                            })
+                        }
+                        allowPresets={false}
+                    />
+                </View>
+                <View style={styles.gap} />
+                <View style={styles.flexInput}>
+                    <ExpensesInput
+                        label="Ongoing"
+                        value={data.expenses}
+                        onChange={(expenses) => {
+                            onUpdate({ expenses });
+                        }}
+                        isLand={isLand}
+                        isInvestment={isInvestment}
+                    />
+                </View>
+            </View>
 
-            {/* Expenses input with settings (encapsulated) */}
-            <ExpensesInput
-                label="Annual expenses"
-                value={data.expenses}
-                onChange={(expenses) => {
-                    onUpdate({ expenses });
-                }}
-                isLand={isLand}
-                isInvestment={isInvestment}
-            />
-
-            {/* Calculate and display one-time expenses note */}
-            {data.expenses &&
-                typeof data.expenses === "object" &&
-                (() => {
-                    const expenses = data.expenses as Expenses;
-                    const oneTimeTotal =
-                        (Number(expenses.mortgageRegistration) || 0) +
-                        (Number(expenses.transferFee) || 0) +
-                        (Number(expenses.solicitor) || 0) +
-                        (Number(expenses.additionalOneTime) || 0);
-
-                    if (oneTimeTotal > 0) {
-                        return (
-                            <Text style={styles.helpText}>
-                                💡 From next year, expenses will be{" "}
-                                {formatCurrency(oneTimeTotal)} less
-                            </Text>
-                        );
-                    }
-                    return null;
-                })()}
+            {/* Government charges note */}
+            <Text
+                variant="bodySmall"
+                style={[
+                    styles.helpText,
+                    { color: theme.colors.onSurfaceVariant },
+                ]}
+            >
+                💡 Government charges (mortgage registration & transfer fees)
+                are automatically included
+            </Text>
         </View>
     );
 }
@@ -107,5 +144,15 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontStyle: "italic",
         marginTop: spacing.xs,
+    },
+    rowInputs: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    flexInput: {
+        flex: 1,
+    },
+    gap: {
+        width: spacing.sm,
     },
 });
