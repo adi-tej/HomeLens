@@ -7,6 +7,7 @@ export interface ComparisonRow {
     label: string;
     accessor: (scenario: any) => string;
     highlight?: boolean;
+    section?: string; // Section header for grouping
 }
 
 export function useComparisonData() {
@@ -22,15 +23,35 @@ export function useComparisonData() {
 
     const comparisonRows: ComparisonRow[] = useMemo(
         () => [
+            // Property Details Section
+            {
+                key: "section-property",
+                label: "PROPERTY DETAILS",
+                accessor: () => "",
+                section: "header",
+            },
             {
                 key: "propertyValue",
                 label: "Property Value",
                 accessor: (s: any) => formatCurrency(s.data.propertyValue),
             },
             {
-                key: "deposit",
-                label: "Deposit",
-                accessor: (s: any) => formatCurrency(s.data.deposit),
+                key: "propertyType",
+                label: "Property Type",
+                accessor: (s: any) => {
+                    const type = s.data.propertyType;
+                    if (type === "house") return "House";
+                    if (type === "townhouse") return "Townhouse";
+                    if (type === "apartment") return "Apartment";
+                    if (type === "land") return "Land";
+                    return "-";
+                },
+            },
+            {
+                key: "brandNew",
+                label: "Condition",
+                accessor: (s: any) =>
+                    s.data.isBrandNew ? "Brand New" : "Existing",
             },
             {
                 key: "fhb",
@@ -41,23 +62,20 @@ export function useComparisonData() {
                 key: "occupancy",
                 label: "Occupancy",
                 accessor: (s: any) =>
-                    s.data.occupancy === "owner"
-                        ? "Owner-Occupied"
-                        : s.data.occupancy === "investment"
-                          ? "Investment"
-                          : "-",
+                    s.data.isLivingHere ? "Owner-Occupied" : "Investment",
             },
             {
-                key: "propertyType",
-                label: "Property Type",
-                accessor: (s: any) =>
-                    s.data.propertyType === "brandnew"
-                        ? "Brand New"
-                        : s.data.propertyType === "existing"
-                          ? "Existing"
-                          : s.data.propertyType === "land"
-                            ? "Land"
-                            : "-",
+                key: "deposit",
+                label: "Deposit",
+                accessor: (s: any) => formatCurrency(s.data.deposit),
+            },
+
+            // Loan Details Section
+            {
+                key: "section-loan",
+                label: "LOAN DETAILS",
+                accessor: () => "",
+                section: "header",
             },
             {
                 key: "stampDuty",
@@ -67,24 +85,112 @@ export function useComparisonData() {
             {
                 key: "lmi",
                 label: "LMI",
-                accessor: (s: any) => formatCurrency(s.data.loan?.lmi),
+                accessor: (s: any) => formatCurrency(s.data.loan?.lmi || 0),
+            },
+            {
+                key: "interestRate",
+                label: "Interest Rate",
+                accessor: (s: any) =>
+                    `${(s.data.loan?.loanInterest || 0).toFixed(2)}%`,
             },
             {
                 key: "totalLoan",
-                label: "Total Loan",
-                accessor: (s: any) => formatCurrency(s.data.loan?.totalLoan),
+                label: "Loan Amount",
+                accessor: (s: any) =>
+                    formatCurrency(s.data.loan?.totalLoan || 0),
             },
             {
                 key: "monthlyMortgage",
                 label: "Monthly Mortgage",
                 accessor: (s: any) =>
-                    formatCurrency(s.data.loan?.monthlyMortgage),
+                    formatCurrency(s.data.loan?.monthlyMortgage || 0),
                 highlight: true,
+            },
+
+            // Cash Flow Section
+            {
+                key: "section-cashflow",
+                label: "ANNUAL CASH FLOW",
+                accessor: () => "",
+                section: "header",
+            },
+            {
+                key: "rentalIncome",
+                label: "Rental Income",
+                accessor: (s: any) =>
+                    formatCurrency((s.data.rentalIncome || 0) * 52),
+            },
+            {
+                key: "strataFees",
+                label: "Strata Levy",
+                accessor: (s: any) =>
+                    formatCurrency((s.data.strataFees || 0) * 4),
+            },
+            {
+                key: "expenses",
+                label: "Expenses",
+                accessor: (s: any) =>
+                    formatCurrency(s.data.expenses?.total || 0),
+            },
+            {
+                key: "taxReturn",
+                label: "Tax Return",
+                accessor: (s: any) => formatCurrency(s.data.taxReturn || 0),
             },
             {
                 key: "annualNetCashFlow",
-                label: "Annual Net Cash Flow",
-                accessor: (s: any) => formatCurrency(s.data.annualNetCashFlow),
+                label: "Net Cash Flow",
+                accessor: (s: any) =>
+                    formatCurrency(s.data.annualNetCashFlow || 0),
+                highlight: true,
+            },
+
+            // Net Position Section
+            {
+                key: "section-position",
+                label: "NET POSITION (EOY)",
+                accessor: () => "",
+                section: "header",
+            },
+            {
+                key: "totalSpent",
+                label: "Total Spent",
+                accessor: (s: any) => {
+                    const projection = s.data.projections?.[0];
+                    return formatCurrency(projection?.spent || 0);
+                },
+            },
+            {
+                key: "equity",
+                label: "Equity",
+                accessor: (s: any) => {
+                    const projection = s.data.projections?.[0];
+                    return formatCurrency(projection?.equity || 0);
+                },
+            },
+            {
+                key: "propertyValueEOY",
+                label: "Property Value",
+                accessor: (s: any) => {
+                    const projection = s.data.projections?.[0];
+                    return formatCurrency(projection?.propertyValue || 0);
+                },
+            },
+            {
+                key: "totalReturn",
+                label: "Total Return",
+                accessor: (s: any) => {
+                    const projection = s.data.projections?.[0];
+                    return formatCurrency(projection?.returns || 0);
+                },
+            },
+            {
+                key: "roi",
+                label: "ROI",
+                accessor: (s: any) => {
+                    const projection = s.data.projections?.[0];
+                    return `${(projection?.roi || 0).toFixed(2)}%`;
+                },
                 highlight: true,
             },
         ],

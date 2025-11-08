@@ -13,8 +13,7 @@ interface ComparisonRowProps {
 
 /**
  * ComparisonRow - Renders a single row in the comparison table
- *
- * Optimized for FlashList virtualization - each row renders independently
+ * Designed for efficient virtualization (works with FlatList/Animated.FlatList)
  */
 export default function ComparisonRow({
     row,
@@ -22,6 +21,32 @@ export default function ComparisonRow({
     isLast,
 }: ComparisonRowProps) {
     const theme = useTheme();
+
+    // Section header row (empty cells)
+    if (row.section === "header") {
+        return (
+            <View
+                style={[
+                    styles.sectionRow,
+                    {
+                        borderBottomWidth: 1,
+                        borderBottomColor: theme.colors.outline,
+                        backgroundColor: theme.colors.surfaceVariant,
+                    },
+                ]}
+            >
+                {scenarios.map((scenario) => (
+                    <View
+                        key={scenario.id}
+                        style={[
+                            styles.emptyCell,
+                            { backgroundColor: theme.colors.surfaceVariant },
+                        ]}
+                    />
+                ))}
+            </View>
+        );
+    }
 
     return (
         <View
@@ -52,5 +77,13 @@ const styles = StyleSheet.create({
     dataRow: {
         flexDirection: "row",
         height: TABLE_CONFIG.rowHeight,
+    },
+    sectionRow: {
+        flexDirection: "row",
+        height: TABLE_CONFIG.headerHeight,
+    },
+    emptyCell: {
+        width: TABLE_CONFIG.cellWidth,
+        height: TABLE_CONFIG.headerHeight,
     },
 });

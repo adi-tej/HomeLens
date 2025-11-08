@@ -9,9 +9,42 @@ interface LabelCellProps {
     highlight?: boolean;
     isLast: boolean;
     theme: any;
+    isSection?: boolean; // Section header flag
 }
 
-export function LabelCell({ label, highlight, isLast, theme }: LabelCellProps) {
+export function LabelCell({
+    label,
+    highlight,
+    isLast,
+    theme,
+    isSection,
+}: LabelCellProps) {
+    if (isSection) {
+        return (
+            <View
+                style={[
+                    styles.sectionContainer,
+                    {
+                        borderBottomWidth: 1,
+                        borderBottomColor: theme.colors.outline,
+                        backgroundColor: theme.colors.surfaceVariant,
+                    },
+                ]}
+            >
+                <Text
+                    style={[
+                        styles.sectionText,
+                        {
+                            color: theme.colors.primary,
+                        },
+                    ]}
+                >
+                    {label}
+                </Text>
+            </View>
+        );
+    }
+
     return (
         <View
             style={[
@@ -50,5 +83,15 @@ const styles = StyleSheet.create({
     text: {
         fontWeight: "600",
         fontSize: TABLE_CONFIG.labelFontSize,
+    },
+    sectionContainer: {
+        height: TABLE_CONFIG.headerHeight,
+        justifyContent: "center",
+        paddingLeft: spacing.sm,
+    },
+    sectionText: {
+        fontWeight: "700",
+        fontSize: 11,
+        letterSpacing: 0.5,
     },
 });
