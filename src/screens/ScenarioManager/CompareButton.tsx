@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { IconButton, Text, useTheme } from "react-native-paper";
-import { spacing } from "../theme/spacing";
+import { spacing } from "../../theme/spacing";
 
 type Props = {
     comparisonMode: boolean;

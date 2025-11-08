@@ -3,23 +3,20 @@ import { StyleSheet, View } from "react-native";
 import { useTheme } from "react-native-paper";
 import type { Scenario } from "../../state/useScenarioStore";
 import type { ComparisonRow as ComparisonRowType } from "../../hooks/useComparisonData";
-import { DataCell, TABLE_CONFIG } from "../table";
+import { DataCell, TABLE_CONFIG } from "./index";
 
-interface ComparisonRowProps {
+interface TableRowProps {
     row: ComparisonRowType;
     scenarios: Scenario[];
     isLast: boolean;
 }
 
 /**
- * ComparisonRow - Renders a single row in the comparison table
+ * TableRow - Renders a single row in a data table
  * Designed for efficient virtualization (works with FlatList/Animated.FlatList)
+ * Generic and reusable for any table data structure
  */
-export default function ComparisonRow({
-    row,
-    scenarios,
-    isLast,
-}: ComparisonRowProps) {
+export default function TableRow({ row, scenarios, isLast }: TableRowProps) {
     const theme = useTheme();
 
     // Section header row (empty cells)

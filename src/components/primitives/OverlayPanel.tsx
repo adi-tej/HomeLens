@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { Pressable, useWindowDimensions } from "react-native";
 import Reanimated, {
     useAnimatedStyle,
@@ -6,23 +6,35 @@ import Reanimated, {
     withSpring,
 } from "react-native-reanimated";
 import { useTheme } from "react-native-paper";
-import { useAppContext } from "../state/AppContext";
-import Compare from "../screens/Compare";
 
-export default function CompareOverlay() {
-    const { isCompareScreenActive, setCompareScreenActive } = useAppContext();
+interface OverlayPanelProps {
+    visible: boolean;
+    onClose: () => void;
+    children: ReactNode;
+}
+
+/**
+ * OverlayPanel - A generic reusable slide-in panel overlay
+ * Slides in from the right with a backdrop scrim
+ * Can be used for any full-screen slide-in content
+ */
+export default function OverlayPanel({
+    visible,
+    onClose,
+    children,
+}: OverlayPanelProps) {
     const { width: windowWidth } = useWindowDimensions();
     const theme = useTheme();
 
-    const progress = useSharedValue(isCompareScreenActive ? 1 : 0);
+    const progress = useSharedValue(visible ? 1 : 0);
 
     useEffect(() => {
-        progress.value = withSpring(isCompareScreenActive ? 1 : 0, {
+        progress.value = withSpring(visible ? 1 : 0, {
             damping: 18,
             stiffness: 240,
             overshootClamping: true,
         });
-    }, [isCompareScreenActive, progress]);
+    }, [visible, progress]);
 
     const scrimStyle = useAnimatedStyle(() => ({
         opacity: progress.value * 0.5,
@@ -39,7 +51,7 @@ export default function CompareOverlay() {
     return (
         <>
             <Reanimated.View
-                pointerEvents={isCompareScreenActive ? "auto" : "none"}
+                pointerEvents={visible ? "auto" : "none"}
                 style={[
                     {
                         position: "absolute",
@@ -53,14 +65,11 @@ export default function CompareOverlay() {
                     scrimStyle,
                 ]}
             >
-                <Pressable
-                    style={{ flex: 1 }}
-                    onPress={() => setCompareScreenActive(false)}
-                />
+                <Pressable style={{ flex: 1 }} onPress={onClose} />
             </Reanimated.View>
 
             <Reanimated.View
-                pointerEvents={isCompareScreenActive ? "auto" : "none"}
+                pointerEvents={visible ? "auto" : "none"}
                 style={[
                     {
                         position: "absolute",
@@ -74,7 +83,7 @@ export default function CompareOverlay() {
                     panelStyle,
                 ]}
             >
-                <Compare />
+                {children}
             </Reanimated.View>
         </>
     );

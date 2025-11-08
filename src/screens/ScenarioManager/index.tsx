@@ -2,13 +2,13 @@ import React, { useCallback, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Divider, IconButton, Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import ScreenContainer from "../components/primitives/ScreenContainer";
-import { useAppContext } from "../state/AppContext";
-import { useScenarios } from "../state/useScenarioStore";
-import Scenario from "../components/Scenario";
-import ScenarioInput from "../components/inputs/ScenarioInput";
-import CompareButton from "../components/CompareButton";
-import { spacing } from "../theme/spacing";
+import ScreenContainer from "../../components/primitives/ScreenContainer";
+import { useAppContext } from "../../state/AppContext";
+import { useScenarios } from "../../state/useScenarioStore";
+import Scenario from "../../components/Scenario";
+import ScenarioInput from "../../components/inputs/ScenarioInput";
+import CompareButton from "./CompareButton";
+import { spacing } from "../../theme/spacing";
 
 export default function ScenarioManager() {
     const theme = useTheme();

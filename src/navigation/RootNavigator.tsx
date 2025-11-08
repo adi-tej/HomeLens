@@ -10,12 +10,15 @@ import AppHeader from "../components/AppHeader";
 import { BottomNavigator } from "./BottomNavigator";
 import ScenarioManager from "../screens/ScenarioManager";
 import MainMenu from "../components/MainMenu";
-import CompareOverlay from "../components/CompareOverlay";
+import OverlayPanel from "../components/primitives/OverlayPanel";
+import Compare from "../screens/Compare";
+import { useAppContext } from "../state/AppContext";
 
 export function RootNavigator() {
     const { progress: progressRight } = useRightDrawer();
     const { progress: progressLeft, drawerWidth: drawerWidthLeft } =
         useLeftDrawer();
+    const { isCompareScreenActive, setCompareScreenActive } = useAppContext();
 
     const translate = useAnimatedStyle(() => {
         const translateRight = interpolate(
@@ -48,7 +51,12 @@ export function RootNavigator() {
                 <ScenarioManager />
             </Drawer>
 
-            <CompareOverlay />
+            <OverlayPanel
+                visible={isCompareScreenActive}
+                onClose={() => setCompareScreenActive(false)}
+            >
+                <Compare />
+            </OverlayPanel>
         </>
     );
 }

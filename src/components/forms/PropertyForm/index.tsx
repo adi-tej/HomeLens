@@ -1,16 +1,14 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Divider, Text, useTheme } from "react-native-paper";
-import type { PropertyData } from "../../types";
-import { spacing } from "../../theme/spacing";
-import { useScenarios } from "../../state/useScenarioStore";
-import {
-    AssumptionsSection,
-    BasicDetailsSection,
-    LoanSettingsSection,
-    PropertyDetailsSection,
-} from "./property";
-import ExpandToggle from "../primitives/ExpandToggle";
+import type { PropertyData } from "../../../types";
+import { spacing } from "../../../theme/spacing";
+import { useScenarios } from "../../../state/useScenarioStore";
+import BasicDetailsSection from "./BasicDetailsSection";
+import LoanSettingsSection from "./LoanSettingsSection";
+import PropertyDetailsSection from "./PropertyDetailsSection";
+import AssumptionsSection from "./AssumptionsSection";
+import ExpandToggle from "../../primitives/ExpandToggle";
 
 export default function PropertyForm() {
     const theme = useTheme();
@@ -146,3 +144,9 @@ const styles = StyleSheet.create({
         marginTop: spacing.xs,
     },
 });
+
+// Named exports for sections (if needed elsewhere)
+export { default as BasicDetailsSection } from "./BasicDetailsSection";
+export { default as LoanSettingsSection } from "./LoanSettingsSection";
+export { default as PropertyDetailsSection } from "./PropertyDetailsSection";
+export { default as AssumptionsSection } from "./AssumptionsSection";
