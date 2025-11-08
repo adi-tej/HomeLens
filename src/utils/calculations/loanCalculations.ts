@@ -7,17 +7,26 @@ import type { LoanDetails } from "../../types";
  * @param principal - Loan principal amount
  * @param annualRatePct - Annual interest rate as percentage
  * @param termYears - Loan term in years (default: 30)
+ * @param isInterestOnly - Whether this is an interest-only loan
  * @returns Monthly repayment amount
  */
 export function monthlyRepayment(
     principal: number,
     annualRatePct: number,
     termYears = 30,
+    isInterestOnly = false,
 ): number {
     const P = Number(principal) || 0;
     const r = (Number(annualRatePct) || 0) / 100 / 12; // monthly rate
     const n = Math.max(1, Math.trunc(Number(termYears) || 0) * 12);
     if (P <= 0 || r <= 0) return 0;
+
+    // Interest-only loans: just pay the interest each month
+    if (isInterestOnly) {
+        return Math.round(P * r * 100) / 100;
+    }
+
+    // Principal & Interest loans: use standard mortgage formula
     const payment = (P * r) / (1 - Math.pow(1 + r, -n));
     return Math.round(payment * 100) / 100;
 }
@@ -29,6 +38,7 @@ export function monthlyRepayment(
  * @param principal - Loan principal amount
  * @param annualRatePct - Annual interest rate as percentage
  * @param termYears - Loan term in years (default: 30)
+ * @param isInterestOnly - Whether this is an interest-only loan
  * @returns Object with principal and interest paid in that year
  */
 export function annualBreakdown(
@@ -36,6 +46,7 @@ export function annualBreakdown(
     principal: number,
     annualRatePct: number,
     termYears = 30,
+    isInterestOnly = false,
 ): { principal: number; interest: number } {
     const Y = Math.max(1, Math.trunc(Number(year) || 0));
     const P0 = Number(principal) || 0;
@@ -43,6 +54,16 @@ export function annualBreakdown(
     const n = Math.max(1, Math.trunc(Number(termYears) || 0) * 12);
     if (P0 <= 0 || rateMonthly <= 0) return { principal: 0, interest: 0 };
 
+    // Interest-only loans: no principal paid, just interest
+    if (isInterestOnly) {
+        const annualInterest = P0 * rateMonthly * 12;
+        return {
+            principal: 0,
+            interest: Math.round(annualInterest * 100) / 100,
+        };
+    }
+
+    // Principal & Interest loans: calculate amortization schedule
     const payment = (P0 * rateMonthly) / (1 - Math.pow(1 + rateMonthly, -n));
     let balance = P0;
     let principalPaidYear = 0;
@@ -186,6 +207,7 @@ export function calculateLoanDetails(
         totalLoan,
         loanInterest,
         loanTermYears,
+        isInterestOnly,
     );
 
     const breakdown = annualBreakdown(
@@ -193,6 +215,7 @@ export function calculateLoanDetails(
         totalLoan,
         loanInterest,
         loanTermYears,
+        isInterestOnly,
     );
     const annualPrincipal = breakdown.principal;
     const annualInterest = breakdown.interest;
