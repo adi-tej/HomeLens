@@ -1,0 +1,346 @@
+import React, { useCallback, useMemo, useRef } from "react";
+import { Animated, StyleSheet, View } from "react-native";
+import { useTheme } from "react-native-paper";
+import { TABLE_CONFIG } from "./TableConfig";
+import { spacing } from "../../theme/spacing";
+
+interface Column<T> {
+    key: string;
+    label: string;
+    accessor: (item: T) => string;
+}
+
+interface Row<T> {
+    key: string;
+    label: string;
+    accessor: (item: T) => string;
+    highlight?: boolean;
+    section?: string; // Optional section property for grouping rows
+}
+
+interface ProjectionTableProps<T> {
+    columns: Column<T>[];
+    rows: Row<T>[];
+    data: T[];
+    renderHeaderCell: (column: Column<T>, theme: any) => React.ReactNode;
+    renderDataCell: (
+        row: Row<T>,
+        item: T,
+        theme: any,
+        highlight?: boolean,
+    ) => React.ReactNode;
+    renderLabelCell: (
+        row: Row<T>,
+        isLast: boolean,
+        theme: any,
+        highlight?: boolean,
+    ) => React.ReactNode;
+    cornerIcon?: React.ReactNode;
+    getRowHeight?: (row: Row<T>) => number; // Optional function to get variable row heights
+}
+
+/**
+ * Generic projection table component for displaying data in a grid format
+ * with sticky header and label columns, optimized for scrolling
+ */
+export default function Grid<T>({
+    columns,
+    rows,
+    data,
+    renderHeaderCell,
+    renderDataCell,
+    renderLabelCell,
+    cornerIcon,
+    getRowHeight,
+}: ProjectionTableProps<T>) {
+    const theme = useTheme();
+    const mainScrollRef = useRef<any>(null);
+    const scrollY = useRef(new Animated.Value(0)).current;
+    const scrollX = useRef(new Animated.Value(0)).current;
+
+    const contentWidth = columns.length * TABLE_CONFIG.cellWidth;
+
+    // Precompute row heights & offsets for stable layout
+    const rowHeights = useMemo(
+        () =>
+            rows.map((row) =>
+                getRowHeight ? getRowHeight(row) : TABLE_CONFIG.rowHeight,
+            ),
+        [rows, getRowHeight],
+    );
+
+    const cumulativeOffsets = useMemo(() => {
+        let acc = 0;
+        return rowHeights.map((h) => {
+            const offset = acc;
+            acc += h;
+            return offset;
+        });
+    }, [rowHeights]);
+
+    const getItemLayout = useCallback(
+        (_: any, index: number) => ({
+            length: rowHeights[index],
+            offset: cumulativeOffsets[index],
+            index,
+        }),
+        [rowHeights, cumulativeOffsets],
+    );
+
+    const renderRow = useCallback(
+        ({ item: row, index }: any) => {
+            const isLast = index === rows.length - 1;
+            const rowHeight = rowHeights[index];
+
+            return (
+                <View style={styles.rowContainer}>
+                    <View style={styles.labelSpace} />
+                    <View
+                        style={[
+                            {
+                                flexDirection: "row",
+                                height: rowHeight,
+                                borderBottomWidth: isLast ? 0 : 1,
+                                borderBottomColor: theme.colors.outline,
+                                backgroundColor: row.highlight
+                                    ? theme.colors.secondaryContainer
+                                    : theme.colors.surfaceVariant,
+                            },
+                        ]}
+                    >
+                        {data.map((item, colIndex) => (
+                            <View key={colIndex}>
+                                {renderDataCell(
+                                    row,
+                                    item,
+                                    theme,
+                                    row.highlight,
+                                )}
+                            </View>
+                        ))}
+                    </View>
+                </View>
+            );
+        },
+        [rows.length, data, theme, renderDataCell, rowHeights],
+    );
+
+    const keyExtractor = useCallback((item: any) => item.key, []);
+
+    return (
+        <View
+            style={[
+                styles.tableContainer,
+                {
+                    borderWidth: 1,
+                    borderColor: theme.colors.outline,
+                    borderRadius: TABLE_CONFIG.borderRadius,
+                },
+            ]}
+        >
+            {/* Header overlay */}
+            <View
+                style={[
+                    styles.headerOverlay,
+                    {
+                        backgroundColor: theme.colors.surface,
+                        borderBottomColor: theme.colors.outline,
+                    },
+                ]}
+                pointerEvents="none"
+            >
+                {/* Fixed corner cell */}
+                <View
+                    style={[
+                        styles.cornerCell,
+                        {
+                            backgroundColor: theme.colors.surface,
+                            borderColor: theme.colors.outline,
+                            shadowColor: "#000",
+                            shadowOffset: { width: 2, height: 2 },
+                            shadowOpacity: 0.12,
+                            shadowRadius: 4,
+                            elevation: 5,
+                        },
+                    ]}
+                >
+                    {cornerIcon}
+                </View>
+
+                {/* Scrollable header cells */}
+                <View style={styles.headerScrollableMask}>
+                    <Animated.View
+                        style={[
+                            styles.headerRow,
+                            {
+                                width: contentWidth,
+                                transform: [
+                                    {
+                                        translateX: Animated.multiply(
+                                            scrollX,
+                                            -1,
+                                        ),
+                                    },
+                                ],
+                            },
+                        ]}
+                    >
+                        {columns.map((column) => (
+                            <View key={column.key}>
+                                {renderHeaderCell(column, theme)}
+                            </View>
+                        ))}
+                    </Animated.View>
+                </View>
+            </View>
+
+            {/* Scrollable content */}
+            <Animated.ScrollView
+                ref={mainScrollRef}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                scrollEventThrottle={16}
+                onScroll={Animated.event(
+                    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                    { useNativeDriver: true },
+                )}
+                style={styles.mainScrollView}
+                contentContainerStyle={{
+                    width: TABLE_CONFIG.labelWidth + contentWidth,
+                    paddingTop: TABLE_CONFIG.headerHeight,
+                }}
+            >
+                <View style={{ flex: 1 }}>
+                    <Animated.FlatList
+                        data={rows}
+                        renderItem={renderRow}
+                        keyExtractor={keyExtractor}
+                        getItemLayout={getItemLayout}
+                        initialNumToRender={15}
+                        showsVerticalScrollIndicator={false}
+                        removeClippedSubviews={true}
+                        maxToRenderPerBatch={15}
+                        windowSize={15}
+                        onScroll={Animated.event(
+                            [
+                                {
+                                    nativeEvent: {
+                                        contentOffset: { y: scrollY },
+                                    },
+                                },
+                            ],
+                            { useNativeDriver: true },
+                        )}
+                        scrollEventThrottle={16}
+                        contentContainerStyle={{
+                            paddingBottom: spacing.lg,
+                        }}
+                    />
+                </View>
+            </Animated.ScrollView>
+
+            {/* Label column overlay */}
+            <View
+                style={[
+                    styles.labelColumnOverlay,
+                    {
+                        backgroundColor: theme.colors.surface,
+                        top: TABLE_CONFIG.headerHeight,
+                    },
+                ]}
+                pointerEvents="none"
+            >
+                <Animated.View
+                    style={{
+                        transform: [
+                            {
+                                translateY: Animated.multiply(scrollY, -1),
+                            },
+                        ],
+                    }}
+                >
+                    {rows.map((row, index) => (
+                        <View
+                            key={row.key}
+                            style={{
+                                height: rowHeights[index],
+                            }}
+                        >
+                            {renderLabelCell(
+                                row,
+                                index === rows.length - 1,
+                                theme,
+                                row.highlight,
+                            )}
+                        </View>
+                    ))}
+                </Animated.View>
+            </View>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    tableContainer: {
+        flex: 1,
+        overflow: "hidden",
+        position: "relative",
+    },
+    mainScrollView: {
+        flex: 1,
+    },
+    rowContainer: {
+        flexDirection: "row",
+    },
+    labelSpace: {
+        width: TABLE_CONFIG.labelWidth,
+    },
+    dataRow: {
+        flexDirection: "row",
+        height: TABLE_CONFIG.rowHeight,
+    },
+    headerOverlay: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: TABLE_CONFIG.headerHeight,
+        zIndex: 30,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+        elevation: 4,
+    },
+    cornerCell: {
+        position: "absolute",
+        left: 0,
+        top: 0,
+        width: TABLE_CONFIG.labelWidth,
+        height: TABLE_CONFIG.headerHeight,
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 40,
+    },
+    headerScrollableMask: {
+        marginLeft: TABLE_CONFIG.labelWidth,
+        overflow: "hidden",
+        height: TABLE_CONFIG.headerHeight,
+    },
+    headerRow: {
+        flexDirection: "row",
+        height: TABLE_CONFIG.headerHeight,
+    },
+    labelColumnOverlay: {
+        position: "absolute",
+        left: 0,
+        bottom: 0,
+        width: TABLE_CONFIG.labelWidth,
+        zIndex: 20,
+        elevation: 4,
+        shadowColor: "#000",
+        shadowOffset: { width: 2, height: 0 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
+});

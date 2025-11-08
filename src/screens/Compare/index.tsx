@@ -1,12 +1,12 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppContext } from "../../state/AppContext";
 import { spacing } from "../../theme/spacing";
 import { useComparisonData } from "../../hooks/useComparisonData";
+import Table, { TABLE_CONFIG } from "../../components/Table";
 import CompareHeader from "./CompareHeader";
-import ComparisonTable from "./ComparisonTable";
 import EmptyState from "./EmptyState";
 
 export default function Compare() {
@@ -17,6 +17,24 @@ export default function Compare() {
 
     const handleBack = () => {
         setCompareScreenActive(false);
+    };
+
+    // Create columns from scenarios
+    const columns = useMemo(
+        () =>
+            selectedScenarioList.map((scenario) => ({
+                key: scenario.id,
+                label: scenario.name,
+                accessor: (s: any) => s.name,
+            })),
+        [selectedScenarioList],
+    );
+
+    // Function to determine row height based on whether it's a section header
+    const getRowHeight = (row: any) => {
+        return row.section === "header"
+            ? TABLE_CONFIG.headerHeight
+            : TABLE_CONFIG.rowHeight;
     };
 
     return (
@@ -39,9 +57,11 @@ export default function Compare() {
             {selectedScenarioList.length === 0 ? (
                 <EmptyState />
             ) : (
-                <ComparisonTable
-                    selectedScenarioList={selectedScenarioList}
-                    comparisonRows={comparisonRows}
+                <Table
+                    columns={columns}
+                    rows={comparisonRows}
+                    data={selectedScenarioList}
+                    getRowHeight={getRowHeight}
                 />
             )}
         </View>

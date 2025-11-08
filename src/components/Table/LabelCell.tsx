@@ -12,7 +12,7 @@ interface LabelCellProps {
     isSection?: boolean; // Section header flag
 }
 
-export function LabelCell({
+export default function LabelCell({
     label,
     highlight,
     isLast,

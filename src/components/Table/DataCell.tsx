@@ -10,7 +10,7 @@ interface DataCellProps {
     theme: any;
 }
 
-export function DataCell({ value, highlight, theme }: DataCellProps) {
+export default function DataCell({ value, highlight, theme }: DataCellProps) {
     return (
         <View style={styles.container}>
             <Text
@@ -34,6 +34,7 @@ export function DataCell({ value, highlight, theme }: DataCellProps) {
 const styles = StyleSheet.create({
     container: {
         width: TABLE_CONFIG.cellWidth,
+        height: TABLE_CONFIG.rowHeight,
         justifyContent: "center",
         alignItems: "center",
         paddingHorizontal: spacing.sm,
