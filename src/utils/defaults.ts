@@ -1,6 +1,6 @@
 // Central location for all mortgage-related default values and constants
 
-import type { Expenses, PropertyData } from "./mortgageCalculator";
+import type { Expenses, PropertyData } from "../types";
 
 /**
  * Default interest rates based on loan type and repayment type

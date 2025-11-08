@@ -18,6 +18,7 @@ export interface PropertyData {
     annualNetCashFlow?: number;
     expenses: Expenses;
     taxReturn?: number;
+    projections?: Projection[];
 }
 export type LoanDetails = {
     isOwnerOccupiedLoan: boolean;
@@ -47,6 +48,16 @@ export type Expenses = {
     propertyManager: number;
     maintenance: number;
     total: number;
+};
+
+export type Projection = {
+    year: number;
+    propertyValue: number;
+    loan: number;
+    equity: number;
+    spent: number;
+    returns: number;
+    roi: number;
 };
 
 export type MortgageErrors = Partial<

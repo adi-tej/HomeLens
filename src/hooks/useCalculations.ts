@@ -8,6 +8,7 @@ import type {
     Expenses,
     LoanDetails,
     MortgageErrors,
+    Projection,
     PropertyData,
 } from "../types";
 import {
@@ -121,6 +122,128 @@ export function validateMortgageData(data: PropertyData): MortgageErrors {
 }
 
 /**
+ * Calculate mortgage loan details
+ *
+ * @param propertyValue - Property value
+ * @param deposit - Deposit amount
+ * @param stampDuty - Stamp duty amount
+ * @param inputLoan - Partial loan details from input
+ * @returns Complete LoanDetails object with all calculations
+ */
+function calculateLoanDetails(
+    propertyValue: number,
+    deposit: number,
+    stampDuty: number,
+    inputLoan?: Partial<LoanDetails>,
+): LoanDetails {
+    // === Loan Calculations ===
+    const includeStampDuty = Boolean(inputLoan?.includeStampDuty);
+    const loanWithoutLMI = includeStampDuty
+        ? propertyValue - deposit + stampDuty
+        : propertyValue - deposit;
+
+    const lvr =
+        propertyValue > 0 && loanWithoutLMI > 0
+            ? (loanWithoutLMI / propertyValue) * 100
+            : 0;
+
+    const lmi = calculateLMI(lvr, loanWithoutLMI);
+    const totalLoan = loanWithoutLMI + (Number.isFinite(lmi) ? lmi : 0);
+
+    // === Loan Details ===
+    const isOwnerOccupied = inputLoan?.isOwnerOccupiedLoan ?? true;
+    const isInterestOnly = inputLoan?.isInterestOnly || false;
+    const loanInterest =
+        inputLoan?.loanInterest ||
+        getDefaultInterestRate(isOwnerOccupied, isInterestOnly);
+    const loanTermYears = inputLoan?.loanTerm || DEFAULT_LOAN_TERM;
+
+    // === Mortgage Payments ===
+    const monthlyMortgage = monthlyRepayment(
+        totalLoan,
+        loanInterest,
+        loanTermYears,
+    );
+
+    const breakdown = annualBreakdown(
+        1,
+        totalLoan,
+        loanInterest,
+        loanTermYears,
+    );
+    const annualPrincipal = breakdown.principal;
+    const annualInterest = breakdown.interest;
+
+    return {
+        isOwnerOccupiedLoan: isOwnerOccupied,
+        isInterestOnly,
+        loanTerm: loanTermYears,
+        loanInterest,
+        includeStampDuty,
+        lvr,
+        lmi,
+        totalLoan,
+        monthlyMortgage,
+        annualPrincipal,
+        annualInterest,
+    };
+}
+
+/**
+ * Calculate projection for a given year
+ *
+ * @param params - Parameters for projection calculation
+ * @returns Projection array with year data
+ */
+function calculateProjection(params: {
+    year?: number;
+    propertyValue: number;
+    deposit: number;
+    capitalGrowthRate: number;
+    totalLoan: number;
+    annualPrincipal: number;
+    spent: number;
+    returns: number;
+}): Projection[] {
+    const {
+        year = new Date().getFullYear(),
+        propertyValue,
+        deposit,
+        capitalGrowthRate,
+        totalLoan,
+        annualPrincipal,
+        spent,
+        returns,
+    } = params;
+
+    // Property value with capital growth
+    const propertyValueYear1 = Math.round(
+        propertyValue * (1 + capitalGrowthRate / 100),
+    );
+
+    // Equity = deposit + principal paid
+    const equity = deposit + annualPrincipal;
+
+    // Total loan remaining after year
+    const loanYearEnd = totalLoan - annualPrincipal;
+
+    // ROI = (returns / spent) * 100
+    const roi = spent > 0 ? (returns / spent) * 100 : 0;
+
+    return [
+        {
+            year,
+            propertyValue: propertyValueYear1,
+            loan: loanYearEnd,
+            equity,
+            spent,
+            returns,
+            roi,
+        },
+    ];
+}
+
+/**
  * Normalize and recalculate expenses total based on property type and investment status
  * Applies visibility rules for conditional expense fields
  *
@@ -129,7 +252,7 @@ export function validateMortgageData(data: PropertyData): MortgageErrors {
  * @param isInvestment - Whether this is an investment property
  * @returns Complete Expenses object with recalculated total
  */
-function normalizeExpenses(
+function calculateExpenses(
     rawExpenses: Partial<Expenses> | undefined,
     isLand: boolean,
     isInvestment: boolean,
@@ -160,13 +283,13 @@ function normalizeExpenses(
 }
 
 /**
- * Calculate all mortgage values from input data
+ * Calculate all property data values from input data
  * Returns a complete PropertyData object with all calculated values
  *
  * @param inputData - Partial property data with user inputs
  * @returns Complete PropertyData with all calculations performed
  */
-export function calculateMortgageData(
+export function calculatePropertyData(
     inputData: Partial<PropertyData>,
 ): PropertyData {
     // === Property and Deposit ===
@@ -183,43 +306,12 @@ export function calculateMortgageData(
     );
 
     // === Loan Calculations ===
-    const includeStampDuty = Boolean(inputData.loan?.includeStampDuty);
-    const loanWithoutLMI = includeStampDuty
-        ? propertyValue - deposit + stampDuty
-        : propertyValue - deposit;
-
-    const lvr =
-        propertyValue > 0 && loanWithoutLMI > 0
-            ? (loanWithoutLMI / propertyValue) * 100
-            : 0;
-
-    const lmi = calculateLMI(lvr, loanWithoutLMI);
-    const totalLoan = loanWithoutLMI + (Number.isFinite(lmi) ? lmi : 0);
-
-    // === Loan Details ===
-    const isOwnerOccupied = inputData.loan?.isOwnerOccupiedLoan ?? true;
-    const isInterestOnly = inputData.loan?.isInterestOnly || false;
-    const loanInterest =
-        inputData.loan?.loanInterest ||
-        getDefaultInterestRate(isOwnerOccupied, isInterestOnly);
-    const loanTermYears = inputData.loan?.loanTerm || DEFAULT_LOAN_TERM;
-
-    // === Mortgage Payments ===
-    const monthlyMortgage = monthlyRepayment(
-        totalLoan,
-        loanInterest,
-        loanTermYears,
+    const loan = calculateLoanDetails(
+        propertyValue,
+        deposit,
+        stampDuty,
+        inputData.loan,
     );
-    const annualMortgage = Math.round(monthlyMortgage * MONTHS_PER_YEAR);
-
-    const breakdown = annualBreakdown(
-        1,
-        totalLoan,
-        loanInterest,
-        loanTermYears,
-    );
-    const annualPrincipal = breakdown.principal;
-    const annualInterest = breakdown.interest;
 
     // === Rental Income ===
     const rentalWeekly = inputData.rentalIncome ?? DEFAULT_RENTAL_INCOME;
@@ -230,14 +322,17 @@ export function calculateMortgageData(
     const strataAnnual = Math.round(strataQuarterly * QUARTERS_PER_YEAR);
 
     // === Cash Flow ===
-    const annualNetCashFlow = rentalAnnual - strataAnnual - annualMortgage;
+    const annualNetCashFlow =
+        rentalAnnual -
+        strataAnnual -
+        (loan.monthlyMortgage ?? 0) * MONTHS_PER_YEAR;
 
     // === Investment Property Calculations ===
     const vacancyCost = Math.round(rentalAnnual * DEFAULT_VACANCY_RATE);
     const depreciation = Math.round(propertyValue * DEFAULT_DEPRECIATION_RATE);
 
     // === Expenses ===
-    const expenses = normalizeExpenses(
+    const expenses = calculateExpenses(
         inputData.expenses,
         isLand,
         isInvestment,
@@ -245,7 +340,7 @@ export function calculateMortgageData(
 
     // === Tax Calculations ===
     const taxableCost =
-        Math.round(annualInterest) +
+        Math.round(loan.annualInterest ?? 0) +
         expenses.total +
         strataAnnual +
         vacancyCost +
@@ -256,20 +351,37 @@ export function calculateMortgageData(
         taxableCost > 0 ? taxableCost * DEFAULT_TAX_BRACKET : 0,
     );
 
-    // === Build Loan Details Object ===
-    const loan: LoanDetails = {
-        isOwnerOccupiedLoan: isOwnerOccupied,
-        isInterestOnly,
-        loanTerm: loanTermYears,
-        loanInterest,
-        includeStampDuty,
-        lvr,
-        lmi,
-        totalLoan,
-        monthlyMortgage,
-        annualPrincipal,
-        annualInterest,
-    };
+    // === Calculate Cash Flow for Standing ===
+    const annualMortgage = (loan.monthlyMortgage ?? 0) * MONTHS_PER_YEAR;
+    const capitalGrowthRate = inputData.capitalGrowth ?? DEFAULT_CAPITAL_GROWTH;
+    const propertyValueProjected = Math.round(
+        propertyValue * (1 + capitalGrowthRate / 100),
+    );
+    const capitalGrowthAmount = propertyValueProjected - propertyValue;
+
+    // Spent (Total Expenses) = deposit + stamp duty + LMI + expenses + mortgage + strata + vacancy
+    const spent =
+        deposit +
+        stampDuty +
+        (loan.lmi ?? 0) +
+        expenses.total +
+        annualMortgage +
+        strataAnnual +
+        vacancyCost;
+
+    // Returns (Total Income) = rental income + tax return + capital growth
+    const returns = rentalAnnual + taxReturn + capitalGrowthAmount;
+
+    // === Calculate Projections ===
+    const projections = calculateProjection({
+        propertyValue,
+        deposit,
+        capitalGrowthRate,
+        totalLoan: loan.totalLoan ?? 0,
+        annualPrincipal: loan.annualPrincipal ?? 0,
+        spent,
+        returns,
+    });
 
     // === Return Complete Property Data ===
     return {
@@ -288,5 +400,6 @@ export function calculateMortgageData(
         annualNetCashFlow,
         expenses,
         taxReturn,
+        projections,
     };
 }

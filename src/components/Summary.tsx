@@ -4,7 +4,6 @@ import type { SummaryCardProps } from "./cards/SummaryCard";
 import SummaryCard from "./cards/SummaryCard";
 import type { PropertyData } from "../types";
 import { formatCurrency } from "../utils/parser";
-import { DEFAULT_RENTAL_INCOME, DEFAULT_STRATA_FEES } from "../utils/defaults";
 
 /**
  * Props for the Summary component
@@ -19,11 +18,10 @@ export type SummaryProps = {
 /**
  * Summary - Displays financial data in animated accordion cards
  *
- * Renders 4 summary cards with staggered entrance animations:
- * 1. Mortgage - Loan details and monthly payments
- * 2. Net Expenditure - Income, expenses, and net position
- * 3. Gross Expenditure - Tax implications
- * 4. Future Returns - Long-term projections
+ * Renders 3 summary cards with staggered entrance animations:
+ * 1. Loan Details - Loan details and monthly payments
+ * 2. Annual Cash Flow - Income, expenses, and net position
+ * 3. Net Position By EOY - First year projections and ROI
  *
  * @example
  * ```tsx
@@ -31,16 +29,20 @@ export type SummaryProps = {
  * ```
  */
 function Summary({ data, scrollViewRef }: SummaryProps) {
-    // Destructure with safe defaults
+    // Destructure with safe defaults - all values pre-calculated in useMortgageCalculations
     const {
         stampDuty = 0,
-        strataFees = DEFAULT_STRATA_FEES,
-        rentalIncome = DEFAULT_RENTAL_INCOME,
-        annualNetCashFlow,
-        taxReturn,
+        strataFees = 0,
+        rentalIncome = 0,
+        annualNetCashFlow = 0,
+        taxReturn = 0,
         expenses,
         loan,
+        projections = [],
     } = data;
+
+    // Get first year's projection data
+    const firstYearProjection = projections.length > 0 ? projections[0] : null;
 
     // Loan-specific destructure
     const {
@@ -49,6 +51,14 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
         monthlyMortgage = 0,
         loanInterest = 5.5,
     } = loan || {};
+
+    const {
+        equity = 0,
+        spent = 0,
+        returns = 0,
+        propertyValue = 0,
+        roi = 0,
+    } = firstYearProjection || {};
 
     // Create refs for each card to measure their positions
     const cardRefs = useRef<{ [key: string]: View | null }>({});
@@ -127,12 +137,12 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                     {
                         key: "rental",
                         label: "Rental income",
-                        value: formatCurrency(rentalIncome),
+                        value: formatCurrency(rentalIncome * 50),
                     },
                     {
                         key: "strata",
                         label: "Strata Levy",
-                        value: formatCurrency(strataFees),
+                        value: formatCurrency(strataFees * 4),
                     },
                     {
                         key: "expenses",
@@ -155,33 +165,33 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                     "💡 Net expenditure after rental income and expenses.",
             },
             {
-                title: "Year 1 Net Position",
+                title: "Net Position By EOY",
                 icon: "chart-line",
                 rows: [
                     {
                         key: "total-spent",
                         label: "Total Spent",
-                        value: formatCurrency(0), // Placeholder
+                        value: formatCurrency(spent),
                     },
                     {
-                        key: "principal-paid",
-                        label: "Principal paid",
-                        value: formatCurrency(0), // Placeholder
+                        key: "equity",
+                        label: "Equity",
+                        value: formatCurrency(equity),
                     },
                     {
                         key: "property-growth",
-                        label: "Property value (Year 1)",
-                        value: formatCurrency(0), // Placeholder
+                        label: "Property value",
+                        value: formatCurrency(propertyValue),
                     },
                     {
                         key: "total-return",
                         label: "Total return",
-                        value: formatCurrency(0), // Placeholder
+                        value: formatCurrency(returns),
                     },
                     {
                         key: "roi",
                         label: "ROI",
-                        value: "0%", // Placeholder
+                        value: `${roi.toFixed(2)}%`,
                         highlight: true,
                     },
                 ],
@@ -198,6 +208,13 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
             rentalIncome,
             strataFees,
             annualNetCashFlow,
+            expenses.total,
+            taxReturn,
+            spent,
+            returns,
+            propertyValue,
+            equity,
+            roi,
         ],
     );
 

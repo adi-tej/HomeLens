@@ -6,7 +6,7 @@ import React, {
     useState,
 } from "react";
 import { type PropertyData } from "../types";
-import { calculateMortgageData } from "../hooks/useMortgageCalculations";
+import { calculatePropertyData } from "../hooks/useCalculations";
 import { getDefaultMortgageData } from "../utils/defaults";
 
 export type ScenarioId = string;
@@ -170,7 +170,7 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
                 };
 
                 // Recalculate all mortgage values
-                const calculatedData = calculateMortgageData(mergedData);
+                const calculatedData = calculatePropertyData(mergedData);
 
                 const next = new Map(prev);
                 next.set(id, {
