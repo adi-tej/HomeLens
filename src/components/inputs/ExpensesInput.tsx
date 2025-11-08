@@ -6,6 +6,7 @@ import ExpensesForm from "../forms/ExpensesForm";
 import type { Expenses } from "../../types";
 import { DEFAULT_EXPENSES } from "../../utils/defaults";
 import { formatCurrency, parseNumber } from "../../utils/parser";
+import ScreenContainer from "../primitives/ScreenContainer";
 
 export type ExpensesInputProps = {
     label?: string;
@@ -141,15 +142,23 @@ export function ExpensesInput({
                 <Modal
                     visible={modalVisible}
                     onDismiss={closeModal}
-                    contentContainerStyle={{ padding: 16 }}
+                    contentContainerStyle={styles.modalContent}
                 >
-                    <ExpensesForm
-                        isLand={isLand}
-                        isInvestment={isInvestment}
-                        value={config}
-                        onCancel={closeModal}
-                        onSave={handleSave}
-                    />
+                    <ScreenContainer
+                        scrollProps={{
+                            style: { flex: 0 },
+                            bottomOffset: 0,
+                            contentContainerStyle: { padding: 0 },
+                        }}
+                    >
+                        <ExpensesForm
+                            isLand={isLand}
+                            isInvestment={isInvestment}
+                            value={config}
+                            onCancel={closeModal}
+                            onSave={handleSave}
+                        />
+                    </ScreenContainer>
                 </Modal>
             </Portal>
         </View>
@@ -159,4 +168,7 @@ export function ExpensesInput({
 const styles = StyleSheet.create({
     container: { marginTop: spacing.sm },
     row: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+    modalContent: {
+        marginHorizontal: spacing.md,
+    },
 });

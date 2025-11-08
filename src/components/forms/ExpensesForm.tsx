@@ -1,7 +1,13 @@
 import React from "react";
 import { KeyboardTypeOptions, Platform, StyleSheet, View } from "react-native";
 import type { MD3Theme } from "react-native-paper";
-import { Button, Divider, Text, TextInput, useTheme } from "react-native-paper";
+import {
+    Divider,
+    IconButton,
+    Text,
+    TextInput,
+    useTheme,
+} from "react-native-paper";
 import { spacing } from "../../theme/spacing";
 import type { Expenses } from "../../types";
 import { formatCurrency, parseNumber } from "../../utils/parser";
@@ -165,19 +171,25 @@ export default function ExpensesForm({
         <View style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <Text variant="titleMedium" style={styles.headerTitle}>
+                <Text variant="headlineSmall" style={styles.headerTitle}>
                     Expenses
                 </Text>
+                <IconButton
+                    icon="close"
+                    size={24}
+                    onPress={onCancel}
+                    style={styles.closeButton}
+                />
             </View>
 
             <Divider style={styles.divider} />
 
             {/* One-time Expenses Section */}
             <View style={styles.sectionHeader}>
-                <Text variant="labelLarge" style={styles.sectionTitle}>
+                <Text variant="titleLarge" style={styles.sectionTitle}>
                     One-time
                 </Text>
-                <Text variant="labelMedium" style={styles.subtotal}>
+                <Text variant="titleMedium" style={styles.subtotal}>
                     {formatCurrency(oneTimeTotal)}
                 </Text>
             </View>
@@ -189,10 +201,10 @@ export default function ExpensesForm({
             <Divider style={styles.divider} />
 
             <View style={styles.sectionHeader}>
-                <Text variant="labelLarge" style={styles.sectionTitle}>
+                <Text variant="titleLarge" style={styles.sectionTitle}>
                     Ongoing
                 </Text>
-                <Text variant="labelMedium" style={styles.subtotal}>
+                <Text variant="titleMedium" style={styles.subtotal}>
                     {formatCurrency(ongoingTotal)}
                 </Text>
             </View>
@@ -204,13 +216,6 @@ export default function ExpensesForm({
                 }
                 return null;
             })}
-
-            {/* Close Button */}
-            <View style={styles.closeRow}>
-                <Button mode="contained" onPress={onCancel}>
-                    Close
-                </Button>
-            </View>
         </View>
     );
 }
@@ -221,15 +226,26 @@ function getStyles(theme: MD3Theme) {
         container: {
             backgroundColor: theme.colors.surface,
             padding: spacing.md,
-            borderRadius: 8,
+            borderRadius: 20,
             gap: spacing.md,
+            paddingBottom: spacing.xl,
+            flexGrow: 1,
         },
         header: {
+            flexDirection: "row",
             alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
         },
         headerTitle: {
             color: theme.colors.onSurface,
             fontWeight: "600",
+        },
+        closeButton: {
+            position: "absolute",
+            right: -8,
+            top: -8,
+            margin: 0,
         },
         divider: {
             height: 1,
@@ -266,13 +282,8 @@ function getStyles(theme: MD3Theme) {
         },
         rowPair: {
             flexDirection: "row",
-            alignItems: "center",
+            alignItems: "flex-start",
             gap: spacing.md,
-        },
-        closeRow: {
-            flexDirection: "row",
-            justifyContent: "center",
-            marginTop: spacing.sm,
         },
     });
 }
