@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+    Animated,
+    Easing,
     Modal,
     Pressable,
     ScrollView,
@@ -30,10 +32,46 @@ export default function NativeSelectModal({
     const theme = useTheme();
     const isDark = theme.dark as unknown as boolean | undefined;
     const backdropColor = isDark ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.3)";
+
+    // Internal mount state to allow exit animation before unmounting Modal
+    const [showModal, setShowModal] = useState<boolean>(visible);
+
+    // Animated translateY for the sheet (slide up/down)
+    const translateY = useRef(new Animated.Value(300)).current;
+
+    // Ensure Modal mounts when `visible` becomes true
+    useEffect(() => {
+        if (visible) {
+            setShowModal(true);
+            // run entrance animation
+            Animated.timing(translateY, {
+                toValue: 0,
+                duration: 260,
+                easing: Easing.out(Easing.cubic),
+                useNativeDriver: true,
+            }).start();
+        } else if (showModal) {
+            // run exit animation then unmount
+            Animated.timing(translateY, {
+                toValue: 300,
+                duration: 200,
+                easing: Easing.in(Easing.cubic),
+                useNativeDriver: true,
+            }).start(() => {
+                setShowModal(false);
+            });
+        }
+    }, [visible]);
+
+    // Style applied to the animated sheet
+    const sheetStyle = {
+        transform: [{ translateY }],
+    } as const;
+
     return (
         <Modal
-            visible={visible}
-            animationType="slide"
+            visible={showModal}
+            animationType="fade"
             transparent
             onRequestClose={onCancel}
         >
@@ -41,9 +79,11 @@ export default function NativeSelectModal({
                 style={[styles.backdrop, { backgroundColor: backdropColor }]}
                 onPress={onCancel}
             >
-                <View
+                {/* Animated sheet stays anchored to bottom while backdrop is fixed */}
+                <Animated.View
                     style={[
                         styles.container,
+                        sheetStyle,
                         { backgroundColor: theme.colors.surfaceVariant },
                     ]}
                 >
@@ -89,7 +129,7 @@ export default function NativeSelectModal({
                             Cancel
                         </Text>
                     </TouchableOpacity>
-                </View>
+                </Animated.View>
             </Pressable>
         </Modal>
     );
@@ -97,7 +137,11 @@ export default function NativeSelectModal({
 
 const styles = StyleSheet.create({
     backdrop: {
-        flex: 1,
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         justifyContent: "flex-end",
     },
     container: {
