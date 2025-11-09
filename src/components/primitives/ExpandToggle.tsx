@@ -40,30 +40,38 @@ export default function ExpandToggle({
 
     return (
         <Pressable
-            style={[
+            style={({ pressed }) => [
                 styles.toggle,
-                isExpanded && {
-                    backgroundColor: theme.colors.tertiaryContainer,
-                    borderRadius: 6,
+                {
+                    backgroundColor: isExpanded
+                        ? theme.colors.primaryContainer
+                        : theme.colors.surfaceVariant,
+                    borderColor: isExpanded
+                        ? theme.colors.primary
+                        : theme.colors.outlineVariant,
+                    opacity: pressed ? 0.7 : 1,
                 },
             ]}
             onPress={onToggle}
         >
             <MaterialCommunityIcons
                 name={icon as any}
-                size={14}
+                size={16}
                 color={
                     isExpanded
-                        ? theme.colors.onTertiaryContainer
+                        ? theme.colors.primary
                         : theme.colors.onSurfaceVariant
                 }
+                style={{
+                    transform: [{ rotate: isExpanded ? "180deg" : "0deg" }],
+                }}
             />
             <Text
                 style={[
                     styles.toggleText,
                     {
                         color: isExpanded
-                            ? theme.colors.onTertiaryContainer
+                            ? theme.colors.onPrimaryContainer
                             : theme.colors.onSurfaceVariant,
                     },
                 ]}
@@ -78,12 +86,20 @@ const styles = StyleSheet.create({
     toggle: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 6,
-        paddingVertical: 6,
-        paddingHorizontal: 10,
+        gap: 8,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        borderWidth: 1,
+        elevation: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
     },
     toggleText: {
-        fontSize: 12,
-        fontWeight: "500",
+        fontSize: 13,
+        fontWeight: "600",
+        letterSpacing: 0.25,
     },
 });

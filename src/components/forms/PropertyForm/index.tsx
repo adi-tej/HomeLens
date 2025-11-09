@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
         marginBottom: spacing.sm,
     },
     advancedToggleContainer: {
-        alignItems: "flex-end",
+        alignItems: "center",
         marginTop: spacing.sm,
     },
     advancedContent: {

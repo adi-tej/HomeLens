@@ -30,7 +30,7 @@ export default function AppHeader() {
         <Appbar.Header style={styles.header}>
             <View style={styles.row}>
                 <Appbar.Action
-                    icon="cog-outline"
+                    icon="reorder-horizontal"
                     onPress={onPressLeft}
                     size={28}
                     color={theme.colors.onSurfaceVariant}
