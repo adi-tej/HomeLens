@@ -29,7 +29,11 @@ export function calculatePropertyValueWithGrowth(
  * @returns ROI as percentage
  */
 export function calculateROI(returns: number, spent: number): number {
-    return spent > 0 ? (returns / spent) * 100 : 0;
+    // Avoid divide-by-zero; if nothing was spent, define ROI as 0
+    if (spent === 0) return 0;
+
+    // ROI is (returns - spent) / spent * 100
+    return ((returns - spent) / spent) * 100;
 }
 
 /**
