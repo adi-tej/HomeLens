@@ -54,6 +54,7 @@ export function calculatePropertyData(
         propertyValue,
         inputData.firstHomeBuyer || false,
         isLand,
+        inputData.state,
     );
 
     // === Loan Calculations ===
