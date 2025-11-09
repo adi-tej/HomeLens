@@ -115,6 +115,20 @@ export const DEFAULT_DEPRECIATION_RATE = 0.025;
 export const DEFAULT_STATE: StateCode = "NSW";
 
 /**
+ * Australian state options for dropdowns
+ */
+export const STATE_OPTIONS = [
+    { label: "NSW", value: "NSW" as StateCode },
+    { label: "VIC", value: "VIC" as StateCode },
+    { label: "QLD", value: "QLD" as StateCode },
+    { label: "SA", value: "SA" as StateCode },
+    { label: "WA", value: "WA" as StateCode },
+    { label: "TAS", value: "TAS" as StateCode },
+    { label: "NT", value: "NT" as StateCode },
+    { label: "ACT", value: "ACT" as StateCode },
+];
+
+/**
  * State-based mortgage registration and discharge fees
  */
 export const STATE_MORTGAGE_FEES: Record<
@@ -168,6 +182,7 @@ export function getDefaultMortgageData(): PropertyData {
         strataFees: DEFAULT_STRATA_FEES,
         capitalGrowth: DEFAULT_CAPITAL_GROWTH,
         stampDuty: 0,
+        state: DEFAULT_STATE,
         loan: {
             isOwnerOccupied: true,
             isInterestOnly: false,

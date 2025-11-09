@@ -1,8 +1,18 @@
 import React from "react";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { CheckBox, CurrencySelect, DepositInput, Select } from "../../inputs";
-import type { LoanDetails, PropertyData, PropertyType } from "../../../types";
-import { getDefaultInterestRate } from "../../../utils/defaults";
+import type {
+    LoanDetails,
+    PropertyData,
+    PropertyType,
+    StateCode,
+} from "../../../types";
+import {
+    DEFAULT_STATE,
+    getDefaultInterestRate,
+    STATE_OPTIONS,
+} from "../../../utils/defaults";
+import { spacing } from "../../../theme/spacing";
 
 interface BasicDetailsSectionProps {
     data: PropertyData;
@@ -18,7 +28,7 @@ export default function BasicDetailsSection({
     const loan = data.loan as LoanDetails;
 
     return (
-        <View style={{ gap: 16 }}>
+        <View style={{ gap: spacing.md }}>
             {/* First home buyer */}
             <CheckBox
                 label="First home buyer?"
@@ -62,12 +72,25 @@ export default function BasicDetailsSection({
                 disabled={data.firstHomeBuyer}
             />
 
-            {/* Property Value */}
-            <CurrencySelect
-                label="Property value"
-                value={data.propertyValue}
-                onChange={(v) => onUpdate({ propertyValue: v })}
-            />
+            {/* Property Value and State in same row */}
+            <View style={styles.rowInputs}>
+                <View style={styles.flexInput}>
+                    <CurrencySelect
+                        label="Property value"
+                        value={data.propertyValue}
+                        onChange={(v) => onUpdate({ propertyValue: v })}
+                    />
+                </View>
+                <View style={styles.gap} />
+                <View style={styles.stateInput}>
+                    <Select
+                        label="State"
+                        value={data.state || DEFAULT_STATE}
+                        onChange={(v) => onUpdate({ state: v as StateCode })}
+                        options={[...STATE_OPTIONS]}
+                    />
+                </View>
+            </View>
 
             {/* Deposit */}
             <DepositInput
@@ -108,3 +131,20 @@ export default function BasicDetailsSection({
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    rowInputs: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    flexInput: {
+        flex: 1,
+    },
+    stateInput: {
+        minWidth: 100,
+        maxWidth: 120,
+    },
+    gap: {
+        width: spacing.sm,
+    },
+});

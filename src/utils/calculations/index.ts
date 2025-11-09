@@ -25,6 +25,7 @@ import {
     DEFAULT_CAPITAL_GROWTH,
     DEFAULT_PROPERTY_TYPE,
     DEFAULT_RENTAL_GROWTH,
+    DEFAULT_STATE,
     DEFAULT_STRATA_FEES,
     DEFAULT_WEEKLY_RENT,
 } from "../defaults";
@@ -128,5 +129,6 @@ export function calculatePropertyData(
         stampDuty,
         expenses,
         projections,
+        state: inputData.state ?? DEFAULT_STATE,
     };
 }
