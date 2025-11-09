@@ -15,13 +15,17 @@ This document outlines all calculation formulas used in the HomeLens property ca
 - **Meaningful calculations:** Only complex logic or formulas requiring documentation are extracted
 - **Type safety:** All calculations use TypeScript for compile-time validation
 - **Single source of truth:** Values calculated once and stored in Projection objects, not recalculated repeatedly
+- **Investment vs Owner-Occupied:** Tax benefits only apply to investment properties
 
 ### Important Constants
-```typescript
+```
 DEFAULT_VACANCY_RATE = 0.03              // 3% annual vacancy (≈2 weeks)
 WEEKS_PER_YEAR_AFTER_VACANCY = 50        // 52 - 2 weeks vacancy
 DEFAULT_DEPRECIATION_RATE = 0.025        // 2.5% annual depreciation
 DEFAULT_TAX_RATE = 0.37                  // 37% marginal tax rate
+DEFAULT_STATE = 'NSW'                    // Default Australian state for fees
+MONTHS_PER_YEAR = 12
+QUARTERS_PER_YEAR = 4
 ```
 
 ### Rental Income Convention
@@ -30,6 +34,15 @@ All rental income calculations use `WEEKS_PER_YEAR_AFTER_VACANCY` (50 weeks) to 
 Annual Rental Income = Weekly Rent × WEEKS_PER_YEAR_AFTER_VACANCY (50 weeks)
 ```
 **Important:** There is no separate "vacancy cost" deduction. The vacancy is already built into the rental income by using 50 weeks instead of 52 weeks.
+
+### State-Based Government Fees
+Government charges (mortgage registration and transfer fees) vary by Australian state and are automatically calculated based on the selected state. These fees are added to one-time expenses but are NOT user-editable.
+
+```
+Government Fees = Registration Fee + Transfer Fee (based on state)
+```
+
+Default state is NSW if not specified.
 
 ---
 
@@ -99,7 +112,9 @@ Annual Principal = Sum of all principal payments in the year
 
 ---
 
-## Tax Calculations (Investment Properties)
+## Tax Calculations (Investment Properties Only)
+
+**IMPORTANT:** Tax deductions and returns are ONLY available for investment properties. Owner-occupied properties receive NO tax benefits.
 
 ### Depreciation
 ```
@@ -107,7 +122,7 @@ Annual Depreciation = Property Value × 2.5%
 ```
 *Standard depreciation rate for building (40-year life)*
 
-### Taxable Cost
+### Taxable Cost (Investment Properties)
 ```
 Taxable Cost = Annual Interest
              + One-Time Expenses (First year only)
@@ -119,110 +134,199 @@ Taxable Cost = Annual Interest
 
 **Note:** Vacancy is already accounted for in rental income (50 weeks vs 52), so no separate vacancy cost deduction.
 
-### Tax Return
+### Tax Return (Investment Properties)
 ```
-If Taxable Cost > 0 (negative gearing):
+If isInvestment = false (owner-occupied):
+  Tax Return = 0 (No tax benefits)
+
+If isInvestment = true AND Taxable Cost > 0 (negative gearing):
   Tax Return = Taxable Cost × 37%
 Else:
   Tax Return = 0
 ```
-*Using 37% marginal tax rate*
+*Using 37% marginal tax rate for investment properties only*
+
+---
+
+## Expense Structure
+
+### New Expense Model
+Expenses are separated into two categories:
+
+**One-Time Expenses:**
+- User-editable total (solicitor, additional costs, etc.)
+- Government fees (mortgage registration + transfer) added automatically based on state
+- Only paid in Year 0
+
+**Ongoing Annual Expenses:**
+- Council rates
+- Water (excluded for land)
+- Land tax
+- Insurance (excluded for land)
+- Property manager (investment properties only, excluded for land)
+- Maintenance
+
+```
+One-Time Total = User's One-Time Total + Government Fees (by state)
+Ongoing Total = Sum of visible ongoing expenses (based on property type)
+```
+
+### Visibility Rules
+- **Water & Insurance:** Hidden for land properties
+- **Property Manager:** Only shown for investment properties (not land)
+- **Government Fees:** Automatically calculated, not user-editable
 
 ---
 
 ## Cash Flow Calculations
 
-### Expense Separation
-Expenses are separated into two categories for accurate multi-year projections:
-
-**One-Time Expenses** (added once):
-- Mortgage registration, transfer fee, solicitor fees, additional one-time costs
-
-**Ongoing Expenses** (annual, recurring):
-- Council rates, land tax, maintenance
-- Water and insurance (excluded for land properties)
-- Property manager (investment properties only)
-
 ### Net Cash Flow (Annual)
 ```
-Net Cash Flow = Rental Income (vacancy-adjusted)
-              + Tax Return
-              - Annual Mortgage
-              - Annual Strata Fees
-              - Ongoing Expenses
-              - One-Time Expenses (First year only)
+For Investment Properties:
+  Net Cash Flow = Rental Income (50 weeks)
+                + Tax Return
+                - Annual Mortgage
+                - Annual Strata Fees
+                - Ongoing Expenses
+                - One-Time Expenses (Year 0 only)
+
+For Owner-Occupied Properties:
+  Net Cash Flow = 0 (no rental income)
+                + 0 (no tax return)
+                - Annual Mortgage
+                - Annual Strata Fees
+                - Ongoing Expenses
+                - One-Time Expenses (Year 0 only)
 ```
-**Note:** Rental income already accounts for vacancy by using 50 weeks instead of 52. One-time expenses are included only in Year 0's cash flow.
+**Note:** 
+- Rental income already accounts for vacancy (50 weeks instead of 52)
+- One-time expenses only affect Year 0's cash flow
+- Tax returns only available for investment properties
 
 ### Annual Conversions
 ```
 Annual Rental Income = Weekly Rent × WEEKS_PER_YEAR_AFTER_VACANCY (50 weeks)
+Annual Rental Growth = Rental Growth ($/week) × WEEKS_PER_YEAR_AFTER_VACANCY (50 weeks)
 Annual Strata Fees = Quarterly Strata × QUARTERS_PER_YEAR (4)
 Annual Mortgage = Monthly Mortgage × MONTHS_PER_YEAR (12)
 ```
 
-### Total Spent (Year 1)
+### Total Spent (Cumulative)
 ```
-Total Spent = Deposit
-            + Stamp Duty
-            + LMI
-            + One-Time Expenses
-            + Ongoing Expenses
-            + Annual Mortgage
-            + Annual Strata Fees
-```
-*Note: No separate vacancy cost since rental income is already vacancy-adjusted (50 weeks).*
+Year 0:
+  Total Spent = Deposit
+              + Stamp Duty
+              + LMI
+              + One-Time Expenses (including government fees)
+              + Annual Mortgage
+              + Annual Strata Fees
+              + Ongoing Expenses
 
-### Total Returns (Year 1)
+Year N (N > 0):
+  Total Spent = Previous Total Spent
+              + Annual Mortgage
+              + Annual Strata Fees
+              + Ongoing Expenses
 ```
-Total Returns = Annual Rental Income
-              + Tax Return
-              + Capital Growth Amount
+
+### Total Returns (Cumulative)
+```
+For Investment Properties:
+  Total Returns = Cumulative Rental Income
+                + Cumulative Tax Returns
+                + Capital Growth Amount
+
+For Owner-Occupied Properties:
+  Total Returns = 0 (no rental income)
+                + 0 (no tax returns)
+                + Capital Growth Amount
 ```
 
 ---
 
-## Projection Calculations
+## Projection Calculations (5-Year Outlook)
 
 ### Multi-Year Projections
 
-**Property Value Growth:**
-```
-Year N Value = Previous Year Value × (1 + Capital Growth Rate / 100)
-```
+Projections are calculated year-by-year with compounding effects.
 
-**Rental Income Growth:**
+**Property Value Growth (All Properties):**
+```
+Year N Property Value = Previous Year Value × (1 + Capital Growth Rate / 100)
+```
+*Applied to all properties regardless of investment status*
+
+**Rental Income Growth (Investment Only):**
 ```
 Rental Growth = Dollar amount per week (e.g., $30/week)
-Annual Growth = Rental Growth × WEEKS_PER_YEAR_AFTER_VACANCY (50 weeks)
+Annual Rental Growth = Rental Growth × WEEKS_PER_YEAR_AFTER_VACANCY (50 weeks)
 
-Year N Rental = Year (N-1) Rental + Annual Growth
+Year 0 Rental = Weekly Rent × 50 weeks
+Year N Rental (N > 0) = Year (N-1) Rental + Annual Rental Growth
 ```
-*Note: Rental growth is specified as a dollar amount per week, not a percentage. Uses vacancy-adjusted weeks.*
+*Note: Rental growth is specified as a dollar amount per week, not a percentage. Uses vacancy-adjusted weeks (50).*
 
-**Tax Return Per Year:**
+**Loan Breakdown Per Year (All Properties):**
 ```
-Year N Tax Return = calculateTaxReturn(Taxable Cost)
+For Principal & Interest Loans:
+  Uses amortization schedule to calculate exact principal and interest for each year
+  Principal increases, Interest decreases over time
 
-Where Taxable Cost = Annual Interest
-                   + One-Time Expenses (First year only)
-                   + Ongoing Annual Expenses
-                   + Annual Strata
-                   + Depreciation
-                   - Rental Income (with growth)
+For Interest-Only Loans:
+  Principal = 0 (no principal paid)
+  Interest = Loan Amount × Interest Rate (constant each year)
 ```
-*Tax return recalculated each year as rental income and interest change.*
+
+**Tax Return Per Year (Investment Only):**
+```
+If isInvestment = false:
+  Tax Return = 0
+
+If isInvestment = true:
+  Taxable Cost = Annual Interest
+               + One-Time Expenses (Year 0 only)
+               + Ongoing Annual Expenses
+               + Annual Strata
+               + Depreciation
+               - Rental Income (with growth)
+  
+  Tax Return = calculateTaxReturn(Taxable Cost)
+```
+*Tax return recalculated each year as rental income and interest change. Only available for investment properties.*
 
 **Net Cash Flow Per Year:**
 ```
-Year N Net Cash Flow = Year N Rental Income
-                     + Year N Tax Return
-                     - Annual Mortgage
-                     - Annual Strata
-                     - Ongoing Expenses
-                     - One-Time Expenses (Year 0 only)
+For Investment Properties:
+  Year N Net Cash Flow = Year N Rental Income
+                       + Year N Tax Return
+                       - Annual Mortgage
+                       - Annual Strata
+                       - Ongoing Expenses
+                       - One-Time Expenses (Year 0 only)
+
+For Owner-Occupied Properties:
+  Year N Net Cash Flow = 0 (no rental)
+                       + 0 (no tax return)
+                       - Annual Mortgage
+                       - Annual Strata
+                       - Ongoing Expenses
+                       - One-Time Expenses (Year 0 only)
 ```
-*Note: Rental income is vacancy-adjusted (50 weeks), no separate vacancy deduction.*
+*Note: One-time expenses (including government fees) only affect Year 0. Rental income is vacancy-adjusted (50 weeks).*
+
+**Financial Metrics Per Year:**
+```
+Equity = Deposit + Cumulative Principal Paid
+
+Total Spent = Upfront Costs (Year 0)
+            + Recurring Costs × Number of Years
+
+Returns = Cumulative Rental Income
+        + Cumulative Tax Returns
+        + Capital Growth (Current Value - Purchase Price)
+
+ROI = (Returns / Total Spent) × 100
+```
 
 **Interest Paid Per Year:**
 

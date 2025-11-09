@@ -59,6 +59,7 @@ export function calculateMultiYearProjections(params: {
     };
     stampDuty?: number;
     lmi?: number;
+    isInvestment?: boolean; // Whether property is investment or owner-occupied
 }): Projection[] {
     const {
         startYear = new Date().getFullYear(),
@@ -73,6 +74,7 @@ export function calculateMultiYearProjections(params: {
         expenses,
         stampDuty = 0,
         lmi = 0,
+        isInvestment = false,
     } = params;
 
     const projections: Projection[] = [];
@@ -91,13 +93,16 @@ export function calculateMultiYearProjections(params: {
     const strataAnnual = strataQuarterly * QUARTERS_PER_YEAR;
 
     // Calculate initial annual rental income (50 weeks to account for 2-week vacancy)
-    const annualRentalIncomeInitial = Math.round(
-        weeklyRent * WEEKS_PER_YEAR_AFTER_VACANCY,
-    );
+    // Only for investment properties - owner-occupied has no rental income
+    const annualRentalIncomeInitial = isInvestment
+        ? Math.round(weeklyRent * WEEKS_PER_YEAR_AFTER_VACANCY)
+        : 0;
 
     // Calculate annual rental growth amount ($/week growth × 50 weeks)
-    const annualRentalGrowth =
-        rentalGrowthPerWeek * WEEKS_PER_YEAR_AFTER_VACANCY;
+    // Only for investment properties - owner-occupied has no rental growth
+    const annualRentalGrowth = isInvestment
+        ? rentalGrowthPerWeek * WEEKS_PER_YEAR_AFTER_VACANCY
+        : 0;
 
     // ===================================================================
     // STEP 2: Calculate fixed costs
@@ -122,13 +127,13 @@ export function calculateMultiYearProjections(params: {
     // Track property value as it grows year-over-year
     let currentPropertyValue = propertyValue;
 
-    // Track rental income as it grows year-over-year
+    // Track rental income as it grows year-over-year (0 for owner-occupied)
     let currentAnnualRent = annualRentalIncomeInitial;
 
-    // Track total rental income received to date
+    // Track total rental income received to date (0 for owner-occupied)
     let cumulativeRentalIncome = 0;
 
-    // Track total tax returns received to date
+    // Track total tax returns received to date (0 for owner-occupied)
     let cumulativeTaxReturns = 0;
 
     // ===================================================================
@@ -146,7 +151,8 @@ export function calculateMultiYearProjections(params: {
 
         // --- Rental Income Growth ---
         // Apply rental growth from Year 1 onwards (Year 0 uses initial rent)
-        if (yearIndex > 0) {
+        // Only for investment properties - owner-occupied stays at 0
+        if (isInvestment && yearIndex > 0) {
             currentAnnualRent = Math.round(
                 currentAnnualRent + annualRentalGrowth,
             );
@@ -169,20 +175,25 @@ export function calculateMultiYearProjections(params: {
         cumulativePrincipalPaid += principal;
 
         // --- Tax Calculations ---
-        // Calculate taxable cost (negative gearing calculation)
-        // Formula: Interest + Expenses + Strata + Depreciation - Rental Income
-        // If positive, investor gets tax return at 37% marginal rate
-        // Note: One-time expenses only included in Year 0
-        const taxableCost =
-            Math.round(interest) +
-            (yearIndex === 0 ? expenses.oneTimeTotal : 0) +
-            expenses.ongoingAnnualTotal +
-            strataAnnual +
-            depreciation -
-            currentAnnualRent;
+        // Only for investment properties (no tax deductions for owner-occupied)
+        let currentTaxReturn = 0;
 
-        // Calculate tax return (37% of taxable cost if negative gearing)
-        const currentTaxReturn = calculateTaxReturn(taxableCost);
+        if (isInvestment) {
+            // Calculate taxable cost (negative gearing calculation)
+            // Formula: Interest + Expenses + Strata + Depreciation - Rental Income
+            // If positive, investor gets tax return at 37% marginal rate
+            // Note: One-time expenses only included in Year 0
+            const taxableCost =
+                Math.round(interest) +
+                (yearIndex === 0 ? expenses.oneTimeTotal : 0) +
+                expenses.ongoingAnnualTotal +
+                strataAnnual +
+                depreciation -
+                currentAnnualRent;
+
+            // Calculate tax return (37% of taxable cost if negative gearing)
+            currentTaxReturn = calculateTaxReturn(taxableCost);
+        }
 
         // --- Cumulative Totals ---
         // Add this year's income to running totals

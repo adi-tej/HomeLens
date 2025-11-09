@@ -65,7 +65,10 @@ export function calculatePropertyData(
     );
 
     // === Rental Income ===
-    const weeklyRent = inputData.weeklyRent ?? DEFAULT_WEEKLY_RENT;
+    // Only investment properties generate rental income
+    const weeklyRent = isInvestment
+        ? (inputData.weeklyRent ?? DEFAULT_WEEKLY_RENT)
+        : 0;
 
     // === Strata Fees ===
     const strataQuarterly = inputData.strataFees ?? DEFAULT_STRATA_FEES;
@@ -87,7 +90,10 @@ export function calculatePropertyData(
 
     // === Multi-Year Projections (5 years) ===
     const capitalGrowthRate = inputData.capitalGrowth ?? DEFAULT_CAPITAL_GROWTH;
-    const rentalGrowthPerWeek = inputData.rentalGrowth ?? DEFAULT_RENTAL_GROWTH;
+    // Only investment properties have rental growth
+    const rentalGrowthPerWeek = isInvestment
+        ? (inputData.rentalGrowth ?? DEFAULT_RENTAL_GROWTH)
+        : 0;
 
     const projections = calculateMultiYearProjections({
         startYear: new Date().getFullYear(),
@@ -111,6 +117,7 @@ export function calculatePropertyData(
         },
         stampDuty,
         lmi: loan.lmi ?? 0,
+        isInvestment, // Pass investment status for tax calculations
     });
 
     // === Return Complete Property Data ===
@@ -122,8 +129,8 @@ export function calculatePropertyData(
         propertyType: inputData.propertyType ?? DEFAULT_PROPERTY_TYPE,
         isBrandNew: inputData.isBrandNew ?? false,
         loan,
-        weeklyRent: weeklyRent,
-        rentalGrowth: rentalGrowthPerWeek,
+        weeklyRent, // 0 for owner-occupied, actual rent for investment
+        rentalGrowth: rentalGrowthPerWeek, // 0 for owner-occupied, growth for investment
         strataFees: inputData.strataFees ?? DEFAULT_STRATA_FEES,
         capitalGrowth: capitalGrowthRate,
         stampDuty,
