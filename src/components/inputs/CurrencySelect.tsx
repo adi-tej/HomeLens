@@ -28,9 +28,12 @@ export function CurrencySelect({
     );
     const theme = useTheme();
 
+    // Update text when value changes externally, but only if not focused
     useEffect(() => {
-        setText(value != null ? formatCurrency(value) : "");
-    }, [value]);
+        if (!focused) {
+            setText(value != null ? formatCurrency(value) : "");
+        }
+    }, [value, focused]);
 
     const options: Option[] = useMemo(() => {
         const list = (presets ?? DEFAULT_PRESETS).map((n) => ({
@@ -41,13 +44,36 @@ export function CurrencySelect({
     }, [presets]);
 
     const handleTextChange = (t: string) => {
+        setText(t);
         const parsed = parseNumber(t);
+        if (parsed !== undefined) {
+            onChange(parsed);
+        } else if (t === "") {
+            onChange(undefined);
+        }
+    };
+
+    const handleFocus = () => {
+        setFocused(true);
+        // Remove formatting when user starts editing
+        if (value != null) {
+            setText(value.toString());
+        }
+    };
+
+    const handleBlur = () => {
+        setFocused(false);
+        // Format the value on blur
+        const parsed = parseNumber(text);
         if (parsed !== undefined) {
             setText(formatCurrency(parsed));
             onChange(parsed);
+        } else if (text === "") {
+            setText("");
+            onChange(undefined);
         } else {
-            setText(t);
-            if (t === "") onChange(undefined);
+            // Invalid input, revert to last valid value
+            setText(value != null ? formatCurrency(value) : "");
         }
     };
 
@@ -69,8 +95,8 @@ export function CurrencySelect({
                 placeholder={label}
                 value={text}
                 onChangeText={handleTextChange}
-                onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
                 keyboardType={Platform.select({
                     ios: "number-pad",
                     android: "numeric",

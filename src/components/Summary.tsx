@@ -4,7 +4,7 @@ import type { SummaryCardProps } from "./cards/SummaryCard";
 import SummaryCard from "./cards/SummaryCard";
 import type { PropertyData } from "../types";
 import { formatCurrency } from "../utils/parser";
-import { QUARTERS_PER_YEAR } from "../utils/calculations";
+import { getGovtFee, QUARTERS_PER_YEAR } from "../utils/defaults";
 
 /**
  * Props for the Summary component
@@ -145,7 +145,9 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                         key: "expenses",
                         label: "Expenses",
                         value: formatCurrency(
-                            expenses.oneTimeTotal + expenses.ongoingTotal,
+                            expenses.oneTimeTotal +
+                                expenses.ongoingTotal +
+                                getGovtFee(data.state),
                         ),
                     },
                     {

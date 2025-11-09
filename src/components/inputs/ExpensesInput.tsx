@@ -27,7 +27,7 @@ export function ExpensesInput({
     const theme = useTheme();
     const [modalVisible, setModalVisible] = useState(false);
     const [focused, setFocused] = useState(false);
-    const [editingText, setEditingText] = useState("");
+    const [text, setText] = useState("");
     const [config, setConfig] = useState<OngoingExpenses>(value.ongoing);
 
     // Track previous isLand/isInvestment to detect changes
@@ -38,6 +38,59 @@ export function ExpensesInput({
 
     // Sync config when value.ongoing changes externally
     useEffect(() => setConfig(value.ongoing), [value.ongoing]);
+
+    // Sync text display with ongoingTotal, but only when not focused
+    useEffect(() => {
+        if (!focused) {
+            setText(formatCurrency(value.ongoingTotal));
+        }
+    }, [value.ongoingTotal, focused]);
+
+    const handleTextChange = (input: string) => {
+        setText(input);
+        const parsed = parseNumber(input);
+        if (parsed !== undefined) {
+            onChange({
+                ...value,
+                ongoingTotal: parsed,
+            } as Expenses);
+        } else if (input === "") {
+            onChange({
+                ...value,
+                ongoingTotal: 0,
+            } as Expenses);
+        }
+    };
+
+    const handleFocus = () => {
+        setFocused(true);
+        // Remove formatting when user starts editing
+        if (value.ongoingTotal != null) {
+            setText(value.ongoingTotal.toString());
+        }
+    };
+
+    const handleBlur = () => {
+        setFocused(false);
+        // Format the value on blur
+        const parsed = parseNumber(text);
+        if (parsed !== undefined) {
+            setText(formatCurrency(parsed));
+            onChange({
+                ...value,
+                ongoingTotal: parsed,
+            } as Expenses);
+        } else if (text === "") {
+            setText(formatCurrency(0));
+            onChange({
+                ...value,
+                ongoingTotal: 0,
+            } as Expenses);
+        } else {
+            // Invalid input, revert to last valid value
+            setText(formatCurrency(value.ongoingTotal));
+        }
+    };
 
     // Apply dynamic defaults when isLand or isInvestment changes
     useEffect(() => {
@@ -108,27 +161,6 @@ export function ExpensesInput({
         }
     }, [isLand, isInvestment]);
 
-    const handleFocus = () => {
-        setFocused(true);
-        setEditingText(value?.ongoingTotal ? String(value.ongoingTotal) : "");
-    };
-
-    const handleBlur = () => {
-        const parsed = parseNumber(editingText);
-        const newTotal = parsed ?? 0;
-
-        // Direct input edit: overwrite ongoingTotal, ignore ongoing object values
-        const expenses: Expenses = {
-            ...value,
-            ongoing: config,
-            ongoingTotal: newTotal,
-        } as Expenses;
-
-        setFocused(false);
-        setEditingText("");
-        onChange(expenses);
-    };
-
     const handleSave = (ongoing: OngoingExpenses) => {
         // Form save: calculate ongoingTotal as sum of ongoing object values
         const ongoingTotal = calculateOngoingExpenses(ongoing);
@@ -139,17 +171,9 @@ export function ExpensesInput({
         } as Expenses;
         setConfig(ongoing);
         onChange(expenses);
-        closeModal();
     };
 
     const isActive = modalVisible || focused;
-
-    // Display value: raw text while editing, formatted currency otherwise
-    const displayValue = focused
-        ? editingText
-        : value?.ongoingTotal != null
-          ? formatCurrency(value.ongoingTotal)
-          : formatCurrency(calculateOngoingExpenses(config));
 
     return (
         <>
@@ -157,8 +181,8 @@ export function ExpensesInput({
                 mode="outlined"
                 label={label}
                 placeholder={label}
-                value={displayValue}
-                onChangeText={setEditingText}
+                value={text}
+                onChangeText={handleTextChange}
                 onFocus={handleFocus}
                 onBlur={handleBlur}
                 keyboardType={Platform.select({

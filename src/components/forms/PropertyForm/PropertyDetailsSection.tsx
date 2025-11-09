@@ -91,15 +91,15 @@ export default function PropertyDetailsSection({
                 <View style={styles.flexInput}>
                     <CurrencySelect
                         label="One-time expenses"
-                        value={data.expenses?.oneTimeTotal}
-                        onChange={(v) =>
+                        value={data.expenses.oneTimeTotal}
+                        onChange={(v) => {
                             onUpdate({
                                 expenses: {
                                     ...data.expenses,
                                     oneTimeTotal: v || 0,
                                 },
-                            })
-                        }
+                            });
+                        }}
                         allowPresets={false}
                     />
                 </View>
@@ -109,7 +109,9 @@ export default function PropertyDetailsSection({
                         label="Ongoing"
                         value={data.expenses}
                         onChange={(expenses) => {
-                            onUpdate({ expenses });
+                            if (expenses) {
+                                onUpdate({ expenses });
+                            }
                         }}
                         isLand={isLand}
                         isInvestment={isInvestment}
