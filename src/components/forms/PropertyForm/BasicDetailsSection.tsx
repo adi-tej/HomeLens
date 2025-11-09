@@ -1,6 +1,12 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { CheckBox, CurrencySelect, DepositInput, Select } from "../../inputs";
+import {
+    CheckBox,
+    CurrencySelect,
+    DepositInput,
+    SegmentedToggle,
+    Select,
+} from "../../inputs";
 import type {
     LoanDetails,
     PropertyData,
@@ -37,7 +43,7 @@ export default function BasicDetailsSection({
                             isLivingHere: true,
                             loan: {
                                 ...loan,
-                                isOwnerOccupied: true,
+                                isInterestOnly: false,
                             },
                         }),
                     });
@@ -45,22 +51,19 @@ export default function BasicDetailsSection({
             />
 
             {/* Occupancy */}
-            <CheckBox
-                label="I'm living here"
-                checked={data.isLivingHere}
-                onToggle={() => {
-                    const newIsLivingHere = !data.isLivingHere;
+            <SegmentedToggle
+                value={data.isLivingHere}
+                onToggle={(value) =>
                     onUpdate({
-                        isLivingHere: newIsLivingHere,
+                        isLivingHere: value,
                         loan: {
                             ...loan,
-                            isOwnerOccupied: newIsLivingHere,
+                            isInterestOnly: value ? false : loan.isInterestOnly,
                         },
-                        // pass through current expenses so calculateMortgageData can recompute visibility-based total
-                        expenses: data.expenses,
-                    });
-                }}
-                disabled={data.firstHomeBuyer}
+                    })
+                }
+                label="Occupancy"
+                options={["Living In", "Investment"]}
             />
 
             {/* Property Value and State in same row */}

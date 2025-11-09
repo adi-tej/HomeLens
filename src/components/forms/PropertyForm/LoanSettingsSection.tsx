@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Text, TextInput, useTheme } from "react-native-paper";
-import { CheckBox, PercentageInput } from "../../inputs";
+import { CheckBox, PercentageInput, SegmentedToggle } from "../../inputs";
 import type { LoanDetails, PropertyData } from "../../../types";
 import { spacing } from "../../../theme/spacing";
 import {
@@ -42,33 +42,17 @@ export default function LoanSettingsSection({
                 Loan Settings
             </Text>
 
-            <View style={styles.rowInputs}>
-                <CheckBox
-                    label="Principle + Interest"
-                    checked={!loan.isInterestOnly}
-                    onToggle={() => {
-                        onUpdate({
-                            loan: {
-                                ...loan,
-                                isInterestOnly: !loan.isInterestOnly,
-                            },
-                        });
-                    }}
-                />
-                <View style={styles.gap} />
-                <CheckBox
-                    label="Interest only"
-                    checked={loan.isInterestOnly}
-                    onToggle={() => {
-                        onUpdate({
-                            loan: {
-                                ...loan,
-                                isInterestOnly: !loan.isInterestOnly,
-                            },
-                        });
-                    }}
-                />
-            </View>
+            <SegmentedToggle
+                value={!loan.isInterestOnly}
+                onToggle={(value) =>
+                    onUpdate({
+                        loan: { ...loan, isInterestOnly: !value },
+                    })
+                }
+                label="Repayment type"
+                options={["Principal & Interest", "Interest Only"]}
+                disabled={data.isLivingHere}
+            />
 
             {/* Interest rate, Loan term, and LVR in same row */}
             <View style={styles.rowInputs}>
