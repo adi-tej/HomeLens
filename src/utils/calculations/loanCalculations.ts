@@ -199,7 +199,6 @@ export function calculateLoanDetails(
     const amount = loanWithoutLMI + (Number.isFinite(lmi) ? lmi : 0);
 
     // === Loan Details ===
-    const isOwnerOccupied = inputLoan.isOwnerOccupied ?? true;
     const isInterestOnly = inputLoan.isInterestOnly ?? false;
     const interest = inputLoan.interest ?? DEFAULT_INTEREST_RATE;
     const term = inputLoan.term ?? DEFAULT_LOAN_TERM;
@@ -213,7 +212,6 @@ export function calculateLoanDetails(
     );
 
     return {
-        isOwnerOccupied,
         isInterestOnly,
         term,
         interest,

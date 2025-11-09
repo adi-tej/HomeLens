@@ -29,7 +29,6 @@ export interface PropertyData {
     state?: StateCode; // Australian state for state-based fees (defaults to NSW)
 }
 export type LoanDetails = {
-    isOwnerOccupied: boolean;
     isInterestOnly: boolean;
     term: number;
     interest: number;

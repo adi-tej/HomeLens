@@ -42,31 +42,33 @@ export default function LoanSettingsSection({
                 Loan Settings
             </Text>
 
-            <CheckBox
-                label="Owner-occupied loan"
-                checked={loan.isOwnerOccupied}
-                onToggle={() => {
-                    onUpdate({
-                        loan: {
-                            ...loan,
-                            isOwnerOccupied: !loan.isOwnerOccupied,
-                        },
-                    });
-                }}
-            />
-
-            <CheckBox
-                label="Interest only"
-                checked={loan.isInterestOnly}
-                onToggle={() => {
-                    onUpdate({
-                        loan: {
-                            ...loan,
-                            isInterestOnly: !loan.isInterestOnly,
-                        },
-                    });
-                }}
-            />
+            <View style={styles.rowInputs}>
+                <CheckBox
+                    label="Principle + Interest"
+                    checked={!loan.isInterestOnly}
+                    onToggle={() => {
+                        onUpdate({
+                            loan: {
+                                ...loan,
+                                isInterestOnly: !loan.isInterestOnly,
+                            },
+                        });
+                    }}
+                />
+                <View style={styles.gap} />
+                <CheckBox
+                    label="Interest only"
+                    checked={loan.isInterestOnly}
+                    onToggle={() => {
+                        onUpdate({
+                            loan: {
+                                ...loan,
+                                isInterestOnly: !loan.isInterestOnly,
+                            },
+                        });
+                    }}
+                />
+            </View>
 
             {/* Interest rate, Loan term, and LVR in same row */}
             <View style={styles.rowInputs}>

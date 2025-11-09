@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useMemo, useRef } from "react";
 import { View } from "react-native";
-import type { SummaryCardProps } from "./cards/SummaryCard";
+import type { SummaryCardProps, SummaryCardRow } from "./cards/SummaryCard";
 import SummaryCard from "./cards/SummaryCard";
 import type { PropertyData } from "../types";
 import { formatCurrency } from "../utils/parser";
@@ -32,6 +32,7 @@ export type SummaryProps = {
 function Summary({ data, scrollViewRef }: SummaryProps) {
     // Destructure with safe defaults - all values pre-calculated in useMortgageCalculations
     const {
+        propertyType,
         stampDuty = 0,
         strataFees = 0,
         expenses,
@@ -90,8 +91,49 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
     );
 
     // Memoize cards configuration to prevent recreation on every render
-    const cards = useMemo<SummaryCardProps[]>(
-        () => [
+    const cards = useMemo<SummaryCardProps[]>(() => {
+        const annualRows: SummaryCardRow[] = [
+            {
+                key: "rental",
+                label: "Rental income",
+                value: formatCurrency(rentalIncome),
+            },
+        ];
+
+        // Only show strata levy for townhouse or apartment properties
+        if (propertyType === "townhouse" || propertyType === "apartment") {
+            annualRows.push({
+                key: "strata",
+                label: "Strata Levy",
+                value: formatCurrency(strataFees * QUARTERS_PER_YEAR),
+            });
+        }
+
+        // Append the remaining annual cash flow rows
+        annualRows.push(
+            {
+                key: "expenses",
+                label: "Expenses",
+                value: formatCurrency(
+                    expenses.oneTimeTotal +
+                        expenses.ongoingTotal +
+                        getGovtFee(data.state),
+                ),
+            },
+            {
+                key: "tax-return",
+                label: "Tax return",
+                value: formatCurrency(taxReturn),
+            },
+            {
+                key: "net",
+                label: "Net Cash Flow",
+                value: formatCurrency(netCashFlow),
+                highlight: true,
+            },
+        );
+
+        return [
             {
                 title: "Loan Details",
                 icon: "home-city",
@@ -130,38 +172,7 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
             {
                 title: "Annual Cash Flow",
                 icon: "cash-multiple",
-                rows: [
-                    {
-                        key: "rental",
-                        label: "Rental income",
-                        value: formatCurrency(rentalIncome),
-                    },
-                    {
-                        key: "strata",
-                        label: "Strata Levy",
-                        value: formatCurrency(strataFees * QUARTERS_PER_YEAR),
-                    },
-                    {
-                        key: "expenses",
-                        label: "Expenses",
-                        value: formatCurrency(
-                            expenses.oneTimeTotal +
-                                expenses.ongoingTotal +
-                                getGovtFee(data.state),
-                        ),
-                    },
-                    {
-                        key: "tax-return",
-                        label: "Tax return",
-                        value: formatCurrency(taxReturn),
-                    },
-                    {
-                        key: "net",
-                        label: "Net Cash Flow",
-                        value: formatCurrency(netCashFlow),
-                        highlight: true,
-                    },
-                ],
+                rows: annualRows,
                 footnote:
                     "💡 Net expenditure after rental income and expenses.",
             },
@@ -199,26 +210,26 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                 footnote:
                     "💡 Projected returns at end of year based on assumptions.",
             },
-        ],
-        [
-            stampDuty,
-            lmi,
-            interest,
-            amount,
-            monthlyMortgage,
-            rentalIncome,
-            strataFees,
-            netCashFlow,
-            expenses.oneTimeTotal,
-            expenses.ongoingTotal,
-            taxReturn,
-            spent,
-            returns,
-            propertyValue,
-            equity,
-            roi,
-        ],
-    );
+        ];
+    }, [
+        stampDuty,
+        lmi,
+        interest,
+        amount,
+        monthlyMortgage,
+        rentalIncome,
+        strataFees,
+        netCashFlow,
+        expenses.oneTimeTotal,
+        expenses.ongoingTotal,
+        taxReturn,
+        spent,
+        returns,
+        propertyValue,
+        equity,
+        roi,
+        propertyType,
+    ]);
 
     return (
         <>

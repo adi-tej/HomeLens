@@ -179,7 +179,6 @@ export function getDefaultPropertyData(): PropertyData {
         stampDuty: 0,
         state: DEFAULT_STATE,
         loan: {
-            isOwnerOccupied: true,
             isInterestOnly: false,
             term: DEFAULT_LOAN_TERM,
             interest: DEFAULT_INTEREST_RATE,
