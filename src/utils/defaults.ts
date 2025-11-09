@@ -83,11 +83,6 @@ export const DEFAULT_PROPERTY_TYPE = "house" as const;
 export const DEPOSIT_PERCENTAGE_PRESETS = [5, 10, 15, 20] as const;
 
 /**
- * LVR (Loan to Value Ratio) presets (percentages)
- */
-export const LVR_PRESETS = [60, 70, 80, 85, 90, 95] as const;
-
-/**
  * Default tax bracket for investment property calculations
  * 0.3 = 30% marginal tax rate
  */
@@ -135,43 +130,6 @@ export const STATE_MORTGAGE_FEES: Record<
     NT: { registration: 176.0, transfer: 176.0 }, // additional titles ignored for now
     ACT: { registration: 178.0, transfer: 178.0 },
 };
-
-/**
- * Calculate the total expenses based on property type and investment status
- * This respects visibility rules:
- * - Water and Insurance are excluded for land
- * - Property Manager is only included for investment properties (not land)
- *
- * @param options - Configuration for expense calculation
- * @param options.isLand - Whether the property is land only
- * @param options.isInvestment - Whether this is an investment property
- * @returns Total annual expenses in dollars
- */
-export function getDefaultExpensesTotal(options?: {
-    isLand?: boolean;
-    isInvestment?: boolean;
-}): number {
-    const { isLand = false, isInvestment = false } = options || {};
-
-    // One-time expenses total
-    const oneTimeExpenses = DEFAULT_EXPENSES.oneTimeTotal;
-
-    // Ongoing expenses (conditional based on property type)
-    let ongoingExpenses =
-        DEFAULT_EXPENSES.ongoing.council +
-        DEFAULT_EXPENSES.ongoing.landTax +
-        DEFAULT_EXPENSES.ongoing.maintenance;
-
-    if (!isLand) {
-        ongoingExpenses +=
-            DEFAULT_EXPENSES.ongoing.water + DEFAULT_EXPENSES.ongoing.insurance;
-    }
-    if (isInvestment && !isLand) {
-        ongoingExpenses += DEFAULT_EXPENSES.ongoing.propertyManager;
-    }
-
-    return Math.round(oneTimeExpenses + ongoingExpenses);
-}
 
 /**
  * Get the appropriate interest rate based on loan type and repayment type

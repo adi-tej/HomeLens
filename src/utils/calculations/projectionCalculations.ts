@@ -19,20 +19,6 @@ export function calculatePropertyValueWithGrowth(
 }
 
 /**
- * Calculate capital growth amount
- *
- * @param currentValue - Current property value
- * @param futureValue - Future property value
- * @returns Capital growth amount
- */
-export function calculateCapitalGrowthAmount(
-    currentValue: number,
-    futureValue: number,
-): number {
-    return futureValue - currentValue;
-}
-
-/**
  * Calculate ROI (Return on Investment)
  *
  * @param returns - Total returns
@@ -41,34 +27,6 @@ export function calculateCapitalGrowthAmount(
  */
 export function calculateROI(returns: number, spent: number): number {
     return spent > 0 ? (returns / spent) * 100 : 0;
-}
-
-/**
- * Calculate equity (deposit + principal paid)
- *
- * @param deposit - Initial deposit
- * @param principalPaid - Principal paid off
- * @returns Total equity
- */
-export function calculateEquity(
-    deposit: number,
-    principalPaid: number,
-): number {
-    return deposit + principalPaid;
-}
-
-/**
- * Calculate remaining loan balance
- *
- * @param totalLoan - Total loan amount
- * @param principalPaid - Principal paid off
- * @returns Remaining loan balance
- */
-export function calculateRemainingLoan(
-    totalLoan: number,
-    principalPaid: number,
-): number {
-    return totalLoan - principalPaid;
 }
 
 /**

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { create } from "zustand";
 import { type PropertyData } from "../types";
 import { calculatePropertyData } from "../utils/calculations";
@@ -274,7 +275,15 @@ export function useComparisonState() {
 
 /**
  * Only subscribes to all scenarios list - for scenario manager
+ * Memoized to prevent infinite re-renders
  */
 export function useAllScenarios() {
-    return useScenarioStore((state) => state.getAllScenarios());
+    const scenarios = useScenarioStore((state) => state.scenarios);
+    return useMemo(
+        () =>
+            Array.from(scenarios.values()).sort(
+                (a, b) => a.createdAt - b.createdAt,
+            ),
+        [scenarios],
+    );
 }

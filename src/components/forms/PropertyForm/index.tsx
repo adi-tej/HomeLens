@@ -3,7 +3,10 @@ import { StyleSheet, View } from "react-native";
 import { Divider, Text, useTheme } from "react-native-paper";
 import type { PropertyData } from "../../../types";
 import { spacing } from "../../../theme/spacing";
-import { useScenarios } from "../../../state/useScenarioStore";
+import {
+    useCurrentScenario,
+    useScenarioActions,
+} from "../../../state/useScenarioStore";
 import BasicDetailsSection from "./BasicDetailsSection";
 import LoanSettingsSection from "./LoanSettingsSection";
 import PropertyDetailsSection from "./PropertyDetailsSection";
@@ -12,8 +15,9 @@ import ExpandToggle from "../../primitives/ExpandToggle";
 
 export default function PropertyForm() {
     const theme = useTheme();
-    const { currentScenario, currentScenarioId, updateScenarioData } =
-        useScenarios();
+    const { scenario: currentScenario, scenarioId: currentScenarioId } =
+        useCurrentScenario();
+    const { updateScenarioData } = useScenarioActions();
 
     const [showAdvanced, setShowAdvanced] = React.useState(false);
     const [isEditingLVR, setIsEditingLVR] = React.useState(false);
@@ -144,9 +148,3 @@ const styles = StyleSheet.create({
         marginTop: spacing.xs,
     },
 });
-
-// Named exports for sections (if needed elsewhere)
-export { default as BasicDetailsSection } from "./BasicDetailsSection";
-export { default as LoanSettingsSection } from "./LoanSettingsSection";
-export { default as PropertyDetailsSection } from "./PropertyDetailsSection";
-export { default as AssumptionsSection } from "./AssumptionsSection";

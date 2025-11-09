@@ -5,12 +5,13 @@ import ScreenContainer from "../components/primitives/ScreenContainer";
 import PropertyForm from "../components/forms/PropertyForm";
 import Summary from "../components/Summary";
 import { validatePropertyData } from "../utils/calculations";
-import { useScenarios } from "../state/useScenarioStore";
+import { useCurrentScenario } from "../state/useScenarioStore";
 import { spacing } from "../theme/spacing";
 
 export default function Calculator() {
     const theme = useTheme();
-    const { currentScenario, currentScenarioId } = useScenarios();
+    const { scenario: currentScenario, scenarioId: currentScenarioId } =
+        useCurrentScenario();
     const [touched] = useState(false);
     const scrollViewRef = useRef<any>(null);
 

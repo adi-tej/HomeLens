@@ -24,6 +24,10 @@ export function calculateExpenses(
     // Merge with defaults
     const expenses = { ...DEFAULT_EXPENSES, ...(rawExpenses || {}) };
 
+    // Calculate one-time total (user's base + government fees)
+    const govtFees = getGovtFee(state);
+    const oneTimeTotal = Math.round(expenses.oneTimeTotal + govtFees);
+
     // Calculate ongoing total based on visibility rules
     const ongoingTotal = calculateOngoingExpenses(
         expenses,
@@ -31,7 +35,7 @@ export function calculateExpenses(
         isInvestment,
     );
 
-    return { ...expenses, ongoingTotal };
+    return { ...expenses, oneTimeTotal, ongoingTotal };
 }
 
 /**

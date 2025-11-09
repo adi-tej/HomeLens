@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "react-native-paper";
 import { useDrawer } from "../hooks/useDrawer";
 import { useAppContext } from "../state/AppContext";
-import { useScenarios } from "../state/useScenarioStore";
+import { useComparisonState } from "../state/useScenarioStore";
 
 type Side = "left" | "right";
 
@@ -32,7 +32,7 @@ export default function Drawer({ side, children }: Props) {
     const { isDrawerOpen, isCompareScreenActive, setCompareScreenActive } =
         useAppContext();
     const { comparisonMode, setComparisonMode, clearSelectedScenarios } =
-        useScenarios();
+        useComparisonState();
     const insets = useSafeAreaInsets();
     const theme = useTheme();
     const isGestureActive = useSharedValue(false);

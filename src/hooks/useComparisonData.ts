@@ -1,5 +1,8 @@
 import { useMemo } from "react";
-import { useScenarios } from "../state/useScenarioStore";
+import {
+    useComparisonState,
+    useScenarioStore,
+} from "../state/useScenarioStore";
 import { formatCurrency } from "../utils/parser";
 
 export interface ComparisonRow {
@@ -11,7 +14,8 @@ export interface ComparisonRow {
 }
 
 export function useComparisonData() {
-    const { selectedScenarios, scenarios } = useScenarios();
+    const { selectedScenarios } = useComparisonState();
+    const scenarios = useScenarioStore((state) => state.scenarios);
 
     const selectedScenarioList = useMemo(
         () =>

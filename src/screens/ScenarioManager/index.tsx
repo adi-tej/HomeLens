@@ -4,7 +4,12 @@ import { Divider, IconButton, Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenContainer from "../../components/primitives/ScreenContainer";
 import { useAppContext } from "../../state/AppContext";
-import { useScenarios } from "../../state/useScenarioStore";
+import {
+    useAllScenarios,
+    useComparisonState,
+    useCurrentScenario,
+    useScenarioActions,
+} from "../../state/useScenarioStore";
 import Scenario from "../../components/Scenario";
 import ScenarioInput from "../../components/inputs/ScenarioInput";
 import CompareButton from "./CompareButton";
@@ -14,21 +19,21 @@ export default function ScenarioManager() {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
     const { setCompareScreenActive } = useAppContext();
+    const scenarios = useAllScenarios();
+    const { scenarioId: currentScenarioId } = useCurrentScenario();
     const {
-        getAllScenarios,
-        currentScenarioId,
         createScenario,
         setCurrentScenario,
         deleteScenario,
         updateScenario,
+    } = useScenarioActions();
+    const {
         comparisonMode,
         selectedScenarios,
         setComparisonMode,
         toggleScenarioSelection,
         clearSelectedScenarios,
-    } = useScenarios();
-
-    const scenarios = getAllScenarios();
+    } = useComparisonState();
     const [newScenarioName, setNewScenarioName] = useState("");
     const [isAddingNew, setIsAddingNew] = useState(false);
     const [editingScenarioId, setEditingScenarioId] = useState<string | null>(
@@ -145,7 +150,7 @@ export default function ScenarioManager() {
     }, [setCompareScreenActive]);
 
     const renderScenario = useCallback(
-        (scenario: ReturnType<typeof getAllScenarios>[number]) => {
+        (scenario: (typeof scenarios)[number]) => {
             const isEditing = editingScenarioId === scenario.id;
 
             if (isEditing) {
