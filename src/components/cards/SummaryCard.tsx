@@ -78,6 +78,7 @@ function SummaryCard({
     title,
     icon,
     rows,
+    footnote,
     defaultExpanded = false,
     onExpand,
 }: SummaryCardProps) {
@@ -245,6 +246,18 @@ function SummaryCard({
                         );
                     })}
                 </View>
+
+                {/* Footnote (optional) - shown inside the animated content area */}
+                {footnote ? (
+                    <Text
+                        style={[
+                            styles.footnote,
+                            { color: theme.colors.onSurfaceVariant },
+                        ]}
+                    >
+                        {footnote}
+                    </Text>
+                ) : null}
             </Animated.View>
         </View>
     );
@@ -309,5 +322,11 @@ const styles = StyleSheet.create({
         fontVariant: ["tabular-nums"],
         textAlign: "right",
         marginLeft: spacing.md,
+    },
+    footnote: {
+        fontSize: 12,
+        fontStyle: "italic",
+        marginTop: spacing.md,
+        paddingHorizontal: spacing.lg,
     },
 });

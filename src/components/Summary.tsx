@@ -45,6 +45,10 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
 
     // Loan-specific destructure (loan is always present)
     const { lmi = 0, amount = 0, monthlyMortgage = 0, interest = 0 } = loan;
+    // Human-friendly payment type for footnote
+    const loanPaymentType = loan.isInterestOnly
+        ? "interest-only"
+        : "principal & interest";
 
     // Projection-specific destructure (projection might be null if no projections calculated yet)
     const {
@@ -166,15 +170,14 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                         highlight: true,
                     },
                 ],
-                footnote:
-                    "💡 Loan amount includes stamp duty & LMI. Values are estimates.",
+                footnote: `💡 Payment type: ${loanPaymentType} — change under Advanced → Loan Settings.`,
             },
             {
                 title: "Annual Cash Flow",
                 icon: "cash-multiple",
                 rows: annualRows,
                 footnote:
-                    "💡 Net expenditure after rental income and expenses.",
+                    "💡 Edit rental income, strata and expenses under Advanced → Property Details.",
             },
             {
                 title: "Net Position By EOY",
@@ -208,7 +211,7 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                     },
                 ],
                 footnote:
-                    "💡 Projected returns at end of year based on assumptions.",
+                    "💡 Values are estimates — reconfigure them under Advanced → Assumptions.",
             },
         ];
     }, [
@@ -229,6 +232,7 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
         equity,
         roi,
         propertyType,
+        loanPaymentType,
     ]);
 
     return (
