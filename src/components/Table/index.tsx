@@ -5,10 +5,10 @@ import DataCell from "./DataCell";
 import HeaderCell from "./HeaderCell";
 import LabelCell from "./LabelCell";
 import Grid from "./Grid";
-import { TABLE_CONFIG } from "./TableConfig";
+import { getCellWidth, TABLE_CONFIG } from "./TableConfig";
 
-// Re-export TABLE_CONFIG for external consumers
-export { TABLE_CONFIG };
+// Re-export TABLE_CONFIG and getCellWidth for external consumers
+export { TABLE_CONFIG, getCellWidth };
 
 interface Column<T> {
     key: string;
@@ -30,6 +30,7 @@ interface TableProps<T> {
     data: T[];
     getRowHeight?: (row: Row<T>) => number;
     cornerCell?: React.ReactNode; // Optional custom corner cell content
+    cellWidth?: number; // Optional cell width override
 }
 
 /**
@@ -42,6 +43,7 @@ export default function Table<T>({
     data,
     getRowHeight,
     cornerCell,
+    cellWidth = TABLE_CONFIG.cellWidth,
 }: TableProps<T>) {
     const theme = useTheme();
 
@@ -51,8 +53,13 @@ export default function Table<T>({
             rows={rows}
             data={data}
             getRowHeight={getRowHeight}
+            cellWidth={cellWidth}
             renderHeaderCell={(column) => (
-                <HeaderCell name={column.label} theme={theme} />
+                <HeaderCell
+                    name={column.label}
+                    theme={theme}
+                    cellWidth={cellWidth}
+                />
             )}
             renderDataCell={(row, item) => {
                 // Section headers render empty cells
@@ -60,7 +67,7 @@ export default function Table<T>({
                     return (
                         <View
                             style={{
-                                width: TABLE_CONFIG.cellWidth,
+                                width: cellWidth,
                                 height: TABLE_CONFIG.headerHeight,
                             }}
                         />
@@ -71,6 +78,7 @@ export default function Table<T>({
                         value={row.accessor(item)}
                         highlight={row.highlight}
                         theme={theme}
+                        cellWidth={cellWidth}
                     />
                 );
             }}

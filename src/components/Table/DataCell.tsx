@@ -8,11 +8,17 @@ interface DataCellProps {
     value: string;
     highlight?: boolean;
     theme: any;
+    cellWidth?: number;
 }
 
-export default function DataCell({ value, highlight, theme }: DataCellProps) {
+export default function DataCell({
+    value,
+    highlight,
+    theme,
+    cellWidth = TABLE_CONFIG.cellWidth,
+}: DataCellProps) {
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { width: cellWidth }]}>
             <Text
                 numberOfLines={1}
                 ellipsizeMode="tail"
@@ -33,7 +39,6 @@ export default function DataCell({ value, highlight, theme }: DataCellProps) {
 
 const styles = StyleSheet.create({
     container: {
-        width: TABLE_CONFIG.cellWidth,
         height: TABLE_CONFIG.rowHeight,
         justifyContent: "center",
         alignItems: "center",

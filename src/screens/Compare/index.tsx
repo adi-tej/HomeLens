@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppContext } from "../../state/AppContext";
 import { spacing } from "../../theme/spacing";
 import { useComparisonData } from "../../hooks/useComparisonData";
-import Table, { TABLE_CONFIG } from "../../components/Table";
+import Table, { getCellWidth, TABLE_CONFIG } from "../../components/Table";
 import CompareHeader from "./CompareHeader";
 import EmptyState from "./EmptyState";
 
@@ -37,6 +37,9 @@ export default function Compare() {
             : TABLE_CONFIG.rowHeight;
     };
 
+    // Calculate cell width based on number of scenarios
+    const cellWidth = getCellWidth("compare", selectedScenarioList.length);
+
     return (
         <View
             style={[
@@ -62,6 +65,7 @@ export default function Compare() {
                     rows={comparisonRows}
                     data={selectedScenarioList}
                     getRowHeight={getRowHeight}
+                    cellWidth={cellWidth}
                 />
             )}
         </View>

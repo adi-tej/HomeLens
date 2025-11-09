@@ -40,6 +40,11 @@ export function useComparisonData() {
                 accessor: (s: any) => formatCurrency(s.data.propertyValue),
             },
             {
+                key: "state",
+                label: "State",
+                accessor: (s: any) => s.data.state,
+            },
+            {
                 key: "propertyType",
                 label: "Property Type",
                 accessor: (s: any) => {
@@ -89,25 +94,23 @@ export function useComparisonData() {
             {
                 key: "lmi",
                 label: "LMI",
-                accessor: (s: any) => formatCurrency(s.data.loan?.lmi || 0),
+                accessor: (s: any) => formatCurrency(s.data.loan.lmi),
             },
             {
                 key: "interestRate",
                 label: "Interest Rate",
-                accessor: (s: any) =>
-                    `${(s.data.loan?.loanInterest || 0).toFixed(2)}%`,
+                accessor: (s: any) => `${s.data.loan.interest.toFixed(2)}%`,
             },
             {
                 key: "totalLoan",
                 label: "Loan Amount",
-                accessor: (s: any) =>
-                    formatCurrency(s.data.loan?.totalLoan || 0),
+                accessor: (s: any) => formatCurrency(s.data.loan.amount),
             },
             {
                 key: "monthlyMortgage",
                 label: "Monthly Mortgage",
                 accessor: (s: any) =>
-                    formatCurrency(s.data.loan?.monthlyMortgage || 0),
+                    formatCurrency(s.data.loan.monthlyMortgage),
                 highlight: true,
             },
 
@@ -129,14 +132,17 @@ export function useComparisonData() {
             {
                 key: "strataFees",
                 label: "Strata Levy",
-                accessor: (s: any) =>
-                    formatCurrency((s.data.strataFees || 0) * 4),
+                accessor: (s: any) => formatCurrency(s.data.strataFees * 4),
             },
             {
                 key: "expenses",
                 label: "Expenses",
-                accessor: (s: any) =>
-                    formatCurrency(s.data.expenses?.total || 0),
+                accessor: (s: any) => {
+                    return formatCurrency(
+                        s.data.expenses.oneTimeTotal +
+                            s.data.expenses.ongoingTotal,
+                    );
+                },
             },
             {
                 key: "taxReturn",

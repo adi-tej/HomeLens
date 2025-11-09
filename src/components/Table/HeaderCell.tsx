@@ -7,11 +7,16 @@ import { TABLE_CONFIG } from "./TableConfig";
 interface HeaderCellProps {
     name: string;
     theme: any;
+    cellWidth?: number;
 }
 
-export default function HeaderCell({ name, theme }: HeaderCellProps) {
+export default function HeaderCell({
+    name,
+    theme,
+    cellWidth = TABLE_CONFIG.cellWidth,
+}: HeaderCellProps) {
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { width: cellWidth }]}>
             <Text
                 numberOfLines={2}
                 style={[styles.text, { color: theme.colors.primary }]}
@@ -24,7 +29,6 @@ export default function HeaderCell({ name, theme }: HeaderCellProps) {
 
 const styles = StyleSheet.create({
     container: {
-        width: TABLE_CONFIG.cellWidth,
         height: TABLE_CONFIG.headerHeight,
         justifyContent: "center",
         alignItems: "center",

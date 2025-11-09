@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { spacing } from "../theme/spacing";
 import { useInsightsData } from "../hooks/useInsightsData";
-import Table from "../components/Table";
+import Table, { getCellWidth } from "../components/Table";
 import type { Projection } from "../types";
 
 export default function Insights() {
@@ -65,6 +65,7 @@ export default function Insights() {
                 columns={columns}
                 rows={insightsRows}
                 data={projections}
+                cellWidth={getCellWidth("insights", projections.length)}
                 cornerCell={
                     <View style={styles.cornerCell}>
                         <Text

@@ -37,6 +37,7 @@ interface ProjectionTableProps<T> {
     ) => React.ReactNode;
     cornerIcon?: React.ReactNode;
     getRowHeight?: (row: Row<T>) => number; // Optional function to get variable row heights
+    cellWidth?: number; // Optional cell width override
 }
 
 /**
@@ -52,13 +53,14 @@ export default function Grid<T>({
     renderLabelCell,
     cornerIcon,
     getRowHeight,
+    cellWidth = TABLE_CONFIG.cellWidth,
 }: ProjectionTableProps<T>) {
     const theme = useTheme();
     const mainScrollRef = useRef<any>(null);
     const scrollY = useRef(new Animated.Value(0)).current;
     const scrollX = useRef(new Animated.Value(0)).current;
 
-    const contentWidth = columns.length * TABLE_CONFIG.cellWidth;
+    const contentWidth = columns.length * cellWidth;
 
     // Precompute row heights & offsets for stable layout
     const rowHeights = useMemo(
