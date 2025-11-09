@@ -1,5 +1,5 @@
 import { DEFAULT_LOAN_TERM, getDefaultInterestRate } from "../defaults";
-import { MONTHS_PER_YEAR } from "./cashFlowCalculations";
+import { MONTHS_PER_YEAR } from "./expensesCalculations";
 import type { LoanDetails } from "../../types";
 
 /**
