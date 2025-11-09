@@ -1,34 +1,22 @@
-import React from "react";
-import { Pressable, StyleSheet } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Animated, Pressable, StyleSheet } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { spacing } from "../../theme/spacing";
 
 interface ExpandToggleProps {
-    /** Label text to display */
     label: string;
-    /** Whether the section is expanded */
     isExpanded: boolean;
-    /** Callback when toggle is pressed */
     onToggle: () => void;
-    /** Optional icon name from MaterialCommunityIcons */
     icon?: string;
 }
 
 /**
- * ExpandToggle - A reusable toggle button for showing/hiding content
- *
- * Displays a small button with an icon and label that changes style when expanded.
- * Commonly used for advanced settings, collapsible sections, etc.
- *
- * @example
- * ```tsx
- * <ExpandToggle
- *   label="Advanced"
- *   isExpanded={showAdvanced}
- *   onToggle={() => setShowAdvanced(!showAdvanced)}
- *   icon="cog-outline"
- * />
- * ```
+ * ExpandToggle — Seamlessly integrated accordion header
+ * - Matches parent surface background (no separate box)
+ * - Chevron rotates smoothly
+ * - Uses theme spacing & typography for consistency
+ * - Slight text emphasis when expanded
  */
 export default function ExpandToggle({
     label,
@@ -37,69 +25,84 @@ export default function ExpandToggle({
     icon = "chevron-down",
 }: ExpandToggleProps) {
     const theme = useTheme();
+    const rotate = useRef(new Animated.Value(isExpanded ? 1 : 0)).current;
+
+    useEffect(() => {
+        Animated.timing(rotate, {
+            toValue: isExpanded ? 1 : 0,
+            duration: 200,
+            useNativeDriver: true,
+        }).start();
+    }, [isExpanded, rotate]);
+
+    const rotateInterpolate = rotate.interpolate({
+        inputRange: [0, 1],
+        outputRange: ["0deg", "-180deg"],
+    });
 
     return (
         <Pressable
+            onPress={onToggle}
             style={({ pressed }) => [
-                styles.toggle,
+                styles.container,
                 {
-                    backgroundColor: isExpanded
-                        ? theme.colors.primaryContainer
-                        : theme.colors.surfaceVariant,
+                    paddingHorizontal: spacing.lg,
+                    paddingVertical: spacing.md,
+                    opacity: pressed ? 0.8 : 1,
+                    backgroundColor: theme.colors.surface, // matches parent form
                     borderColor: isExpanded
-                        ? theme.colors.primary
-                        : theme.colors.outlineVariant,
-                    opacity: pressed ? 0.7 : 1,
+                        ? theme.colors.tertiary
+                        : theme.colors.onSurface,
+                    borderWidth: 1,
                 },
             ]}
-            onPress={onToggle}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: isExpanded }}
+            accessibilityLabel={`${label} section`}
+            accessibilityHint={`Double tap to ${
+                isExpanded ? "collapse" : "expand"
+            }`}
         >
-            <MaterialCommunityIcons
-                name={icon as any}
-                size={16}
-                color={
-                    isExpanded
-                        ? theme.colors.primary
-                        : theme.colors.onSurfaceVariant
-                }
-                style={{
-                    transform: [{ rotate: isExpanded ? "180deg" : "0deg" }],
-                }}
-            />
             <Text
+                variant="titleMedium"
                 style={[
-                    styles.toggleText,
+                    styles.label,
                     {
-                        color: isExpanded
-                            ? theme.colors.onPrimaryContainer
-                            : theme.colors.onSurfaceVariant,
+                        color: theme.colors.onSurface,
+                        fontWeight: isExpanded ? "700" : "600",
                     },
                 ]}
+                numberOfLines={1}
             >
                 {label}
             </Text>
+
+            <Animated.View
+                style={{ transform: [{ rotate: rotateInterpolate }] }}
+            >
+                <MaterialCommunityIcons
+                    name={icon as any}
+                    size={22}
+                    color={theme.colors.onSurface}
+                />
+            </Animated.View>
         </Pressable>
     );
 }
 
 const styles = StyleSheet.create({
-    toggle: {
+    container: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 8,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
+        justifyContent: "space-between",
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.xs,
         borderRadius: 8,
-        borderWidth: 1,
-        elevation: 1,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
+        // No shadow, no elevation, no border — integrates with parent
     },
-    toggleText: {
-        fontSize: 13,
-        fontWeight: "600",
+    label: {
+        flex: 1,
         letterSpacing: 0.25,
+        marginRight: spacing.xs,
     },
 });

@@ -1,6 +1,12 @@
-import React from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Divider, Text, useTheme } from "react-native-paper";
+import Animated, {
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from "react-native-reanimated";
 import type { PropertyData } from "../../../types";
 import { spacing } from "../../../theme/spacing";
 import {
@@ -13,39 +19,50 @@ import PropertyDetailsSection from "./PropertyDetailsSection";
 import AssumptionsSection from "./AssumptionsSection";
 import ExpandToggle from "../../primitives/ExpandToggle";
 
+// Animation constants
+const ANIMATION_DURATION_OPEN = 400;
+const ANIMATION_DURATION_CLOSE = 220;
+const ANIMATION_EASING = Easing.inOut(Easing.ease);
+const ESTIMATED_MAX_HEIGHT = 800; // adjust if advanced section grows
+
 export default function PropertyForm() {
     const theme = useTheme();
     const { scenario: currentScenario, scenarioId: currentScenarioId } =
         useCurrentScenario();
     const { updateScenarioData } = useScenarioActions();
 
-    const [showAdvanced, setShowAdvanced] = React.useState(false);
-    const [isEditingLVR, setIsEditingLVR] = React.useState(false);
-    const [lvrText, setLvrText] = React.useState("");
-    const pendingDepositRef = React.useRef<number | null>(null);
-
-    // Early return if no scenario selected (after hooks)
     if (!currentScenario || !currentScenarioId) {
         return null;
     }
 
     const data = currentScenario.data;
     const scenarioName = currentScenario.name;
-    const onUpdate = (updates: Partial<PropertyData>) => {
-        updateScenarioData(currentScenarioId, updates);
-    };
 
-    // Update LVR text only when not editing; when editing, wait until pending deposit is applied
-    React.useEffect(() => {
-        // If we are waiting for a deposit change to land in context, check and clear once it does
-        if (pendingDepositRef.current != null && data.deposit != null) {
+    const [showAdvanced, setShowAdvanced] = useState(false);
+    const [isEditingLVR, setIsEditingLVR] = useState(false);
+    const [lvrText, setLvrText] = useState("");
+    const pendingDepositRef = useRef<number | null>(null);
+
+    // Smooth animation progress (0 → 1)
+    const progress = useSharedValue(0);
+
+    const toggleAdvanced = useCallback(() => {
+        const next = !showAdvanced;
+        setShowAdvanced(next);
+        progress.value = withTiming(next ? 1 : 0, {
+            duration: next ? ANIMATION_DURATION_OPEN : ANIMATION_DURATION_CLOSE,
+            easing: ANIMATION_EASING,
+        });
+    }, [showAdvanced]);
+
+    useEffect(() => {
+        if (pendingDepositRef.current != null && data?.deposit != null) {
             if (data.deposit === pendingDepositRef.current) {
                 pendingDepositRef.current = null;
                 setIsEditingLVR(false);
             }
         }
-        // When not editing, keep display value in sync with latest data
-        if (!isEditingLVR && data.propertyValue && data.deposit != null) {
+        if (!isEditingLVR && data?.propertyValue && data.deposit != null) {
             const calculatedLVR = (
                 ((data.propertyValue - data.deposit) / data.propertyValue) *
                 100
@@ -54,6 +71,24 @@ export default function PropertyForm() {
         }
     }, [data.propertyValue, data.deposit, isEditingLVR]);
 
+    const onUpdate = (updates: Partial<PropertyData>) => {
+        updateScenarioData(currentScenarioId, updates);
+    };
+
+    // Animated styles for smooth expand/collapse
+    const animatedContentStyle = useAnimatedStyle(() => ({
+        maxHeight: progress.value * ESTIMATED_MAX_HEIGHT,
+        opacity: progress.value,
+        marginTop: progress.value * spacing.sm,
+        transform: [
+            {
+                translateY: withTiming(progress.value === 0 ? -8 : 0, {
+                    duration: 200,
+                }),
+            },
+        ],
+    }));
+
     return (
         <View
             style={[
@@ -61,7 +96,7 @@ export default function PropertyForm() {
                 { backgroundColor: theme.colors.surfaceVariant },
             ]}
         >
-            {/* Scenario Name */}
+            {/* Scenario Header */}
             <View style={styles.scenarioHeader}>
                 <Text
                     variant="titleLarge"
@@ -77,45 +112,48 @@ export default function PropertyForm() {
                 />
             </View>
 
-            {/* Basic Details Section */}
+            {/* Basic Details */}
             <BasicDetailsSection
                 data={data}
                 scenarioId={currentScenarioId}
                 onUpdate={onUpdate}
             />
 
-            {/* Advanced Section Toggle */}
+            {/* Toggle */}
             <View style={styles.advancedToggleContainer}>
                 <ExpandToggle
-                    label="Advanced"
+                    label="Advanced details"
                     isExpanded={showAdvanced}
-                    onToggle={() => setShowAdvanced(!showAdvanced)}
-                    icon="cog-outline"
+                    onToggle={toggleAdvanced}
                 />
-            </View>
 
-            {/* Advanced Section Content */}
-            {showAdvanced && (
-                <View
-                    style={[
-                        styles.advancedContent,
-                        { backgroundColor: theme.colors.surface },
-                    ]}
+                {/* Animated Advanced Content */}
+                <Animated.View
+                    style={[styles.animatedContainer, animatedContentStyle]}
                 >
-                    <LoanSettingsSection
-                        data={data}
-                        onUpdate={onUpdate}
-                        lvrText={lvrText}
-                        setIsEditingLVR={setIsEditingLVR}
-                        setLvrText={setLvrText}
-                        pendingDepositRef={pendingDepositRef}
-                    />
+                    <View
+                        style={[
+                            styles.advancedContent,
+                            { backgroundColor: theme.colors.surface },
+                        ]}
+                    >
+                        <LoanSettingsSection
+                            data={data}
+                            onUpdate={onUpdate}
+                            lvrText={lvrText}
+                            setIsEditingLVR={setIsEditingLVR}
+                            setLvrText={setLvrText}
+                            pendingDepositRef={pendingDepositRef}
+                        />
 
-                    <PropertyDetailsSection data={data} onUpdate={onUpdate} />
-
-                    <AssumptionsSection data={data} onUpdate={onUpdate} />
-                </View>
-            )}
+                        <PropertyDetailsSection
+                            data={data}
+                            onUpdate={onUpdate}
+                        />
+                        <AssumptionsSection data={data} onUpdate={onUpdate} />
+                    </View>
+                </Animated.View>
+            </View>
         </View>
     );
 }
@@ -124,12 +162,10 @@ const styles = StyleSheet.create({
     card: {
         padding: spacing.md,
         borderRadius: 12,
-        display: "flex",
         flexDirection: "column",
         gap: spacing.md,
     },
     scenarioHeader: {
-        flexDirection: "column",
         alignItems: "center",
     },
     divider: {
@@ -138,8 +174,11 @@ const styles = StyleSheet.create({
         marginBottom: spacing.sm,
     },
     advancedToggleContainer: {
-        alignItems: "center",
         marginTop: spacing.sm,
+        flexDirection: "column",
+    },
+    animatedContainer: {
+        overflow: "hidden",
     },
     advancedContent: {
         padding: spacing.md,
