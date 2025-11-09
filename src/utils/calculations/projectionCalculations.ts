@@ -1,6 +1,6 @@
 import type { Projection } from "../../types";
 import { WEEKS_PER_YEAR_AFTER_VACANCY } from "../defaults";
-import { MONTHS_PER_YEAR, QUARTERS_PER_YEAR } from "./cashFlowCalculations";
+import { MONTHS_PER_YEAR, QUARTERS_PER_YEAR } from "./expensesCalculations";
 import { calculateDepreciation, calculateTaxReturn } from "./taxCalculations";
 import { annualBreakdown } from "./loanCalculations";
 

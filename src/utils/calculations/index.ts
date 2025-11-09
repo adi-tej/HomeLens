@@ -8,7 +8,7 @@
 // Re-export all calculation functions for direct import
 export * from "./loanCalculations";
 export * from "./taxCalculations";
-export * from "./cashFlowCalculations";
+export * from "./expensesCalculations";
 export * from "./projectionCalculations";
 export * from "./validation";
 export * from "./stampDutyCalculations";
@@ -19,7 +19,7 @@ import { calculateLoanDetails } from "./loanCalculations";
 import {
     calculateExpenses,
     calculateOneTimeExpenses,
-} from "./cashFlowCalculations";
+} from "./expensesCalculations";
 import { calculateMultiYearProjections } from "./projectionCalculations";
 import {
     DEFAULT_CAPITAL_GROWTH,

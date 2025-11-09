@@ -66,10 +66,12 @@ export function calculateOngoingExpenses(
     isLand: boolean,
     isInvestment: boolean,
 ): number {
-    let total =
-        expenses.ongoing.council +
-        expenses.ongoing.landTax +
-        expenses.ongoing.maintenance;
+    let total = expenses.ongoing.council + expenses.ongoing.maintenance;
+
+    // Land tax for land properties OR investment properties
+    if (isLand || isInvestment) {
+        total += expenses.ongoing.landTax;
+    }
 
     // Water and insurance excluded for land
     if (!isLand) {

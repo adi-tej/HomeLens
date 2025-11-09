@@ -46,14 +46,19 @@ export default function ExpensesForm({
 
     // Recalculate ongoingTotal when isLand or isInvestment changes
     React.useEffect(() => {
-        let ongoingTotal =
-            local.ongoing.council +
-            local.ongoing.landTax +
-            local.ongoing.maintenance;
+        let ongoingTotal = local.ongoing.council + local.ongoing.maintenance;
 
+        // Land tax for land properties OR investment properties
+        if (isLand || isInvestment) {
+            ongoingTotal += local.ongoing.landTax;
+        }
+
+        // Water and insurance excluded for land
         if (!isLand) {
             ongoingTotal += local.ongoing.water + local.ongoing.insurance;
         }
+
+        // Property manager only for investment properties (not land)
         if (isInvestment && !isLand) {
             ongoingTotal += local.ongoing.propertyManager;
         }
@@ -92,6 +97,8 @@ export default function ExpensesForm({
         return all.filter((key) => {
             // No water or insurance for land
             if (key === "water" || key === "insurance") return !isLand;
+            // Land tax for land properties OR investment properties
+            if (key === "landTax") return isLand || isInvestment;
             // Property manager only for investment properties (and not land)
             if (key === "propertyManager") return isInvestment && !isLand;
             // All other fields are always visible

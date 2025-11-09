@@ -159,22 +159,40 @@ Expenses are separated into two categories:
 - Only paid in Year 0
 
 **Ongoing Annual Expenses:**
-- Council rates
+- Council rates (always shown)
 - Water (excluded for land)
-- Land tax
+- Land tax (shown for land properties OR investment properties)
 - Insurance (excluded for land)
 - Property manager (investment properties only, excluded for land)
-- Maintenance
+- Maintenance (always shown)
 
 ```
 One-Time Total = User's One-Time Total + Government Fees (by state)
-Ongoing Total = Sum of visible ongoing expenses (based on property type)
+Ongoing Total = Sum of visible ongoing expenses (based on property type and investment status)
 ```
 
 ### Visibility Rules
+- **Council & Maintenance:** Always shown for all properties
 - **Water & Insurance:** Hidden for land properties
+- **Land Tax:** Shown for land properties OR investment properties (hidden for owner-occupied buildings)
 - **Property Manager:** Only shown for investment properties (not land)
-- **Government Fees:** Automatically calculated, not user-editable
+- **Government Fees:** Automatically calculated based on state, not user-editable
+
+### Ongoing Expenses Calculation Logic
+```
+Base = Council + Maintenance
+
+if (isLand || isInvestment):
+  Add Land Tax
+
+if (!isLand):
+  Add Water + Insurance
+
+if (isInvestment && !isLand):
+  Add Property Manager
+
+Ongoing Total = Sum of above
+```
 
 ---
 
