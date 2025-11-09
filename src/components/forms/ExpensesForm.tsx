@@ -9,19 +9,19 @@ import {
     useTheme,
 } from "react-native-paper";
 import { spacing } from "../../theme/spacing";
-import type { Expenses } from "../../types";
+import type { OngoingExpenses } from "../../types";
 import { formatCurrency, parseNumber } from "../../utils/parser";
 
 export type ExpensesFormProps = {
     isLand: boolean;
     isInvestment: boolean;
-    value: Expenses;
+    value: OngoingExpenses;
     onCancel: () => void;
-    onSave: (expenses: Expenses) => void;
+    onSave: (expenses: OngoingExpenses) => void;
 };
 
 // Label mapping for ongoing expense fields
-const ONGOING_LABELS: Record<keyof Expenses["ongoing"], string> = {
+const ONGOING_LABELS: Record<keyof OngoingExpenses, string> = {
     council: "Council",
     water: "Water",
     landTax: "Land tax",
@@ -38,38 +38,16 @@ export default function ExpensesForm({
     onSave,
 }: ExpensesFormProps) {
     const theme = useTheme();
-    const [local, setLocal] = React.useState<Expenses>(value);
+    const [local, setLocal] = React.useState<OngoingExpenses>(value);
+    // Track which field is being edited and its text value
+    const [editingField, setEditingField] = React.useState<
+        keyof OngoingExpenses | null
+    >(null);
+    const [editingText, setEditingText] = React.useState("");
 
     React.useEffect(() => setLocal(value), [value]);
 
     const styles = getStyles(theme);
-
-    // Recalculate ongoingTotal when isLand or isInvestment changes
-    React.useEffect(() => {
-        let ongoingTotal = local.ongoing.council + local.ongoing.maintenance;
-
-        // Land tax for land properties OR investment properties
-        if (isLand || isInvestment) {
-            ongoingTotal += local.ongoing.landTax;
-        }
-
-        // Water and insurance excluded for land
-        if (!isLand) {
-            ongoingTotal += local.ongoing.water + local.ongoing.insurance;
-        }
-
-        // Property manager only for investment properties (not land)
-        if (isInvestment && !isLand) {
-            ongoingTotal += local.ongoing.propertyManager;
-        }
-
-        // Only update if total actually changed
-        if (ongoingTotal !== local.ongoingTotal) {
-            const updated = { ...local, ongoingTotal };
-            setLocal(updated);
-            onSave(updated);
-        }
-    }, [isLand, isInvestment, local.ongoing]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const inputCommon = {
         mode: "outlined" as const,
@@ -84,8 +62,8 @@ export default function ExpensesForm({
     };
 
     // Filter ongoing fields based on property type and investment status
-    const getVisibleOngoingFields = (): Array<keyof Expenses["ongoing"]> => {
-        const all: Array<keyof Expenses["ongoing"]> = [
+    const getVisibleOngoingFields = (): Array<keyof OngoingExpenses> => {
+        const all: Array<keyof OngoingExpenses> = [
             "council",
             "water",
             "landTax",
@@ -111,57 +89,63 @@ export default function ExpensesForm({
     // Calculate ongoing total for visible fields
     const calculateOngoingTotal = (): number => {
         return ongoingFields.reduce(
-            (sum, key) => sum + (Number(local.ongoing[key]) || 0),
+            (sum, key) => sum + (Number(local[key]) || 0),
             0,
         );
     };
 
     const ongoingTotal = calculateOngoingTotal();
 
-    // Update an ongoing field and auto-save with computed total
-    const updateOngoingField = (
-        key: keyof Expenses["ongoing"],
-        value: number,
-    ) => {
-        const updated = {
-            ...local,
-            ongoing: {
-                ...local.ongoing,
-                [key]: value,
-            },
-        };
+    // Handle focus - store current value as text for editing
+    const handleFocus = (key: keyof OngoingExpenses) => {
+        setEditingField(key);
+        setEditingText(local[key] ? String(local[key]) : "");
+    };
+
+    // Handle blur - parse immediately and update
+    const handleBlur = (key: keyof OngoingExpenses) => {
+        const parsed = parseNumber(editingText);
+        const newValue = parsed ?? 0;
+
+        // Update local state immediately for instant feedback
+        const updated = { ...local, [key]: newValue };
         setLocal(updated);
 
-        // Recalculate ongoing total
-        const visibleOngoing = getVisibleOngoingFields();
-        const ongoingTotal = visibleOngoing.reduce(
-            (sum, k) =>
-                sum + (k === key ? value : Number(updated.ongoing[k]) || 0),
-            0,
-        );
-        onSave({ ...updated, ongoingTotal });
+        // Clear editing state
+        setEditingField(null);
+        setEditingText("");
+
+        // Save to parent
+        onSave(updated);
     };
 
     // Render ongoing expense input
     const renderOngoingInput = (
-        key: keyof Expenses["ongoing"],
+        key: keyof OngoingExpenses,
         styleOverride: any,
-    ) => (
-        <TextInput
-            {...inputCommon}
-            label={ONGOING_LABELS[key]}
-            value={formatCurrency(Number(local.ongoing[key]) || 0)}
-            onChangeText={(text) =>
-                updateOngoingField(key, Number(parseNumber(text) ?? 0))
-            }
-            style={styleOverride}
-        />
-    );
+    ) => {
+        const isEditing = editingField === key;
+        const displayValue = isEditing
+            ? editingText
+            : formatCurrency(local[key] || 0);
+
+        return (
+            <TextInput
+                {...inputCommon}
+                label={ONGOING_LABELS[key]}
+                value={displayValue}
+                onFocus={() => handleFocus(key)}
+                onChangeText={setEditingText}
+                onBlur={() => handleBlur(key)}
+                style={styleOverride}
+            />
+        );
+    };
 
     // Render a row with two inputs (or one if second is null)
     const renderRow = (
-        leftKey: keyof Expenses["ongoing"] | null,
-        rightKey: keyof Expenses["ongoing"] | null,
+        leftKey: keyof OngoingExpenses | null,
+        rightKey: keyof OngoingExpenses | null,
     ) => (
         <View style={styles.rowPair}>
             {leftKey ? (

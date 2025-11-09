@@ -5,9 +5,7 @@ import { CheckBox, PercentageInput } from "../../inputs";
 import type { LoanDetails, PropertyData } from "../../../types";
 import { spacing } from "../../../theme/spacing";
 import {
-    DEFAULT_INTEREST_RATES,
     DEFAULT_LOAN_TERM,
-    getDefaultInterestRate,
     INTEREST_RATE_PRESETS,
 } from "../../../utils/defaults";
 import { calculateDepositFromLVR } from "../../../utils/calculations";
@@ -30,7 +28,7 @@ export default function LoanSettingsSection({
     pendingDepositRef,
 }: LoanSettingsSectionProps) {
     const theme = useTheme();
-    const loan = (data.loan as LoanDetails) || ({} as LoanDetails);
+    const loan = data.loan as LoanDetails;
 
     return (
         <View style={styles.section}>
@@ -48,16 +46,10 @@ export default function LoanSettingsSection({
                 label="Owner-occupied loan"
                 checked={loan.isOwnerOccupied}
                 onToggle={() => {
-                    const newIsOwnerOccupied = !loan.isOwnerOccupied;
-                    const newRate = getDefaultInterestRate(
-                        newIsOwnerOccupied,
-                        loan.isInterestOnly,
-                    );
                     onUpdate({
                         loan: {
                             ...loan,
-                            isOwnerOccupied: newIsOwnerOccupied,
-                            interest: newRate,
+                            isOwnerOccupied: !loan.isOwnerOccupied,
                         },
                     });
                 }}
@@ -67,16 +59,10 @@ export default function LoanSettingsSection({
                 label="Interest only"
                 checked={loan.isInterestOnly}
                 onToggle={() => {
-                    const newIsInterestOnly = !loan.isInterestOnly;
-                    const newRate = getDefaultInterestRate(
-                        loan.isOwnerOccupied,
-                        newIsInterestOnly,
-                    );
                     onUpdate({
                         loan: {
                             ...loan,
-                            isInterestOnly: newIsInterestOnly,
-                            interest: newRate,
+                            isInterestOnly: !loan.isInterestOnly,
                         },
                     });
                 }}
@@ -92,10 +78,7 @@ export default function LoanSettingsSection({
                             onUpdate({
                                 loan: {
                                     ...loan,
-                                    interest:
-                                        v ||
-                                        DEFAULT_INTEREST_RATES.ownerOccupied
-                                            .principalAndInterest,
+                                    interest: v as number,
                                 },
                             })
                         }

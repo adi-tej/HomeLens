@@ -16,18 +16,16 @@ export * from "./stampDutyCalculations";
 // Import what we need for the main orchestrator
 import { calculateStampDuty } from "./stampDutyCalculations";
 import { calculateLoanDetails } from "./loanCalculations";
-import {
-    calculateExpenses,
-    calculateOneTimeExpenses,
-} from "./expensesCalculations";
 import { calculateMultiYearProjections } from "./projectionCalculations";
 import {
     DEFAULT_CAPITAL_GROWTH,
+    DEFAULT_LOAN_TERM,
     DEFAULT_PROPERTY_TYPE,
     DEFAULT_RENTAL_GROWTH,
     DEFAULT_STATE,
     DEFAULT_STRATA_FEES,
     DEFAULT_WEEKLY_RENT,
+    getGovtFee,
 } from "../defaults";
 import type { PropertyData } from "../../types";
 
@@ -40,9 +38,7 @@ import type { PropertyData } from "../../types";
  * @param inputData - Partial property data with user inputs
  * @returns Complete PropertyData with all calculations performed
  */
-export function calculatePropertyData(
-    inputData: Partial<PropertyData>,
-): PropertyData {
+export function calculatePropertyData(inputData: PropertyData): PropertyData {
     // === Property and Deposit ===
     const propertyValue = Number(inputData.propertyValue) || 0;
     const deposit = Number(inputData.deposit) || 0;
@@ -65,29 +61,11 @@ export function calculatePropertyData(
         inputData.loan,
     );
 
-    // === Rental Income ===
-    // Only investment properties generate rental income
-    const weeklyRent = isInvestment
-        ? (inputData.weeklyRent ?? DEFAULT_WEEKLY_RENT)
-        : 0;
-
     // === Strata Fees ===
     const strataQuarterly = inputData.strataFees ?? DEFAULT_STRATA_FEES;
 
     // === Expenses ===
-    const expenses = calculateExpenses(
-        inputData.expenses,
-        isLand,
-        isInvestment,
-        inputData.state,
-    );
-
-    // Separate expenses for projections
-    const oneTimeExpenses = calculateOneTimeExpenses(
-        expenses.oneTimeTotal,
-        inputData.state,
-    );
-    const ongoingExpenses = expenses.ongoingTotal;
+    const expenses = inputData.expenses;
 
     // === Multi-Year Projections (5 years) ===
     const capitalGrowthRate = inputData.capitalGrowth ?? DEFAULT_CAPITAL_GROWTH;
@@ -95,6 +73,8 @@ export function calculatePropertyData(
     const rentalGrowthPerWeek = isInvestment
         ? (inputData.rentalGrowth ?? DEFAULT_RENTAL_GROWTH)
         : 0;
+
+    const state = inputData.state ?? DEFAULT_STATE;
 
     const projections = calculateMultiYearProjections({
         startYear: new Date().getFullYear(),
@@ -106,15 +86,15 @@ export function calculatePropertyData(
             total: loan.amount ?? 0,
             interestRate: loan.interest ?? 0,
             isInterestOnly: loan.isInterestOnly ?? false,
-            termYears: loan.term ?? 30,
+            termYears: loan.term ?? DEFAULT_LOAN_TERM,
             monthlyMortgage: loan.monthlyMortgage ?? 0,
         },
-        weeklyRent,
+        weeklyRent: inputData.weeklyRent ?? DEFAULT_WEEKLY_RENT,
         rentalGrowthPerWeek,
         strataQuarterly,
         expenses: {
-            oneTimeTotal: oneTimeExpenses,
-            ongoingAnnualTotal: ongoingExpenses,
+            oneTimeTotal: expenses.oneTimeTotal + getGovtFee(state),
+            ongoingAnnualTotal: expenses.ongoingTotal,
         },
         stampDuty,
         lmi: loan.lmi ?? 0,
@@ -130,13 +110,13 @@ export function calculatePropertyData(
         propertyType: inputData.propertyType ?? DEFAULT_PROPERTY_TYPE,
         isBrandNew: inputData.isBrandNew ?? false,
         loan,
-        weeklyRent, // 0 for owner-occupied, actual rent for investment
+        weeklyRent: inputData.weeklyRent ?? DEFAULT_WEEKLY_RENT, // 0 for owner-occupied, actual rent for investment
         rentalGrowth: rentalGrowthPerWeek, // 0 for owner-occupied, growth for investment
         strataFees: inputData.strataFees ?? DEFAULT_STRATA_FEES,
         capitalGrowth: capitalGrowthRate,
         stampDuty,
         expenses,
         projections,
-        state: inputData.state ?? DEFAULT_STATE,
+        state,
     };
 }

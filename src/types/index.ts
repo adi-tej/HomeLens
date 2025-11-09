@@ -43,15 +43,17 @@ export type LoanDetails = {
 export type Expenses = {
     oneTimeTotal: number;
     // ongoing
-    ongoing: {
-        council: number;
-        water: number;
-        landTax: number;
-        insurance: number;
-        propertyManager: number;
-        maintenance: number;
-    };
+    ongoing: OngoingExpenses;
     ongoingTotal: number; // includes removed fixed one-time fees in calculations, but not user-editable
+};
+
+export type OngoingExpenses = {
+    council: number;
+    water: number;
+    landTax: number;
+    insurance: number;
+    propertyManager: number;
+    maintenance: number;
 };
 
 export type Projection = {

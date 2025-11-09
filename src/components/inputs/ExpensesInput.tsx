@@ -3,14 +3,15 @@ import { Modal, Portal, TextInput, useTheme } from "react-native-paper";
 import { Platform, StyleSheet } from "react-native";
 import { spacing } from "../../theme/spacing";
 import ExpensesForm from "../forms/ExpensesForm";
-import type { Expenses } from "../../types";
-import { DEFAULT_EXPENSES } from "../../utils/defaults";
+import type { Expenses, OngoingExpenses } from "../../types";
+import { DEFAULT_ONGOING_EXPENSES } from "../../utils/defaults";
 import { formatCurrency, parseNumber } from "../../utils/parser";
 import ScreenContainer from "../primitives/ScreenContainer";
+import { calculateOngoingExpenses } from "../../utils/calculations";
 
 export type ExpensesInputProps = {
     label?: string;
-    value?: Expenses;
+    value: Expenses;
     onChange: (expenses: Expenses | undefined) => void;
     isLand?: boolean;
     isInvestment?: boolean;
@@ -26,80 +27,129 @@ export function ExpensesInput({
     const theme = useTheme();
     const [modalVisible, setModalVisible] = useState(false);
     const [focused, setFocused] = useState(false);
-    const [text, setText] = useState(
-        value?.ongoingTotal != null ? formatCurrency(value.ongoingTotal) : "",
-    );
-    const [config, setConfig] = useState<Expenses>(
-        value || (DEFAULT_EXPENSES as Expenses),
-    );
+    const [editingText, setEditingText] = useState("");
+    const [config, setConfig] = useState<OngoingExpenses>(value.ongoing);
+
+    // Track previous isLand/isInvestment to detect changes
+    const prevPropsRef = React.useRef({ isLand, isInvestment });
 
     const openModal = () => setModalVisible(true);
     const closeModal = () => setModalVisible(false);
 
-    // Recompute ongoingTotal locally when land / investment flags change
+    // Sync config when value.ongoing changes externally
+    useEffect(() => setConfig(value.ongoing), [value.ongoing]);
+
+    // Apply dynamic defaults when isLand or isInvestment changes
     useEffect(() => {
-        setConfig((prev) => {
-            const base = { ...(prev || DEFAULT_EXPENSES) } as Expenses;
+        const prevProps = prevPropsRef.current;
 
-            let ongoingTotal =
-                base.ongoing.council +
-                base.ongoing.landTax +
-                base.ongoing.maintenance;
+        // Only update if isLand or isInvestment actually changed
+        if (
+            prevProps.isLand !== isLand ||
+            prevProps.isInvestment !== isInvestment
+        ) {
+            const dynamicConfig = {
+                ...config,
+                // landTax: set default if becoming enabled, zero if disabled
+                landTax:
+                    (isLand || isInvestment) &&
+                    !prevProps.isLand &&
+                    !prevProps.isInvestment
+                        ? config.landTax === 0
+                            ? DEFAULT_ONGOING_EXPENSES.landTax
+                            : config.landTax
+                        : !isInvestment && !isLand
+                          ? 0
+                          : config.landTax,
+                // water: set default if becoming enabled (land -> not land), zero if disabled
+                water:
+                    !isLand && prevProps.isLand
+                        ? config.water === 0
+                            ? DEFAULT_ONGOING_EXPENSES.water
+                            : config.water
+                        : isLand
+                          ? 0
+                          : config.water,
+                // insurance: set default if becoming enabled (land -> not land), zero if disabled
+                insurance:
+                    !isLand && prevProps.isLand
+                        ? config.insurance === 0
+                            ? DEFAULT_ONGOING_EXPENSES.insurance
+                            : config.insurance
+                        : isLand
+                          ? 0
+                          : config.insurance,
+                // propertyManager: set default if becoming enabled, zero if disabled
+                propertyManager:
+                    isInvestment &&
+                    !isLand &&
+                    (!prevProps.isInvestment || prevProps.isLand)
+                        ? config.propertyManager === 0
+                            ? DEFAULT_ONGOING_EXPENSES.propertyManager
+                            : config.propertyManager
+                        : !isInvestment || isLand
+                          ? 0
+                          : config.propertyManager,
+            };
 
-            // Water and insurance excluded for land
-            if (!isLand) {
-                ongoingTotal += base.ongoing.water + base.ongoing.insurance;
-            }
+            setConfig(dynamicConfig);
 
-            // Property manager only for investment properties (not land)
-            if (isInvestment && !isLand) {
-                ongoingTotal += base.ongoing.propertyManager;
-            }
+            // Recalculate ongoingTotal with the new values
+            const ongoingTotal = calculateOngoingExpenses(dynamicConfig);
 
-            const next = { ...base, ongoingTotal } as Expenses;
+            onChange({
+                ...value,
+                ongoing: dynamicConfig,
+                ongoingTotal,
+            } as Expenses);
 
-            // Update text & bubble to parent only if total changed
-            if (value && value.ongoingTotal === ongoingTotal) return next;
-            setText(formatCurrency(ongoingTotal));
-            onChange(next);
-            return next;
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+            // Update ref
+            prevPropsRef.current = { isLand, isInvestment };
+        }
     }, [isLand, isInvestment]);
 
-    useEffect(() => {
-        if (value) {
-            setText(formatCurrency(value.ongoingTotal));
-            setConfig(value);
-        } else {
-            setText("");
-            setConfig(DEFAULT_EXPENSES as Expenses);
-        }
-    }, [value?.ongoingTotal, value]);
-
-    const handleTextChange = (t: string) => {
-        const parsed = parseNumber(t);
-        if (parsed !== undefined) {
-            setText(formatCurrency(parsed));
-            const updated = { ...config, ongoingTotal: parsed };
-            setConfig(updated);
-            onChange(updated);
-        } else {
-            setText(t);
-            if (t === "") {
-                setConfig(DEFAULT_EXPENSES as Expenses);
-                onChange(undefined);
-            }
-        }
+    const handleFocus = () => {
+        setFocused(true);
+        setEditingText(value?.ongoingTotal ? String(value.ongoingTotal) : "");
     };
 
-    const handleSave = (expenses: Expenses) => {
-        setConfig(expenses);
-        setText(formatCurrency(expenses.ongoingTotal));
+    const handleBlur = () => {
+        const parsed = parseNumber(editingText);
+        const newTotal = parsed ?? 0;
+
+        // Direct input edit: overwrite ongoingTotal, ignore ongoing object values
+        const expenses: Expenses = {
+            ...value,
+            ongoing: config,
+            ongoingTotal: newTotal,
+        } as Expenses;
+
+        setFocused(false);
+        setEditingText("");
         onChange(expenses);
     };
 
+    const handleSave = (ongoing: OngoingExpenses) => {
+        // Form save: calculate ongoingTotal as sum of ongoing object values
+        const ongoingTotal = calculateOngoingExpenses(ongoing);
+        const expenses: Expenses = {
+            ...value,
+            ongoing,
+            ongoingTotal,
+        } as Expenses;
+        setConfig(ongoing);
+        onChange(expenses);
+        closeModal();
+    };
+
     const isActive = modalVisible || focused;
+
+    // Display value: raw text while editing, formatted currency otherwise
+    const displayValue = focused
+        ? editingText
+        : value?.ongoingTotal != null
+          ? formatCurrency(value.ongoingTotal)
+          : formatCurrency(calculateOngoingExpenses(config));
 
     return (
         <>
@@ -107,10 +157,10 @@ export function ExpensesInput({
                 mode="outlined"
                 label={label}
                 placeholder={label}
-                value={text}
-                onChangeText={handleTextChange}
-                onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
+                value={displayValue}
+                onChangeText={setEditingText}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
                 keyboardType={Platform.select({
                     ios: "number-pad",
                     android: "numeric",

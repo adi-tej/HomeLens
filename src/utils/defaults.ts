@@ -1,21 +1,21 @@
 // Central location for all mortgage-related default values and constants
 
-import type { Expenses, PropertyData, StateCode } from "../types";
+import type {
+    OngoingExpenses,
+    PropertyData,
+    PropertyType,
+    StateCode,
+} from "../types";
+
+// Conversion constants
+export const QUARTERS_PER_YEAR = 4;
+export const MONTHS_PER_YEAR = 12;
 
 /**
  * Default interest rates based on loan type and repayment type
  * All rates are annual percentages
  */
-export const DEFAULT_INTEREST_RATES = {
-    ownerOccupied: {
-        principalAndInterest: 5.5,
-        interestOnly: 5.8,
-    },
-    investment: {
-        principalAndInterest: 6.0,
-        interestOnly: 6.3,
-    },
-} as const;
+export const DEFAULT_INTEREST_RATE = 5.5;
 
 /**
  * Interest rate presets for dropdown selection (annual percentages)
@@ -42,25 +42,38 @@ export const DEFAULT_RENTAL_GROWTH = 30;
  */
 export const DEFAULT_STRATA_FEES = 1500;
 
+export const DEFAULT_ONE_TIME_EXPENSES = 3500;
+
 /**
  * Default expenses configuration
  * All amounts in dollars (AUD)
  */
-export const DEFAULT_EXPENSES: Expenses = {
-    // One-time expenses total (calculated: solicitor + additional + state fees)
-    oneTimeTotal: 3500, // solicitor (1500) + additional (2000)
-    // Ongoing annual expenses
-    ongoing: {
-        council: 1200,
-        water: 800,
-        landTax: 1000,
-        insurance: 500,
-        propertyManager: 1500,
-        maintenance: 1500,
-    },
-    // Ongoing total (recomputed based on property type and investment status)
-    ongoingTotal: 6500,
+export const DEFAULT_ONGOING_EXPENSES: OngoingExpenses = {
+    council: 1200,
+    water: 800,
+    landTax: 1000,
+    insurance: 500,
+    propertyManager: 1500,
+    maintenance: 1500,
 };
+
+/**
+ * Calculate ongoing total using visibility logic.
+ * - council + maintenance always
+ * - landTax if land OR investment
+ * - water + insurance if NOT land
+ * - propertyManager if investment AND not land
+ */
+export function getDefaultOngoingTotal(): number {
+    return (
+        DEFAULT_ONGOING_EXPENSES.council +
+        DEFAULT_ONGOING_EXPENSES.maintenance +
+        DEFAULT_ONGOING_EXPENSES.landTax +
+        DEFAULT_ONGOING_EXPENSES.water +
+        DEFAULT_ONGOING_EXPENSES.insurance +
+        DEFAULT_ONGOING_EXPENSES.propertyManager
+    );
+}
 
 /**
  * Default capital growth percentage per year
@@ -75,7 +88,7 @@ export const CAPITAL_GROWTH_PRESETS = [2, 3, 5, 8, 10] as const;
 /**
  * Default property type
  */
-export const DEFAULT_PROPERTY_TYPE = "house" as const;
+export const DEFAULT_PROPERTY_TYPE: PropertyType = "house";
 
 /**
  * Deposit percentage presets
@@ -146,30 +159,12 @@ export const STATE_MORTGAGE_FEES: Record<
 };
 
 /**
- * Get the appropriate interest rate based on loan type and repayment type
- */
-export function getDefaultInterestRate(
-    isOwnerOccupied: boolean,
-    isInterestOnly: boolean,
-): number {
-    if (isOwnerOccupied) {
-        return isInterestOnly
-            ? DEFAULT_INTEREST_RATES.ownerOccupied.interestOnly
-            : DEFAULT_INTEREST_RATES.ownerOccupied.principalAndInterest;
-    } else {
-        return isInterestOnly
-            ? DEFAULT_INTEREST_RATES.investment.interestOnly
-            : DEFAULT_INTEREST_RATES.investment.principalAndInterest;
-    }
-}
-
-/**
  * Get all default mortgage data values for a new scenario
  * Returns a complete PropertyData object with sensible defaults
  *
  * @returns Default PropertyData configuration
  */
-export function getDefaultMortgageData(): PropertyData {
+export function getDefaultPropertyData(): PropertyData {
     return {
         propertyValue: undefined,
         deposit: undefined,
@@ -187,10 +182,14 @@ export function getDefaultMortgageData(): PropertyData {
             isOwnerOccupied: true,
             isInterestOnly: false,
             term: DEFAULT_LOAN_TERM,
-            interest: DEFAULT_INTEREST_RATES.ownerOccupied.principalAndInterest,
+            interest: DEFAULT_INTEREST_RATE,
             includeStampDuty: false,
         },
-        expenses: { ...DEFAULT_EXPENSES },
+        expenses: {
+            oneTimeTotal: DEFAULT_ONE_TIME_EXPENSES,
+            ongoing: DEFAULT_ONGOING_EXPENSES,
+            ongoingTotal: getDefaultOngoingTotal(),
+        },
     };
 }
 

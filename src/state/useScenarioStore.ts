@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { create } from "zustand";
 import { type PropertyData } from "../types";
 import { calculatePropertyData } from "../utils/calculations";
-import { getDefaultMortgageData } from "../utils/defaults";
+import { getDefaultPropertyData } from "../utils/defaults";
 
 export type ScenarioId = string;
 
@@ -48,7 +48,7 @@ const createDefaultScenario = (): [ScenarioId, Scenario] => {
         name: "My first property",
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        data: getDefaultMortgageData(),
+        data: getDefaultPropertyData(),
     };
     return [defaultId, defaultScenario];
 };
@@ -84,7 +84,7 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => {
             const newScenario: Scenario = {
                 id,
                 name,
-                data: getDefaultMortgageData(),
+                data: getDefaultPropertyData(),
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
             };
@@ -200,31 +200,6 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => {
         },
     };
 });
-
-// Convenience hook that mimics the old context API
-export function useScenarios() {
-    const store = useScenarioStore();
-
-    return {
-        scenarios: store.scenarios,
-        currentScenarioId: store.currentScenarioId,
-        currentScenario: store.getCurrentScenario(),
-        comparisonMode: store.comparisonMode,
-        selectedScenarios: store.selectedScenarios,
-        createScenario: store.createScenario,
-        deleteScenario: store.deleteScenario,
-        updateScenario: store.updateScenario,
-        updateScenarioData: store.updateScenarioData,
-        setCurrentScenario: store.setCurrentScenario,
-        getAllScenarios: store.getAllScenarios,
-        setComparisonMode: store.setComparisonMode,
-        toggleScenarioSelection: store.toggleScenarioSelection,
-        clearSelectedScenarios: store.clearSelectedScenarios,
-    };
-}
-
-// Optimized selector hooks for specific use cases
-// Components can use these to only re-render when specific data changes
 
 /**
  * Only subscribes to current scenario data - won't re-render when other scenarios change

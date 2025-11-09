@@ -7,11 +7,7 @@ import type {
     PropertyType,
     StateCode,
 } from "../../../types";
-import {
-    DEFAULT_STATE,
-    getDefaultInterestRate,
-    STATE_OPTIONS,
-} from "../../../utils/defaults";
+import { DEFAULT_STATE, STATE_OPTIONS } from "../../../utils/defaults";
 import { spacing } from "../../../theme/spacing";
 
 interface BasicDetailsSectionProps {
@@ -54,16 +50,11 @@ export default function BasicDetailsSection({
                 checked={data.isLivingHere}
                 onToggle={() => {
                     const newIsLivingHere = !data.isLivingHere;
-                    const newRate = getDefaultInterestRate(
-                        newIsLivingHere,
-                        loan.isInterestOnly,
-                    );
                     onUpdate({
                         isLivingHere: newIsLivingHere,
                         loan: {
                             ...loan,
                             isOwnerOccupied: newIsLivingHere,
-                            interest: newRate,
                         },
                         // pass through current expenses so calculateMortgageData can recompute visibility-based total
                         expenses: data.expenses,

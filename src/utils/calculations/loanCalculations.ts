@@ -1,5 +1,8 @@
-import { DEFAULT_LOAN_TERM, getDefaultInterestRate } from "../defaults";
-import { MONTHS_PER_YEAR } from "./expensesCalculations";
+import {
+    DEFAULT_INTEREST_RATE,
+    DEFAULT_LOAN_TERM,
+    MONTHS_PER_YEAR,
+} from "../defaults";
 import type { LoanDetails } from "../../types";
 
 /**
@@ -148,7 +151,7 @@ export function calculateDepositFromLVR(
 ): number {
     const validPropertyValue = Number(propertyValue) || 0;
     const validLvr = Number(lvr) || 0;
-    const validStampDuty = Number(stampDuty) || 0;
+    const validStampDuty = stampDuty;
 
     // Validate inputs
     if (validPropertyValue <= 0 || validLvr <= 0 || validLvr >= 100) {
@@ -179,10 +182,10 @@ export function calculateLoanDetails(
     propertyValue: number,
     deposit: number,
     stampDuty: number,
-    inputLoan?: Partial<LoanDetails>,
+    inputLoan: LoanDetails,
 ): LoanDetails {
     // === Loan Calculations ===
-    const includeStampDuty = Boolean(inputLoan?.includeStampDuty);
+    const includeStampDuty = Boolean(inputLoan.includeStampDuty);
     const loanWithoutLMI = includeStampDuty
         ? propertyValue - deposit + stampDuty
         : propertyValue - deposit;
@@ -196,12 +199,10 @@ export function calculateLoanDetails(
     const amount = loanWithoutLMI + (Number.isFinite(lmi) ? lmi : 0);
 
     // === Loan Details ===
-    const isOwnerOccupied = inputLoan?.isOwnerOccupied ?? true;
-    const isInterestOnly = inputLoan?.isInterestOnly ?? false;
-    const interest =
-        inputLoan?.interest ??
-        getDefaultInterestRate(isOwnerOccupied, isInterestOnly);
-    const term = inputLoan?.term ?? DEFAULT_LOAN_TERM;
+    const isOwnerOccupied = inputLoan.isOwnerOccupied ?? true;
+    const isInterestOnly = inputLoan.isInterestOnly ?? false;
+    const interest = inputLoan.interest ?? DEFAULT_INTEREST_RATE;
+    const term = inputLoan.term ?? DEFAULT_LOAN_TERM;
 
     // === Mortgage Payments ===
     const monthlyMortgage = monthlyRepayment(
