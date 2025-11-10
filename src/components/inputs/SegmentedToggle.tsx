@@ -58,15 +58,18 @@ export function SegmentedToggle({
                 style={[
                     styles.container,
                     disabled && { opacity: 0.7 },
-                    { borderColor: theme.colors.outlineVariant },
+                    { borderColor: theme.colors.outline },
                 ]}
             >
                 {/* Principal & Interest */}
                 <Pressable
-                    style={[
+                    style={({ pressed }) => [
                         styles.segment,
-                        value && {
-                            backgroundColor: theme.colors.primary,
+                        {
+                            opacity: pressed && !value ? 0.8 : 1,
+                            backgroundColor: value
+                                ? theme.colors.primary
+                                : theme.colors.background,
                         },
                     ]}
                     onPress={() => handleSelect(true)}
@@ -77,8 +80,8 @@ export function SegmentedToggle({
                         style={{
                             color: value
                                 ? theme.colors.onPrimary
-                                : theme.colors.onSurfaceVariant,
-                            fontWeight: value ? "600" : "400",
+                                : theme.colors.onSurface,
+                            fontWeight: value ? "600" : "500",
                         }}
                     >
                         {leftOption}
@@ -87,10 +90,13 @@ export function SegmentedToggle({
 
                 {/* Interest Only */}
                 <Pressable
-                    style={[
+                    style={({ pressed }) => [
                         styles.segment,
-                        !value && {
-                            backgroundColor: theme.colors.primary,
+                        {
+                            opacity: pressed && value ? 0.8 : 1,
+                            backgroundColor: !value
+                                ? theme.colors.primary
+                                : theme.colors.background,
                         },
                     ]}
                     onPress={() => handleSelect(false)}
@@ -101,8 +107,8 @@ export function SegmentedToggle({
                         style={{
                             color: !value
                                 ? theme.colors.onPrimary
-                                : theme.colors.onSurfaceVariant,
-                            fontWeight: value ? "400" : "600",
+                                : theme.colors.onSurface,
+                            fontWeight: value ? "500" : "600",
                         }}
                     >
                         {rightOption}
