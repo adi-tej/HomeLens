@@ -23,6 +23,8 @@ export type SummaryCardRow = {
     value: string;
     /** Whether to highlight this row (typically for totals/key metrics) */
     highlight?: boolean;
+    /** Optional per-row expandable details rendered below the row when expanded */
+    details?: { key: string; label: string; value: string }[];
 };
 
 /**
@@ -84,6 +86,7 @@ function SummaryCard({
 }: SummaryCardProps) {
     const theme = useTheme();
     const [expanded, setExpanded] = useState(defaultExpanded);
+    const [openRows, setOpenRows] = useState<Record<string, boolean>>({});
     const progress = useSharedValue(defaultExpanded ? 1 : 0);
 
     // Memoize toggle handler to prevent recreation on every render
@@ -190,58 +193,153 @@ function SummaryCard({
                     {rows.map((row, index) => {
                         const isHighlight = row.highlight ?? false;
                         const isLast = index === rows.length - 1;
+                        const isExpandable =
+                            Array.isArray(row.details) &&
+                            row.details.length > 0;
+                        const isOpen = Boolean(openRows[row.key]);
+
+                        const onToggleRow = () => {
+                            if (!isExpandable) return;
+                            setOpenRows((prev) => ({
+                                ...prev,
+                                [row.key]: !prev[row.key],
+                            }));
+                        };
 
                         return (
-                            <View
-                                key={row.key}
-                                style={[
-                                    styles.row,
-                                    {
-                                        backgroundColor: isHighlight
-                                            ? theme.colors.secondaryContainer
-                                            : theme.colors.surface,
-                                    },
-                                    !isLast &&
-                                        !isHighlight && {
-                                            borderBottomWidth: 1,
-                                            borderBottomColor:
-                                                theme.colors.outlineVariant,
-                                        },
-                                ]}
-                            >
-                                <Text
+                            <View key={row.key}>
+                                <Pressable
+                                    onPress={onToggleRow}
+                                    disabled={!isExpandable}
                                     style={[
-                                        styles.label,
+                                        styles.row,
                                         {
-                                            color: isHighlight
+                                            backgroundColor: isHighlight
                                                 ? theme.colors
-                                                      .onSecondaryContainer
-                                                : theme.colors.onSurfaceVariant,
-                                            fontWeight: isHighlight
-                                                ? "700"
-                                                : "500",
+                                                      .secondaryContainer
+                                                : theme.colors.surface,
                                         },
+                                        // Only draw divider when not the last row, not highlighted, and not expanded
+                                        !isLast &&
+                                            !isHighlight &&
+                                            !isOpen && {
+                                                borderBottomWidth: 1,
+                                                borderBottomColor:
+                                                    theme.colors.outlineVariant,
+                                            },
                                     ]}
                                 >
-                                    {row.label}
-                                </Text>
-                                <Text
-                                    style={[
-                                        styles.value,
-                                        {
-                                            color: isHighlight
-                                                ? theme.colors
-                                                      .onSecondaryContainer
-                                                : theme.colors.onSurface,
-                                            fontSize: isHighlight ? 18 : 15,
-                                            fontWeight: isHighlight
-                                                ? "700"
-                                                : "600",
-                                        } as TextStyle,
-                                    ]}
-                                >
-                                    {row.value}
-                                </Text>
+                                    <View style={styles.rowLeft}>
+                                        {/* Label first */}
+                                        <Text
+                                            variant="bodyMedium"
+                                            style={[
+                                                styles.label,
+                                                {
+                                                    color: isOpen
+                                                        ? theme.colors.primary
+                                                        : isHighlight
+                                                          ? theme.colors
+                                                                .onSecondaryContainer
+                                                          : theme.colors
+                                                                .onSurfaceVariant,
+                                                },
+                                            ]}
+                                            numberOfLines={1}
+                                            ellipsizeMode="tail"
+                                        >
+                                            {row.label}
+                                        </Text>
+                                        {/* Chevron after label when expandable */}
+                                        {isExpandable ? (
+                                            <MaterialCommunityIcons
+                                                name={
+                                                    isOpen
+                                                        ? "chevron-down"
+                                                        : "chevron-right"
+                                                }
+                                                size={18}
+                                                color={
+                                                    isOpen
+                                                        ? theme.colors.primary
+                                                        : theme.colors
+                                                              .onSurfaceVariant
+                                                }
+                                                style={{ marginLeft: 6 }}
+                                            />
+                                        ) : null}
+                                    </View>
+                                    <Text
+                                        style={[
+                                            styles.value,
+                                            {
+                                                color: isHighlight
+                                                    ? theme.colors
+                                                          .onSecondaryContainer
+                                                    : theme.colors.onSurface,
+                                                fontSize: isHighlight ? 18 : 15,
+                                                fontWeight: isHighlight
+                                                    ? "700"
+                                                    : "600",
+                                            } as TextStyle,
+                                        ]}
+                                    >
+                                        {row.value}
+                                    </Text>
+                                </Pressable>
+
+                                {isExpandable && isOpen ? (
+                                    <View
+                                        style={[
+                                            styles.detailsContainer,
+                                            {
+                                                backgroundColor:
+                                                    theme.colors.surface,
+                                                // Add bottom divider to separate details from next row (unless last row)
+                                                ...(isLast
+                                                    ? {}
+                                                    : {
+                                                          borderBottomWidth: 1,
+                                                          borderBottomColor:
+                                                              theme.colors
+                                                                  .outlineVariant,
+                                                      }),
+                                            },
+                                        ]}
+                                    >
+                                        {row.details!.map((d) => (
+                                            <View
+                                                key={d.key}
+                                                style={styles.detailsRow}
+                                            >
+                                                <Text
+                                                    variant="bodySmall"
+                                                    style={[
+                                                        styles.detailsLabel,
+                                                        {
+                                                            color: theme.colors
+                                                                .onSurfaceVariant,
+                                                        },
+                                                    ]}
+                                                >
+                                                    {d.label}
+                                                </Text>
+                                                <Text
+                                                    variant="bodySmall"
+                                                    style={[
+                                                        styles.detailsValue,
+                                                        {
+                                                            color: theme.colors
+                                                                .onSurface,
+                                                        },
+                                                    ]}
+                                                >
+                                                    {d.value}
+                                                </Text>
+                                            </View>
+                                        ))}
+                                    </View>
+                                ) : null}
                             </View>
                         );
                     })}
@@ -250,6 +348,7 @@ function SummaryCard({
                 {/* Footnote (optional) - shown inside the animated content area */}
                 {footnote ? (
                     <Text
+                        variant="bodySmall"
                         style={[
                             styles.footnote,
                             { color: theme.colors.onSurfaceVariant },
@@ -314,9 +413,13 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
         paddingHorizontal: 16,
     },
-    label: {
-        fontSize: 14,
+    rowLeft: {
+        flexDirection: "row",
+        alignItems: "center",
         flex: 1,
+    },
+    label: {
+        flex: 0.5,
     },
     value: {
         fontVariant: ["tabular-nums"],
@@ -324,9 +427,30 @@ const styles = StyleSheet.create({
         marginLeft: spacing.md,
     },
     footnote: {
-        fontSize: 12,
+        letterSpacing: 0,
         fontStyle: "italic",
         marginTop: spacing.md,
         paddingHorizontal: spacing.lg,
+    },
+    detailsContainer: {
+        paddingLeft: 32, // indent to show hierarchy
+        paddingRight: 16,
+        paddingBottom: spacing.sm,
+        gap: 4,
+    },
+    detailsRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    detailsLabel: {
+        flex: 1,
+        letterSpacing: 0,
+    },
+    detailsValue: {
+        letterSpacing: 0,
+        textAlign: "right",
+        marginLeft: spacing.md,
+        fontVariant: ["tabular-nums"],
     },
 });

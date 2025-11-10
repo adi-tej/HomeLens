@@ -35,6 +35,7 @@ export type SummaryProps = {
 function Summary({ data, scrollViewRef }: SummaryProps) {
     // Destructure with safe defaults - all values pre-calculated in useMortgageCalculations
     const {
+        state,
         isLivingHere,
         propertyType,
         stampDuty = 0,
@@ -120,16 +121,58 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
             });
         }
 
+        const govtFee = getGovtFee(data.state);
+
         // Append the remaining annual cash flow rows
         annualRows.push(
             {
                 key: "expenses",
                 label: "Expenses",
                 value: formatCurrency(
-                    expenses.oneTimeTotal +
-                        expenses.ongoingTotal +
-                        getGovtFee(data.state),
+                    expenses.oneTimeTotal + expenses.ongoingTotal + govtFee,
                 ),
+                details: [
+                    {
+                        key: "council",
+                        label: "Council",
+                        value: formatCurrency(expenses.ongoing.council),
+                    },
+                    {
+                        key: "water",
+                        label: "Water",
+                        value: formatCurrency(expenses.ongoing.water),
+                    },
+                    {
+                        key: "landTax",
+                        label: "Land tax",
+                        value: formatCurrency(expenses.ongoing.landTax),
+                    },
+                    {
+                        key: "insurance",
+                        label: "Insurance",
+                        value: formatCurrency(expenses.ongoing.insurance),
+                    },
+                    {
+                        key: "propertyManager",
+                        label: "Property manager",
+                        value: formatCurrency(expenses.ongoing.propertyManager),
+                    },
+                    {
+                        key: "maintenance",
+                        label: "Maintenance",
+                        value: formatCurrency(expenses.ongoing.maintenance),
+                    },
+                    {
+                        key: "govt",
+                        label: `Govt fees (${state})`,
+                        value: formatCurrency(govtFee),
+                    },
+                    {
+                        key: "oneTime",
+                        label: "One-time",
+                        value: formatCurrency(expenses.oneTimeTotal),
+                    },
+                ],
             },
             {
                 key: "tax-return",
@@ -231,6 +274,12 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
         netCashFlow,
         expenses.oneTimeTotal,
         expenses.ongoingTotal,
+        expenses.ongoing.council,
+        expenses.ongoing.water,
+        expenses.ongoing.landTax,
+        expenses.ongoing.insurance,
+        expenses.ongoing.propertyManager,
+        expenses.ongoing.maintenance,
         taxReturn,
         spent,
         returns,
