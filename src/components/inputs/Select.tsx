@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Keyboard, Pressable, View } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
-import NativeSelectModal, { Option } from "../primitives/NativeSelectModal";
+import SelectModal, { Option } from "../primitives/SelectModal";
 
 export type SelectProps = {
     label?: string;
@@ -58,7 +58,7 @@ export function Select({
                 </View>
             </Pressable>
 
-            <NativeSelectModal
+            <SelectModal
                 visible={open}
                 options={options}
                 onSelect={(o) => {

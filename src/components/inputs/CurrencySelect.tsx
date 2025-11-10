@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Keyboard, Platform } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
-import NativeSelectModal, { Option } from "../primitives/NativeSelectModal";
+import SelectModal, { Option } from "../primitives/SelectModal";
 import { formatCurrency, parseNumber } from "../../utils/parser";
 
 export type CurrencySelectProps = {
@@ -121,7 +121,7 @@ export function CurrencySelect({
                 }
             />
 
-            <NativeSelectModal
+            <SelectModal
                 visible={open}
                 options={options}
                 onSelect={handleSelect}

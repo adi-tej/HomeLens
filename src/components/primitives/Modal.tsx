@@ -1,6 +1,12 @@
 import React from "react";
 import { StyleSheet, ViewStyle } from "react-native";
-import { IconButton, Modal, Portal, Text, useTheme } from "react-native-paper";
+import {
+    IconButton,
+    Modal as NativeModal,
+    Portal,
+    Text,
+    useTheme,
+} from "react-native-paper";
 import type { KeyboardAwareScrollViewProps } from "react-native-keyboard-controller";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { spacing } from "../../theme/spacing";
@@ -17,7 +23,7 @@ type Props = {
     hideClose?: boolean;
 };
 
-export default function ReusableModal({
+export default function Modal({
     visible,
     onDismiss,
     title,
@@ -29,7 +35,7 @@ export default function ReusableModal({
     const theme = useTheme();
     return (
         <Portal>
-            <Modal
+            <NativeModal
                 visible={visible}
                 onDismiss={onDismiss}
                 contentContainerStyle={[
@@ -76,7 +82,7 @@ export default function ReusableModal({
                         accessibilityLabel="Close"
                     />
                 )}
-            </Modal>
+            </NativeModal>
         </Portal>
     );
 }

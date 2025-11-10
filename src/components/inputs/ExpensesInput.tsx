@@ -6,7 +6,7 @@ import ExpensesForm from "../forms/ExpensesForm";
 import type { Expenses, OngoingExpenses } from "../../types";
 import { DEFAULT_ONGOING_EXPENSES } from "../../utils/defaults";
 import { formatCurrency, parseNumber } from "../../utils/parser";
-import ReusableModal from "../primitives/ReusableModal";
+import Modal from "../primitives/Modal";
 import { calculateOngoingExpenses } from "../../utils/calculations";
 
 export type ExpensesInputProps = {
@@ -204,7 +204,7 @@ export function ExpensesInput({
             />
 
             <Portal>
-                <ReusableModal
+                <Modal
                     visible={modalVisible}
                     onDismiss={closeModal}
                     contentStyle={styles.modalContent}
@@ -222,7 +222,7 @@ export function ExpensesInput({
                         onCancel={closeModal}
                         onSave={handleSave}
                     />
-                </ReusableModal>
+                </Modal>
             </Portal>
         </>
     );

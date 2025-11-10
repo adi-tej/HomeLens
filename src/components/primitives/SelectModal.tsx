@@ -22,7 +22,7 @@ export type NativeSelectModalProps = {
     renderLabel?: (o: Option) => string;
 };
 
-export default function NativeSelectModal({
+export default function SelectModal({
     visible,
     options,
     onSelect,

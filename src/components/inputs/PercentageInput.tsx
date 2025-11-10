@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Keyboard, Platform, View } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
-import NativeSelectModal, { Option } from "../primitives/NativeSelectModal";
+import SelectModal, { Option } from "../primitives/SelectModal";
 import { parseNumber } from "../../utils/parser";
 
 export type PercentageInputProps = {
@@ -116,7 +116,7 @@ export function PercentageInput({
             />
 
             {allowPresets && (
-                <NativeSelectModal
+                <SelectModal
                     visible={open}
                     onCancel={() => setOpen(false)}
                     options={options}

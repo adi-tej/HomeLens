@@ -1,6 +1,6 @@
 import React from "react";
 import { Divider, Text } from "react-native-paper";
-import ReusableModal from "../../components/primitives/ReusableModal";
+import Modal from "../../components/primitives/Modal";
 
 type Props = {
     visible: boolean;
@@ -9,7 +9,7 @@ type Props = {
 
 export default function DisclaimerModal({ visible, onDismiss }: Props) {
     return (
-        <ReusableModal
+        <Modal
             visible={visible}
             onDismiss={onDismiss}
             title="Full disclaimers & privacy"
@@ -66,6 +66,6 @@ export default function DisclaimerModal({ visible, onDismiss }: Props) {
                 For support or questions about HomeLens, please refer to the
                 Help section in the app or contact the development team.
             </Text>
-        </ReusableModal>
+        </Modal>
     );
 }
