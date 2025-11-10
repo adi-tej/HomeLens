@@ -10,7 +10,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 // Lazy load screens for faster initial load and code splitting
 // Each screen is loaded only when user navigates to it
 const Calculator = lazy(() => import("../screens/Calculator"));
-const Insights = lazy(() => import("../screens/Insights"));
+const Insights = lazy(() => import("../screens/Insights/index"));
 const Learn = lazy(() => import("../screens/Learn"));
 const Help = lazy(() => import("../screens/Help"));
 

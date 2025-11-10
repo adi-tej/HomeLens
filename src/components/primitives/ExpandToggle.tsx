@@ -69,7 +69,6 @@ function ExpandToggle({
                     styles.label,
                     {
                         color: theme.colors.onSurface,
-                        fontWeight: isExpanded ? "700" : "600",
                     },
                 ]}
                 numberOfLines={1}
@@ -104,6 +103,7 @@ const styles = StyleSheet.create({
     },
     label: {
         flex: 1,
+        fontWeight: "600",
         letterSpacing: 0.25,
         marginRight: spacing.xs,
     },

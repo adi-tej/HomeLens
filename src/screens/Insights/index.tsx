@@ -1,13 +1,17 @@
 import React, { useDeferredValue, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
-import { spacing } from "../theme/spacing";
-import { useInsightsData } from "../hooks/useInsightsData";
-import Table, { getCellWidth } from "../components/Table";
-import type { Projection } from "../types";
+import { spacing } from "../../theme/spacing";
+import { useInsightsData } from "../../hooks/useInsightsData";
+import Table, { getCellWidth } from "../../components/Table";
+import type { Projection } from "../../types";
+import { useNavigation } from "@react-navigation/native";
+import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import MissingInputsPrompt from "./MissingInputsPrompt";
 
 export default function Insights() {
     const theme = useTheme();
+    const navigation = useNavigation<BottomTabNavigationProp<any>>();
     const { projections, insightsRows, currentScenario } = useInsightsData();
 
     // Defer projections rendering to keep UI responsive
@@ -32,6 +36,27 @@ export default function Insights() {
                 <View style={styles.emptyState}>
                     <Text variant="bodyLarge">No scenario selected</Text>
                 </View>
+            </View>
+        );
+    }
+
+    // Fallback when required inputs are missing
+    const propertyValue = currentScenario.data?.propertyValue;
+    const deposit = currentScenario.data?.deposit;
+    const needsInput =
+        !propertyValue || !deposit || propertyValue <= 0 || deposit <= 0;
+
+    if (needsInput) {
+        return (
+            <View
+                style={[
+                    styles.container,
+                    { backgroundColor: theme.colors.surface },
+                ]}
+            >
+                <MissingInputsPrompt
+                    onGoToCalculator={() => navigation.navigate("Calculator")}
+                />
             </View>
         );
     }
@@ -119,6 +144,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
+        gap: spacing.md,
     },
     cornerCell: {
         flex: 1,

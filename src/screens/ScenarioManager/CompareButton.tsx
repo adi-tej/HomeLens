@@ -1,5 +1,5 @@
-import React from "react";
-import { StyleSheet, View } from "react-native";
+import React, { memo, useCallback } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 import { IconButton, Text, useTheme } from "react-native-paper";
 import { spacing } from "../../theme/spacing";
 
@@ -11,7 +11,7 @@ type Props = {
     onProceed: () => void;
 };
 
-export default function CompareButton({
+function CompareButton({
     comparisonMode,
     selectedCount,
     scenariosCount,
@@ -20,78 +20,118 @@ export default function CompareButton({
 }: Props) {
     const theme = useTheme();
 
+    const canCompare = scenariosCount >= 2;
+    const canProceed = selectedCount >= 2;
+
+    const hitSlop = { top: 16, bottom: 16, left: 24, right: 24 } as const;
+
+    const Action = useCallback(
+        ({
+            icon,
+            label,
+            color,
+            onPress,
+            disabled,
+            accessibilityLabel,
+        }: {
+            icon: string;
+            label: string;
+            color: string;
+            onPress: () => void;
+            disabled?: boolean;
+            accessibilityLabel: string;
+        }) => {
+            // Use onPrimary for active compare/proceed icons
+            const isCompareOrProceed = icon === "compare" || icon === "check";
+            const activeIconColor = isCompareOrProceed
+                ? theme.colors.onPrimary
+                : color;
+            return (
+                <Pressable
+                    onPress={disabled ? undefined : onPress}
+                    hitSlop={hitSlop}
+                    style={styles.pressable}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: Boolean(disabled) }}
+                    accessibilityLabel={accessibilityLabel}
+                >
+                    <IconButton
+                        icon={icon}
+                        mode="contained"
+                        size={24}
+                        iconColor={
+                            disabled
+                                ? theme.colors.onSurfaceDisabled
+                                : activeIconColor
+                        }
+                        containerColor={
+                            icon === "close"
+                                ? theme.colors.surfaceVariant
+                                : theme.colors.secondary
+                        }
+                        onPress={onPress}
+                        style={styles.compareButton}
+                        disabled={disabled}
+                    />
+                    <Text
+                        variant={
+                            icon === "compare" ? "labelLarge" : "labelMedium"
+                        }
+                        style={[styles.compareButtonText, { color: color }]}
+                    >
+                        {label}
+                    </Text>
+                </Pressable>
+            );
+        },
+        [
+            hitSlop,
+            theme.colors.onSurfaceDisabled,
+            theme.colors.surfaceVariant,
+            theme.colors.secondary,
+            theme.colors.onPrimary,
+        ],
+    );
+
     return (
         <View style={styles.compareButtonContainer}>
             {comparisonMode ? (
                 <View style={styles.proceedButtonContainer}>
-                    <View style={styles.buttonWithLabel}>
-                        <IconButton
-                            icon="close"
-                            mode="contained"
-                            size={24}
-                            iconColor={theme.colors.onSurface}
-                            containerColor={theme.colors.surfaceVariant}
-                            onPress={onCompareToggle}
-                            style={styles.compareButton}
-                        />
-                        <Text
-                            variant="labelMedium"
-                            style={[
-                                styles.compareButtonText,
-                                { color: theme.colors.onSurface },
-                            ]}
-                        >
-                            Cancel
-                        </Text>
-                    </View>
-                    <View style={styles.buttonWithLabel}>
-                        <IconButton
-                            icon="check"
-                            mode="contained"
-                            size={24}
-                            iconColor={theme.colors.onPrimary}
-                            containerColor={theme.colors.secondary}
-                            onPress={onProceed}
-                            style={styles.compareButton}
-                            disabled={selectedCount < 2}
-                        />
-                        <Text
-                            variant="labelMedium"
-                            style={[
-                                styles.compareButtonText,
-                                { color: theme.colors.secondary },
-                            ]}
-                        >
-                            Proceed
-                        </Text>
-                    </View>
+                    <Action
+                        icon="close"
+                        label="Cancel"
+                        color={theme.colors.onSurface}
+                        onPress={onCompareToggle}
+                        accessibilityLabel="Cancel comparison mode"
+                    />
+                    <Action
+                        icon="check"
+                        label="Proceed"
+                        color={theme.colors.secondary}
+                        onPress={onProceed}
+                        disabled={!canProceed}
+                        accessibilityLabel="Proceed to comparison"
+                    />
                 </View>
             ) : (
-                <View style={styles.buttonWithLabel}>
-                    <IconButton
-                        icon="compare"
-                        mode="contained"
-                        size={24}
-                        iconColor={theme.colors.onPrimary}
-                        containerColor={theme.colors.secondary}
-                        onPress={onCompareToggle}
-                        style={styles.compareButton}
-                        disabled={scenariosCount < 2}
-                    />
-                    <Text
-                        variant="labelLarge"
-                        style={[
-                            styles.compareButtonText,
-                            { color: theme.colors.secondary },
-                        ]}
-                    >
-                        Compare
-                    </Text>
-                </View>
+                <Action
+                    icon="compare"
+                    label="Compare"
+                    color={theme.colors.secondary}
+                    onPress={onCompareToggle}
+                    disabled={!canCompare}
+                    accessibilityLabel={
+                        canCompare
+                            ? "Enter comparison mode"
+                            : "Add another scenario to compare"
+                    }
+                />
             )}
         </View>
     );
 }
+
+export default memo(CompareButton);
 
 const styles = StyleSheet.create({
     compareButtonContainer: {
@@ -106,8 +146,9 @@ const styles = StyleSheet.create({
         width: "100%",
         gap: spacing.xl,
     },
-    buttonWithLabel: {
+    pressable: {
         alignItems: "center",
+        justifyContent: "center",
     },
     compareButton: {
         margin: 0,
