@@ -101,7 +101,7 @@ export default function Home() {
 
             <View style={styles.footerLinks}>
                 <Button mode="text" onPress={() => nav.navigate("Help")}>
-                    Help & docs
+                    Support
                 </Button>
             </View>
 

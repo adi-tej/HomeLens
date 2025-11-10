@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Button, Text, useTheme } from "react-native-paper";
+import { spacing } from "../../theme/spacing";
 
 type Props = {
     onGetStarted: () => void;
@@ -17,7 +18,10 @@ export default function CTASection({ onGetStarted }: Props) {
                 Take things into your hands
             </Text>
             <Text
-                style={{ color: theme.colors.onSurfaceVariant, marginTop: 6 }}
+                style={[
+                    styles.content,
+                    { color: theme.colors.onSurfaceVariant },
+                ]}
             >
                 Use the Calculator to test scenarios, tweak assumptions in
                 Advanced, and compare outcomes — then act with confidence.
@@ -25,10 +29,7 @@ export default function CTASection({ onGetStarted }: Props) {
             <Button
                 mode="contained"
                 onPress={onGetStarted}
-                style={[
-                    styles.cta,
-                    { marginTop: 12, backgroundColor: theme.colors.primary },
-                ]}
+                style={[styles.cta, { backgroundColor: theme.colors.primary }]}
             >
                 Get started
             </Button>
@@ -37,6 +38,13 @@ export default function CTASection({ onGetStarted }: Props) {
 }
 
 const styles = StyleSheet.create({
-    takeControl: { marginTop: 20, padding: 16, borderRadius: 12 },
-    cta: { marginTop: 12 },
+    takeControl: {
+        marginTop: spacing.xl,
+        padding: spacing.lg,
+        borderRadius: 12,
+    },
+    content: {
+        marginTop: spacing.xs,
+    },
+    cta: { marginTop: spacing.lg },
 });

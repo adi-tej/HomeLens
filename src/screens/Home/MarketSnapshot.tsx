@@ -99,9 +99,12 @@ export default function MarketSnapshot({
                     />
                 </View>
                 <Divider style={{ marginVertical: 12 }} />
-                <Text style={{ color: theme.colors.onSurfaceVariant }}>
-                    Note: numbers above are illustrative. For current market
-                    data, consult official sources or local market reports.
+                <Text
+                    variant="labelMedium"
+                    style={{ color: theme.colors.onSurfaceVariant }}
+                >
+                    💡 numbers above are illustrative. For current market data,
+                    consult official sources or local market reports.
                 </Text>
             </Card.Content>
         </Card>

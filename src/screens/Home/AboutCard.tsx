@@ -1,11 +1,15 @@
 import React from "react";
-import { View } from "react-native";
-import { Button, Card, Text } from "react-native-paper";
+import { StyleSheet, View } from "react-native";
+import { Button, Card, Text, useTheme } from "react-native-paper";
+import { useNavigation } from "@react-navigation/native";
+import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import { useScenarioActions } from "../../state/useScenarioStore";
+import { spacing } from "../../theme/spacing";
 
 type Props = {
-    onOpenDisclaimer: () => void;
-    onStartScenario: () => void;
-    onViewInsights: () => void;
+    onOpenDisclaimer?: () => void;
+    onStartScenario?: () => void;
+    onViewInsights?: () => void;
 };
 
 export default function AboutCard({
@@ -13,34 +17,67 @@ export default function AboutCard({
     onStartScenario,
     onViewInsights,
 }: Props) {
+    const theme = useTheme();
+    const nav = useNavigation<BottomTabNavigationProp<any>>();
+    const { createScenario, setCurrentScenario, updateScenarioData } =
+        useScenarioActions();
+
+    const defaultStart = async () => {
+        const id = createScenario("New scenario");
+        const propertyValue = 800000;
+        const deposit = Math.round(propertyValue * 0.1);
+        updateScenarioData(id, { propertyValue, deposit });
+        setCurrentScenario(id);
+        nav.navigate("Calculator");
+    };
+
+    const defaultInsights = async () => {
+        const id = createScenario("Insights scenario");
+        const propertyValue = 800000;
+        const deposit = Math.round(propertyValue * 0.1);
+        updateScenarioData(id, { propertyValue, deposit });
+        setCurrentScenario(id);
+        nav.navigate("Insights");
+    };
+
     return (
-        <Card style={{ borderRadius: 12, paddingVertical: 4, marginTop: 12 }}>
+        <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
             <Card.Content>
-                <Text variant="titleMedium">About HomeLens</Text>
+                <Text variant="titleMedium" style={styles.title}>
+                    About HomeLens
+                </Text>
 
                 {/* Inline short disclaimer (visible on screen) */}
-                <Text style={{ marginTop: 8, color: "#666" }}>
+                <Text
+                    style={[
+                        styles.disclaimer,
+                        { color: theme.colors.onSurfaceVariant },
+                    ]}
+                >
                     HomeLens is a decision support tool — not a buyer's agent or
                     mortgage broker. It helps you model scenarios, understand
                     costs, and make informed choices.
                 </Text>
 
                 {/* Link to open the full disclaimers & privacy modal */}
-                <View style={{ marginTop: 8 }}>
+                <View style={styles.linkContainer}>
                     <Button mode="text" onPress={onOpenDisclaimer}>
-                        Disclaimer
+                        Full disclaimers & privacy
                     </Button>
                 </View>
 
-                <View style={{ marginTop: 12 }}>
+                <View style={styles.actions}>
                     <Button
                         mode="contained"
-                        onPress={onStartScenario}
-                        style={{ marginBottom: 8 }}
+                        onPress={onStartScenario ?? defaultStart}
+                        style={styles.startButton}
                     >
                         Start with a scenario
                     </Button>
-                    <Button mode="outlined" onPress={onViewInsights}>
+                    <Button
+                        mode="outlined"
+                        onPress={onViewInsights ?? defaultInsights}
+                    >
                         View insights & comparisons
                     </Button>
                 </View>
@@ -48,3 +85,26 @@ export default function AboutCard({
         </Card>
     );
 }
+
+const styles = StyleSheet.create({
+    card: {
+        borderRadius: 12,
+        paddingVertical: spacing.xs,
+        marginTop: spacing.md,
+    },
+    title: {
+        // keep default title styling; spacing is handled by layout
+    },
+    disclaimer: {
+        marginTop: spacing.sm,
+    },
+    linkContainer: {
+        marginTop: spacing.sm,
+    },
+    actions: {
+        marginTop: spacing.md,
+    },
+    startButton: {
+        marginBottom: spacing.sm,
+    },
+});

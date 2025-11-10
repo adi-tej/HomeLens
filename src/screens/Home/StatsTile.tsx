@@ -11,8 +11,12 @@ type Props = {
 export default function StatsTile({ value, label, help }: Props) {
     return (
         <View style={styles.statBox}>
-            <Text style={styles.statValue}>{value}</Text>
-            <Text style={styles.statLabel}>{label}</Text>
+            <Text variant="bodyLarge" style={styles.statValue}>
+                {value}
+            </Text>
+            <Text variant="bodySmall" style={styles.statLabel}>
+                {label}
+            </Text>
             {help ? <Text style={styles.statHelp}>{help}</Text> : null}
         </View>
     );
@@ -21,19 +25,18 @@ export default function StatsTile({ value, label, help }: Props) {
 const styles = StyleSheet.create({
     statBox: {
         flex: 1,
-        marginHorizontal: 6,
-        padding: 12,
+        marginHorizontal: 2,
+        padding: 10,
         borderRadius: 8,
         alignItems: "center",
     },
     statValue: {
-        fontSize: 18,
         fontWeight: "700",
     },
     statLabel: {
+        letterSpacing: 0,
         marginTop: 6,
-        fontSize: 12,
         fontWeight: "600",
     },
-    statHelp: { marginTop: 4, fontSize: 11 },
+    statHelp: { marginTop: 4, letterSpacing: 0, fontSize: 10 },
 });
