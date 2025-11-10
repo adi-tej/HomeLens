@@ -1,10 +1,13 @@
 import React, { memo, useCallback, useMemo, useRef } from "react";
 import { View } from "react-native";
-import type { SummaryCardProps, SummaryCardRow } from "./cards/SummaryCard";
-import SummaryCard from "./cards/SummaryCard";
-import type { PropertyData } from "../types";
-import { formatCurrency } from "../utils/parser";
-import { getGovtFee, QUARTERS_PER_YEAR } from "../utils/defaults";
+import type {
+    SummaryCardProps,
+    SummaryCardRow,
+} from "../../components/cards/SummaryCard";
+import SummaryCard from "../../components/cards/SummaryCard";
+import type { PropertyData } from "../../types";
+import { formatCurrency } from "../../utils/parser";
+import { getGovtFee, QUARTERS_PER_YEAR } from "../../utils/defaults";
 
 /**
  * Props for the Summary component
@@ -32,6 +35,7 @@ export type SummaryProps = {
 function Summary({ data, scrollViewRef }: SummaryProps) {
     // Destructure with safe defaults - all values pre-calculated in useMortgageCalculations
     const {
+        isLivingHere,
         propertyType,
         stampDuty = 0,
         strataFees = 0,
@@ -96,13 +100,16 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
 
     // Memoize cards configuration to prevent recreation on every render
     const cards = useMemo<SummaryCardProps[]>(() => {
-        const annualRows: SummaryCardRow[] = [
-            {
+        const annualRows: SummaryCardRow[] = [];
+
+        // Only show strata levy for townhouse or apartment properties
+        if (!isLivingHere) {
+            annualRows.push({
                 key: "rental",
                 label: "Rental income",
                 value: formatCurrency(rentalIncome),
-            },
-        ];
+            });
+        }
 
         // Only show strata levy for townhouse or apartment properties
         if (propertyType === "townhouse" || propertyType === "apartment") {
@@ -176,8 +183,7 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                 title: "Annual Cash Flow",
                 icon: "cash-multiple",
                 rows: annualRows,
-                footnote:
-                    "💡 Edit rental income, strata and expenses under Advanced → Property Details.",
+                footnote: `💡 Edit${isLivingHere ? "" : " Rental income"}${!isLivingHere && (propertyType === "apartment" || propertyType === "townhouse") ? "," : ""}${propertyType === "apartment" || propertyType === "townhouse" ? " Strata" : ""}${!isLivingHere || propertyType === "apartment" || propertyType === "townhouse" ? " and" : ""} Expenses under Advanced → Property Details.`,
             },
             {
                 title: "Net Position By EOY",

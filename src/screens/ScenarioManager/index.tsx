@@ -10,7 +10,7 @@ import {
     useCurrentScenario,
     useScenarioActions,
 } from "../../state/useScenarioStore";
-import Scenario from "../../components/Scenario";
+import Scenario from "./Scenario";
 import ScenarioInput from "../../components/inputs/ScenarioInput";
 import CompareButton from "./CompareButton";
 import { spacing } from "../../theme/spacing";

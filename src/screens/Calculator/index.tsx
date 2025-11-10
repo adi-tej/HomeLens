@@ -1,12 +1,12 @@
 import React, { useDeferredValue, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
-import ScreenContainer from "../components/primitives/ScreenContainer";
-import PropertyForm from "../components/forms/PropertyForm";
-import Summary from "../components/Summary";
-import { validatePropertyData } from "../utils/calculations";
-import { useCurrentScenario } from "../state/useScenarioStore";
-import { spacing } from "../theme/spacing";
+import ScreenContainer from "../../components/primitives/ScreenContainer";
+import PropertyForm from "../../components/forms/PropertyForm";
+import Summary from "./Summary";
+import { validatePropertyData } from "../../utils/calculations";
+import { useCurrentScenario } from "../../state/useScenarioStore";
+import { spacing } from "../../theme/spacing";
 
 export default function Calculator() {
     const theme = useTheme();
