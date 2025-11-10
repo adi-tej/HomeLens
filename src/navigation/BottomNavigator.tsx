@@ -11,6 +11,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 // Each screen is loaded only when user navigates to it
 const Calculator = lazy(() => import("../screens/Calculator"));
 const Insights = lazy(() => import("../screens/Insights"));
+const Learn = lazy(() => import("../screens/Learn"));
 const Help = lazy(() => import("../screens/Help"));
 
 const Tab = createBottomTabNavigator();
@@ -18,13 +19,13 @@ const Tab = createBottomTabNavigator();
 type MCIconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 
 const iconNameMap: Record<string, MCIconName> = {
-    Home: "information-outline",
     Calculator: "calculator-variant",
     Insights: "view-grid-outline",
+    Learn: "book-open-variant",
     Help: "help-circle-outline",
 };
 
-type RouteName = "Home" | "Calculator" | "Insights" | "Help";
+type RouteName = "Calculator" | "Insights" | "Learn" | "Help";
 
 function screenOptionsFactory(theme: MD3Theme) {
     return ({
@@ -59,6 +60,7 @@ export function BottomNavigator() {
             <Tab.Navigator screenOptions={screenOptions}>
                 <Tab.Screen name="Calculator" component={Calculator} />
                 <Tab.Screen name="Insights" component={Insights} />
+                <Tab.Screen name="Learn" component={Learn} />
                 <Tab.Screen name="Help" component={Help} />
             </Tab.Navigator>
         </View>
