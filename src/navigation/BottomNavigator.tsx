@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 import React, { lazy, useCallback } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import type { MD3Theme } from "react-native-paper";
 import { useTheme } from "react-native-paper";
 import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
@@ -9,7 +9,6 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 // Lazy load screens for faster initial load and code splitting
 // Each screen is loaded only when user navigates to it
-const Home = lazy(() => import("../screens/Home"));
 const Calculator = lazy(() => import("../screens/Calculator"));
 const Insights = lazy(() => import("../screens/Insights"));
 const Help = lazy(() => import("../screens/Help"));
@@ -39,31 +38,16 @@ function screenOptionsFactory(theme: MD3Theme) {
         tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
         lazy: true,
         tabBarHideOnKeyboard: true,
-        tabBarIcon: ({ color, size }) =>
-            // Use the app icon image for Home, keep vector icons for others
-            route.name === "Home" ? (
-                <Image
-                    source={require("../../assets/icon.png")}
-                    style={[
-                        styles.image,
-                        {
-                            width: size,
-                            height: size,
-                            tintColor: color,
-                        },
-                    ]}
-                    resizeMode="contain"
-                />
-            ) : (
-                <MaterialCommunityIcons
-                    name={
-                        (iconNameMap[route.name] ??
-                            "calculator-variant") as MCIconName
-                    }
-                    color={color}
-                    size={size}
-                />
-            ),
+        tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons
+                name={
+                    (iconNameMap[route.name] ??
+                        "calculator-variant") as MCIconName
+                }
+                color={color}
+                size={size}
+            />
+        ),
     });
 }
 
@@ -73,7 +57,6 @@ export function BottomNavigator() {
     return (
         <View style={styles.root}>
             <Tab.Navigator screenOptions={screenOptions}>
-                <Tab.Screen name="Home" component={Home} />
                 <Tab.Screen name="Calculator" component={Calculator} />
                 <Tab.Screen name="Insights" component={Insights} />
                 <Tab.Screen name="Help" component={Help} />

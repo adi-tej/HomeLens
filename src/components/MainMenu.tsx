@@ -1,5 +1,5 @@
-import React from "react";
-import { Image, StyleSheet, View } from "react-native";
+import React, { memo, useCallback, useMemo } from "react";
+import { StyleSheet, View } from "react-native";
 import type { MD3Theme } from "react-native-paper";
 import { Button, Divider, List, Text, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -10,28 +10,52 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { spacing } from "../theme/spacing";
 import { useActiveRoute } from "../state/useAppStore";
 
-export default function MainMenu() {
+interface MenuItem {
+    title: string;
+    icon: string;
+    route: string;
+}
+
+function MainMenu() {
     const theme = useTheme() as MD3Theme;
     const { close } = useLeftDrawer();
     const nav = useNavigation<any>();
-
-    // Use specific selector - only re-renders when route changes
     const activeRouteName = useActiveRoute();
-
     const { themeMode, setThemeMode } = useThemeMode();
     const insets = useSafeAreaInsets();
 
-    function navigateTo(name: string) {
-        close();
-        try {
-            nav.navigate(name as never);
-        } catch {
-            // ignore if route missing
-        }
-    }
+    // Memoize menu configuration so it isn't recreated each render
+    const menuItems = useMemo<MenuItem[]>(
+        () => [
+            {
+                title: "Smart Calculator",
+                icon: "calculator-variant",
+                route: "Calculator",
+            },
+            {
+                title: "Prediction Insights",
+                icon: "view-grid-outline",
+                route: "Insights",
+            },
+            { title: "About", icon: "information-outline", route: "About" },
+            { title: "Contact Us", icon: "email-outline", route: "Contact" },
+        ],
+        [],
+    );
+
+    const navigateTo = useCallback(
+        (name: string) => {
+            close();
+            try {
+                nav.navigate(name as never);
+            } catch {
+                // ignore if route missing
+            }
+        },
+        [close, nav],
+    );
 
     const nextMode = (themeMode ?? "light") === "dark" ? "light" : "dark";
-
     const iconColor = theme.colors.onSurfaceVariant;
     const activeColor = theme.colors.primary;
 
@@ -56,122 +80,28 @@ export default function MainMenu() {
                     }}
                 />
 
-                {/* Home */}
-                <List.Item
-                    title="Home"
-                    titleStyle={{
-                        color:
-                            activeRouteName === "Home"
-                                ? activeColor
-                                : theme.colors.onSurface,
-                    }}
-                    left={() => (
-                        <Image
-                            source={require("../../assets/icon.png")}
-                            style={[
-                                styles.homeIcon,
-                                {
-                                    tintColor:
-                                        activeRouteName === "Home"
-                                            ? activeColor
-                                            : iconColor,
-                                },
-                            ]}
-                            resizeMode="contain"
-                        />
-                    )}
-                    onPress={() => navigateTo("Home")}
-                />
-
-                {/* Smart Calculator */}
-                <List.Item
-                    title="Smart Calculator"
-                    titleStyle={{
-                        color:
-                            activeRouteName === "Calculator"
-                                ? activeColor
-                                : theme.colors.onSurface,
-                    }}
-                    left={(p) => (
-                        <List.Icon
-                            {...p}
-                            icon="calculator-variant"
-                            color={
-                                activeRouteName === "Calculator"
+                {menuItems.map((item) => {
+                    const isActive = activeRouteName === item.route;
+                    return (
+                        <List.Item
+                            key={item.route}
+                            title={item.title}
+                            titleStyle={{
+                                color: isActive
                                     ? activeColor
-                                    : iconColor
-                            }
+                                    : theme.colors.onSurface,
+                            }}
+                            left={(p) => (
+                                <List.Icon
+                                    {...p}
+                                    icon={item.icon}
+                                    color={isActive ? activeColor : iconColor}
+                                />
+                            )}
+                            onPress={() => navigateTo(item.route)}
                         />
-                    )}
-                    onPress={() => navigateTo("Calculator")}
-                />
-
-                {/* Prediction Insights */}
-                <List.Item
-                    title="Prediction Insights"
-                    titleStyle={{
-                        color:
-                            activeRouteName === "Insights"
-                                ? activeColor
-                                : theme.colors.onSurface,
-                    }}
-                    left={(p) => (
-                        <List.Icon
-                            {...p}
-                            icon="view-grid-outline"
-                            color={
-                                activeRouteName === "Insights"
-                                    ? activeColor
-                                    : iconColor
-                            }
-                        />
-                    )}
-                    onPress={() => navigateTo("Insights")}
-                />
-
-                {/* Keep other items */}
-                <List.Item
-                    title="About"
-                    titleStyle={{
-                        color:
-                            activeRouteName === "About"
-                                ? activeColor
-                                : theme.colors.onSurface,
-                    }}
-                    left={(p) => (
-                        <List.Icon
-                            {...p}
-                            icon="information-outline"
-                            color={
-                                activeRouteName === "About"
-                                    ? activeColor
-                                    : iconColor
-                            }
-                        />
-                    )}
-                    onPress={() => navigateTo("About")}
-                />
-                <List.Item
-                    title="Contact Us"
-                    titleStyle={{
-                        color:
-                            activeRouteName === "Contact"
-                                ? activeColor
-                                : theme.colors.onSurface,
-                    }}
-                    left={(p) => (
-                        <List.Icon
-                            {...p}
-                            icon="email-outline"
-                            color={
-                                activeRouteName === "Contact"
-                                    ? activeColor
-                                    : iconColor
-                            }
-                        />
-                    )}
-                    onPress={() => navigateTo("Contact")}
-                />
+                    );
+                })}
             </View>
             <View
                 style={[
@@ -201,6 +131,8 @@ export default function MainMenu() {
         </View>
     );
 }
+
+export default memo(MainMenu);
 
 const styles = StyleSheet.create({
     container: {

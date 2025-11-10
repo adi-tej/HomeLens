@@ -13,7 +13,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { ThemeMode, ThemeModeContext } from "./src/state/ThemeModeContext";
-import { AppProvider } from "./src/state/AppContext";
 import { darkTheme, lightTheme } from "./src/theme/theme";
 import ActiveRouteSync from "./src/navigation/ActiveRouteSync";
 
@@ -63,12 +62,10 @@ export default function App() {
                                 ref={navigationRef}
                                 theme={navTheme}
                             >
-                                <AppProvider>
-                                    <ActiveRouteSync
-                                        navigationRef={navigationRef}
-                                    />
-                                    <RootNavigator />
-                                </AppProvider>
+                                <ActiveRouteSync
+                                    navigationRef={navigationRef}
+                                />
+                                <RootNavigator />
                             </NavigationContainer>
                         </GestureHandlerRootView>
                     </ThemeModeContext.Provider>
