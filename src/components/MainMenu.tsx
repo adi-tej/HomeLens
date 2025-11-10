@@ -8,13 +8,16 @@ import { useNavigation } from "@react-navigation/native";
 import { useThemeMode } from "../state/ThemeModeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { spacing } from "../theme/spacing";
-import { useAppContext } from "../state/AppContext";
+import { useActiveRoute } from "../state/useAppStore";
 
 export default function MainMenu() {
     const theme = useTheme() as MD3Theme;
     const { close } = useLeftDrawer();
     const nav = useNavigation<any>();
-    const { activeRouteName } = useAppContext();
+
+    // Use specific selector - only re-renders when route changes
+    const activeRouteName = useActiveRoute();
+
     const { themeMode, setThemeMode } = useThemeMode();
     const insets = useSafeAreaInsets();
 

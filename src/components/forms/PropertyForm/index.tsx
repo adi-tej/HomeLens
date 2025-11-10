@@ -107,15 +107,21 @@ export default function PropertyForm() {
     );
 
     // Animated styles for smooth expand/collapse
-    const animatedContentStyle = useAnimatedStyle(() => ({
+    // Separate into multiple hooks for better performance - React can optimize these independently
+    const heightAndOpacityStyle = useAnimatedStyle(() => ({
         maxHeight: progress.value * ESTIMATED_MAX_HEIGHT,
         opacity: progress.value,
+    }));
+
+    const spacingStyle = useAnimatedStyle(() => ({
         marginTop: progress.value * spacing.sm,
+    }));
+
+    const transformStyle = useAnimatedStyle(() => ({
         transform: [
             {
-                translateY: withTiming(progress.value === 0 ? -8 : 0, {
-                    duration: 200,
-                }),
+                // Remove nested withTiming - progress.value is already animated
+                translateY: progress.value === 0 ? -8 : 0,
             },
         ],
     }));
@@ -160,7 +166,12 @@ export default function PropertyForm() {
 
                 {/* Animated Advanced Content */}
                 <Animated.View
-                    style={[styles.animatedContainer, animatedContentStyle]}
+                    style={[
+                        styles.animatedContainer,
+                        heightAndOpacityStyle,
+                        spacingStyle,
+                        transformStyle,
+                    ]}
                 >
                     <View
                         style={[

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { Dimensions } from "react-native";
 import type { SharedValue } from "react-native-reanimated";
-import { useAppContext } from "../state/AppContext";
+import { useAppActions } from "../state/useAppStore";
 import {
     closeDrawer,
     drawerProgress,
@@ -25,7 +25,8 @@ export type DrawerState = {
 export { SPRING_CONFIG };
 
 export function useDrawer(side: Side): DrawerState {
-    const { setDrawerOpen } = useAppContext();
+    // Use action-only selector - never re-renders
+    const { setDrawerOpen } = useAppActions();
 
     const { leftOpen, rightOpen } = useSyncExternalStore(
         subscribeDrawer,

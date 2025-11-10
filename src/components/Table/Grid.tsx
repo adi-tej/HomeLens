@@ -62,10 +62,16 @@ export default function Grid<T>({
     const theme = useTheme();
     const mainScrollRef = useRef<any>(null);
     const verticalScrollRef = useRef<any>(null);
-    const scrollY = useRef(new Animated.Value(0)).current;
-    const scrollX = useRef(new Animated.Value(0)).current;
 
-    const contentWidth = columns.length * cellWidth;
+    // Memoize Animated.Value creation to prevent recreation on every render
+    const scrollY = useMemo(() => new Animated.Value(0), []);
+    const scrollX = useMemo(() => new Animated.Value(0), []);
+
+    // Memoize content width calculation
+    const contentWidth = useMemo(
+        () => columns.length * cellWidth,
+        [columns.length, cellWidth],
+    );
 
     // Precompute row heights for stable layout
     const rowHeights = useMemo(
@@ -74,6 +80,25 @@ export default function Grid<T>({
                 getRowHeight ? getRowHeight(row) : TABLE_CONFIG.rowHeight,
             ),
         [rows, getRowHeight],
+    );
+
+    // Memoize scroll event handlers for better performance
+    const horizontalScrollHandler = useMemo(
+        () =>
+            Animated.event(
+                [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                { useNativeDriver: true },
+            ),
+        [scrollX],
+    );
+
+    const verticalScrollHandler = useMemo(
+        () =>
+            Animated.event(
+                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                { useNativeDriver: true },
+            ),
+        [scrollY],
     );
 
     return (
@@ -150,10 +175,7 @@ export default function Grid<T>({
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 scrollEventThrottle={16}
-                onScroll={Animated.event(
-                    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-                    { useNativeDriver: true },
-                )}
+                onScroll={horizontalScrollHandler}
                 style={styles.mainScrollView}
                 contentContainerStyle={{
                     width: TABLE_CONFIG.labelWidth + contentWidth,
@@ -172,16 +194,7 @@ export default function Grid<T>({
                         ref={verticalScrollRef}
                         showsVerticalScrollIndicator={false}
                         scrollEventThrottle={16}
-                        onScroll={Animated.event(
-                            [
-                                {
-                                    nativeEvent: {
-                                        contentOffset: { y: scrollY },
-                                    },
-                                },
-                            ],
-                            { useNativeDriver: true },
-                        )}
+                        onScroll={verticalScrollHandler}
                         contentContainerStyle={{
                             paddingBottom: spacing.lg,
                         }}
@@ -190,7 +203,7 @@ export default function Grid<T>({
                         directionalLockEnabled={false}
                         decelerationRate="normal"
                         bounces={false}
-                        removeClippedSubviews={false}
+                        removeClippedSubviews={true}
                         disallowInterruption={true}
                     >
                         {rows.map((row, index) => {

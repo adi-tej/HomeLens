@@ -3,6 +3,7 @@ import Reanimated, {
     Extrapolation,
     interpolate,
     useAnimatedStyle,
+    useDerivedValue,
 } from "react-native-reanimated";
 import { useLeftDrawer, useRightDrawer } from "../hooks/useDrawer";
 import Drawer from "../components/Drawer";
@@ -11,7 +12,7 @@ import { BottomNavigator } from "./BottomNavigator";
 import MainMenu from "../components/MainMenu";
 import OverlayPanel from "../components/primitives/OverlayPanel";
 import LoadingScreen from "../components/primitives/LoadingScreen";
-import { useAppContext } from "../state/AppContext";
+import { useAppActions, useCompareScreenState } from "../state/useAppStore";
 
 // Lazy load heavy components for better initial load performance
 const ScenarioManager = lazy(() => import("../screens/ScenarioManager"));
@@ -21,22 +22,40 @@ export function RootNavigator() {
     const { progress: progressRight } = useRightDrawer();
     const { progress: progressLeft, drawerWidth: drawerWidthLeft } =
         useLeftDrawer();
-    const { isCompareScreenActive, setCompareScreenActive } = useAppContext();
 
-    const translate = useAnimatedStyle(() => {
-        const translateRight = interpolate(
+    // Use specific selector - only re-renders when compare screen state changes
+    const isCompareScreenActive = useCompareScreenState();
+
+    // Get action without subscribing to state
+    const { setCompareScreenActive } = useAppActions();
+
+    // Use useDerivedValue for interpolations to avoid recalculating on every frame
+    // This separates the interpolation logic from the style application
+    const translateRight = useDerivedValue(() => {
+        return interpolate(
             progressRight.value,
             [0, 1],
             [0, -drawerWidthLeft],
             Extrapolation.CLAMP,
         );
-        const translateLeft = interpolate(
+    }, [drawerWidthLeft]);
+
+    const translateLeft = useDerivedValue(() => {
+        return interpolate(
             progressLeft.value,
             [0, 1],
             [0, drawerWidthLeft],
             Extrapolation.CLAMP,
         );
-        return { transform: [{ translateX: translateLeft + translateRight }] };
+    }, [drawerWidthLeft]);
+
+    // Now just combine the derived values in the style
+    const translate = useAnimatedStyle(() => {
+        return {
+            transform: [
+                { translateX: translateLeft.value + translateRight.value },
+            ],
+        };
     });
 
     return (

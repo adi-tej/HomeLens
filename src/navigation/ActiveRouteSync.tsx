@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import type { NavigationContainerRef } from "@react-navigation/native";
-import { useAppContext } from "../state/AppContext";
+import { useAppActions } from "../state/useAppStore";
 
 function getDeepActiveName(state: any): string | undefined {
     if (!state) return undefined;
@@ -15,7 +15,8 @@ export default function ActiveRouteSync({
 }: {
     navigationRef: React.RefObject<NavigationContainerRef<any>> | null;
 }) {
-    const { setActiveRouteName } = useAppContext();
+    // Use action-only selector - never re-renders
+    const { setActiveRouteName } = useAppActions();
     const lastNameRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {

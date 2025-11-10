@@ -5,13 +5,18 @@ import Reanimated, {
     cancelAnimation,
     runOnJS,
     useAnimatedStyle,
+    useDerivedValue,
     useSharedValue,
     withSpring,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "react-native-paper";
 import { SPRING_CONFIG, useDrawer } from "../hooks/useDrawer";
-import { useAppContext } from "../state/AppContext";
+import {
+    useAppActions,
+    useCompareScreenState,
+    useDrawerState,
+} from "../state/useAppStore";
 import { useComparisonState } from "../state/useScenarioStore";
 
 type Side = "left" | "right";
@@ -23,8 +28,16 @@ type Props = {
 
 export default function Drawer({ side, children }: Props) {
     const { progress, drawerWidth, isOpen, open, close } = useDrawer(side);
-    const { isDrawerOpen, isCompareScreenActive, setCompareScreenActive } =
-        useAppContext();
+
+    // Use specific selector to only re-render when drawer state changes
+    const isDrawerOpen = useDrawerState();
+
+    // Use specific selector to only re-render when compare screen state changes
+    const isCompareScreenActive = useCompareScreenState();
+
+    // Get actions without subscribing to state (never re-renders)
+    const { setCompareScreenActive } = useAppActions();
+
     const { comparisonMode, setComparisonMode, clearSelectedScenarios } =
         useComparisonState();
     const insets = useSafeAreaInsets();
@@ -32,6 +45,14 @@ export default function Drawer({ side, children }: Props) {
     const isGestureActive = useSharedValue(false);
     const isLeft = side === "left";
     const HEADER_BLOCK = insets.top + (Platform.OS === "ios" ? 64 : 56);
+
+    // Memoize drawerWidth as shared value for better animation performance
+    const drawerWidthValue = useSharedValue(drawerWidth);
+
+    // Update shared value when drawerWidth changes
+    useEffect(() => {
+        drawerWidthValue.value = drawerWidth;
+    }, [drawerWidth, drawerWidthValue]);
 
     // Disable right drawer gestures when Compare screen is active
     const isGestureEnabled = isLeft || !isCompareScreenActive;
@@ -136,15 +157,16 @@ export default function Drawer({ side, children }: Props) {
         true,
     );
 
-    // Animated styles
+    // Use useDerivedValue for translation calculation - runs on UI thread, more efficient
+    const translateX = useDerivedValue(() => {
+        return isLeft
+            ? (progress.value - 1) * drawerWidthValue.value
+            : (1 - progress.value) * drawerWidthValue.value;
+    }, [isLeft]);
+
+    // Animated styles - now just applies the derived value
     const drawerStyle = useAnimatedStyle(() => ({
-        transform: [
-            {
-                translateX: isLeft
-                    ? (progress.value - 1) * drawerWidth
-                    : (1 - progress.value) * drawerWidth,
-            },
-        ],
+        transform: [{ translateX: translateX.value }],
     }));
 
     const scrimStyle = useAnimatedStyle(() => ({

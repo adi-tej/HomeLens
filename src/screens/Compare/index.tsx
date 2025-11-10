@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAppContext } from "../../state/AppContext";
+import { useAppActions } from "../../state/useAppStore";
 import { spacing } from "../../theme/spacing";
 import { useComparisonData } from "../../hooks/useComparisonData";
 import Table, { getCellWidth, TABLE_CONFIG } from "../../components/Table";
@@ -12,7 +12,10 @@ import EmptyState from "./EmptyState";
 export default function Compare() {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
-    const { setCompareScreenActive } = useAppContext();
+
+    // Use action-only selector - never re-renders
+    const { setCompareScreenActive } = useAppActions();
+
     const { selectedScenarioList, comparisonRows } = useComparisonData();
 
     const handleBack = useCallback(() => {

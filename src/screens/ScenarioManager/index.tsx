@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { Divider, IconButton, Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenContainer from "../../components/primitives/ScreenContainer";
-import { useAppContext } from "../../state/AppContext";
+import { useAppActions } from "../../state/useAppStore";
 import {
     useAllScenarios,
     useComparisonState,
@@ -18,7 +18,10 @@ import { spacing } from "../../theme/spacing";
 export default function ScenarioManager() {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
-    const { setCompareScreenActive } = useAppContext();
+
+    // Use action-only selector - never re-renders
+    const { setCompareScreenActive } = useAppActions();
+
     const scenarios = useAllScenarios();
     const { scenarioId: currentScenarioId } = useCurrentScenario();
     const {

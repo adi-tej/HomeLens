@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Avatar, Button, Text, useTheme } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
@@ -35,19 +35,25 @@ export default function Home() {
     // Disclaimer modal
     const [showDisclaimer, setShowDisclaimer] = useState(false);
 
-    const fetchMockStats = async () => {
+    const fetchMockStats = useCallback(async () => {
         setLoadingStats(true);
-        // simulate network delay
-        await new Promise((r) => setTimeout(r, 700));
-        // Mocked illustrative numbers showing strong market moves
-        setStatsData({ price: 950000, growth: 42.3, yield: 3.8 });
-        setLoadingStats(false);
-    };
+        try {
+            // simulate network delay
+            await new Promise((r) => setTimeout(r, 700));
+            // Mocked illustrative numbers showing strong market moves
+            setStatsData({ price: 950000, growth: 42.3, yield: 3.8 });
+        } catch (error) {
+            // Handle any errors gracefully
+            console.error("Error fetching stats:", error);
+        } finally {
+            setLoadingStats(false);
+        }
+    }, []);
 
     useEffect(() => {
-        // On mount, load mock stats
-        fetchMockStats();
-    }, []);
+        // On mount, load mock stats - properly handle the Promise
+        void fetchMockStats();
+    }, [fetchMockStats]);
 
     return (
         <ScreenContainer

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 /**
  * Custom hook to debounce function calls
@@ -39,29 +39,4 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
         }) as T,
         [delay],
     );
-}
-
-/**
- * Hook to debounce a value
- * @param value - Value to debounce
- * @param delay - Delay in milliseconds
- * @returns [debouncedValue, isPending]
- */
-export function useDebounce<T>(value: T, delay: number): [T, boolean] {
-    const [debouncedValue, setDebouncedValue] = React.useState<T>(value);
-    const [isPending, setIsPending] = React.useState(false);
-
-    React.useEffect(() => {
-        setIsPending(true);
-        const handler = setTimeout(() => {
-            setDebouncedValue(value);
-            setIsPending(false);
-        }, delay);
-
-        return () => {
-            clearTimeout(handler);
-        };
-    }, [value, delay]);
-
-    return [debouncedValue, isPending];
 }
