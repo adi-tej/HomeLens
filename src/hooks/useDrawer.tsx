@@ -1,10 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { Dimensions } from "react-native";
 import type { SharedValue } from "react-native-reanimated";
-import { makeMutable } from "react-native-reanimated";
 import { useAppContext } from "../state/AppContext";
-
-type Side = "left" | "right";
+import {
+    closeDrawer,
+    drawerProgress,
+    getDrawerSnapshot,
+    openDrawer,
+    type Side,
+    SPRING_CONFIG,
+    subscribeDrawer,
+    toggleDrawer,
+} from "../state/useDrawerStore";
 
 export type DrawerState = {
     isOpen: boolean;
@@ -15,72 +22,33 @@ export type DrawerState = {
     toggle: () => void;
 };
 
-// Global state
-const state = {
-    left: { isOpen: false },
-    right: { isOpen: false },
-};
-
-const progress = {
-    left: makeMutable(0),
-    right: makeMutable(0),
-};
-
-const listeners = new Set<() => void>();
-
-const notify = () => listeners.forEach((fn) => fn());
-
-const openDrawer = (side: Side) => {
-    const other = side === "left" ? "right" : "left";
-    if (state[other].isOpen) state[other].isOpen = false;
-    state[side].isOpen = true;
-    notify();
-};
-
-const closeDrawer = (side: Side) => {
-    state[side].isOpen = false;
-    notify();
-};
-
-const toggleDrawer = (side: Side) => {
-    if (state[side].isOpen) {
-        state[side].isOpen = false;
-    } else {
-        const other = side === "left" ? "right" : "left";
-        if (state[other].isOpen) state[other].isOpen = false;
-        state[side].isOpen = true;
-    }
-    notify();
-};
+export { SPRING_CONFIG };
 
 export function useDrawer(side: Side): DrawerState {
     const { setDrawerOpen } = useAppContext();
-    const [, forceUpdate] = useState({});
 
-    // Subscribe to state changes
-    useEffect(() => {
-        const listener = () => forceUpdate({});
-        listeners.add(listener);
-        return () => {
-            listeners.delete(listener);
-        };
-    }, []);
+    const { leftOpen, rightOpen } = useSyncExternalStore(
+        subscribeDrawer,
+        getDrawerSnapshot,
+        getDrawerSnapshot,
+    );
 
-    // Sync global drawer state with AppContext
     useEffect(() => {
-        setDrawerOpen(state.left.isOpen || state.right.isOpen);
-    }, [state.left.isOpen, state.right.isOpen, setDrawerOpen]);
+        setDrawerOpen(leftOpen || rightOpen);
+    }, [leftOpen, rightOpen, setDrawerOpen]);
+
+    const screenWidth = Dimensions.get("window").width;
+    const drawerWidth = Math.min(360, Math.round(screenWidth * 0.8));
 
     const open = useCallback(() => openDrawer(side), [side]);
     const close = useCallback(() => closeDrawer(side), [side]);
     const toggle = useCallback(() => toggleDrawer(side), [side]);
 
-    const screenWidth = Dimensions.get("window").width;
-    const drawerWidth = Math.min(360, Math.round(screenWidth * 0.8));
+    const isOpen = side === "left" ? leftOpen : rightOpen;
 
     return {
-        isOpen: state[side].isOpen,
-        progress: progress[side],
+        isOpen,
+        progress: drawerProgress[side],
         drawerWidth,
         open,
         close,

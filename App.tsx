@@ -41,9 +41,13 @@ export default function App() {
     const isDark = (themeMode ?? systemScheme) === "dark";
 
     const paperTheme = isDark ? darkTheme : lightTheme;
-    const navTheme = toNavigationTheme(
-        paperTheme,
-        isDark ? NavDarkTheme : NavDefaultTheme,
+    const navTheme = useMemo(
+        () =>
+            toNavigationTheme(
+                paperTheme,
+                isDark ? NavDarkTheme : NavDefaultTheme,
+            ),
+        [paperTheme, isDark],
     );
 
     const themeCtx = useMemo(() => ({ themeMode, setThemeMode }), [themeMode]);

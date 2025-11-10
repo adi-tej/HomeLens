@@ -10,7 +10,7 @@ import Reanimated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "react-native-paper";
-import { useDrawer } from "../hooks/useDrawer";
+import { SPRING_CONFIG, useDrawer } from "../hooks/useDrawer";
 import { useAppContext } from "../state/AppContext";
 import { useComparisonState } from "../state/useScenarioStore";
 
@@ -20,25 +20,6 @@ type Props = {
     side: Side;
     children?: React.ReactNode;
 };
-
-const SPRING_CONFIG = Platform.select({
-    android: {
-        damping: 30,
-        mass: 1,
-        stiffness: 350,
-        overshootClamping: false,
-        restDisplacementThreshold: 0.01,
-        restSpeedThreshold: 0.01,
-    },
-    default: {
-        damping: 25,
-        mass: 0.8,
-        stiffness: 300,
-        overshootClamping: false,
-        restDisplacementThreshold: 0.01,
-        restSpeedThreshold: 0.01,
-    },
-});
 
 export default function Drawer({ side, children }: Props) {
     const { progress, drawerWidth, isOpen, open, close } = useDrawer(side);
@@ -73,13 +54,6 @@ export default function Drawer({ side, children }: Props) {
         clearSelectedScenarios,
         setCompareScreenActive,
     ]);
-
-    // Sync progress with isOpen state
-    useEffect(() => {
-        const targetValue = isOpen ? 1 : 0;
-        cancelAnimation(progress);
-        progress.value = withSpring(targetValue, SPRING_CONFIG);
-    }, [isOpen, progress]);
 
     // Gesture factory
     const createGesture = useMemo(

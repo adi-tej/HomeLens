@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,9 +15,9 @@ export default function Compare() {
     const { setCompareScreenActive } = useAppContext();
     const { selectedScenarioList, comparisonRows } = useComparisonData();
 
-    const handleBack = () => {
+    const handleBack = useCallback(() => {
         setCompareScreenActive(false);
-    };
+    }, [setCompareScreenActive]);
 
     // Create columns from scenarios
     const columns = useMemo(
@@ -31,11 +31,11 @@ export default function Compare() {
     );
 
     // Function to determine row height based on whether it's a section header
-    const getRowHeight = (row: any) => {
+    const getRowHeight = useCallback((row: any) => {
         return row.section === "header"
             ? TABLE_CONFIG.headerHeight
             : TABLE_CONFIG.rowHeight;
-    };
+    }, []);
 
     // Calculate cell width based on number of scenarios
     const cellWidth = getCellWidth("compare", selectedScenarioList.length);

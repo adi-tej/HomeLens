@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import React from "react";
+import React, { useCallback } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import type { MD3Theme } from "react-native-paper";
 import { useTheme } from "react-native-paper";
@@ -35,6 +35,8 @@ function screenOptionsFactory(theme: MD3Theme) {
         tabBarStyle: { backgroundColor: theme.colors.surface },
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
+        lazy: true,
+        tabBarHideOnKeyboard: true,
         tabBarIcon: ({ color, size }) =>
             // Use the app icon image for Home, keep vector icons for others
             route.name === "Home" ? (
@@ -65,9 +67,10 @@ function screenOptionsFactory(theme: MD3Theme) {
 
 export function BottomNavigator() {
     const theme = useTheme() as MD3Theme;
+    const screenOptions = useCallback(screenOptionsFactory(theme), [theme]);
     return (
         <View style={styles.root}>
-            <Tab.Navigator screenOptions={screenOptionsFactory(theme)}>
+            <Tab.Navigator screenOptions={screenOptions}>
                 <Tab.Screen name="Home" component={Home} />
                 <Tab.Screen name="Calculator" component={Calculator} />
                 <Tab.Screen name="Insights" component={Insights} />
