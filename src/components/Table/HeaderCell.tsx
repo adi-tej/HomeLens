@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
 import { spacing } from "../../theme/spacing";
@@ -10,7 +10,7 @@ interface HeaderCellProps {
     cellWidth?: number;
 }
 
-export default function HeaderCell({
+function HeaderCell({
     name,
     theme,
     cellWidth = TABLE_CONFIG.cellWidth,
@@ -26,6 +26,8 @@ export default function HeaderCell({
         </View>
     );
 }
+
+export default memo(HeaderCell);
 
 const styles = StyleSheet.create({
     container: {

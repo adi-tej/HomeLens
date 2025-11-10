@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { create } from "zustand";
 import { type PropertyData } from "../types";
 import { calculatePropertyData } from "../utils/calculations";
@@ -17,6 +16,7 @@ export interface Scenario {
 interface ScenarioStore {
     // State
     scenarios: Map<ScenarioId, Scenario>;
+    scenariosArray: Scenario[]; // Cached sorted array for performance
     currentScenarioId: ScenarioId | null;
     comparisonMode: boolean;
     selectedScenarios: Set<ScenarioId>;
@@ -56,9 +56,17 @@ const createDefaultScenario = (): [ScenarioId, Scenario] => {
 export const useScenarioStore = create<ScenarioStore>((set, get) => {
     const [defaultId, defaultScenario] = createDefaultScenario();
 
+    // Helper to regenerate sorted array from Map
+    const updateScenariosArray = (scenariosMap: Map<ScenarioId, Scenario>) => {
+        return Array.from(scenariosMap.values()).sort(
+            (a, b) => a.createdAt - b.createdAt,
+        );
+    };
+
     return {
         // Initial State
         scenarios: new Map([[defaultId, defaultScenario]]),
+        scenariosArray: [defaultScenario], // Cached sorted array
         currentScenarioId: defaultId,
         comparisonMode: false,
         selectedScenarios: new Set(),
@@ -72,10 +80,7 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => {
         },
 
         getAllScenarios: () => {
-            const { scenarios } = get();
-            return Array.from(scenarios.values()).sort(
-                (a, b) => a.createdAt - b.createdAt,
-            );
+            return get().scenariosArray;
         },
 
         // Actions
@@ -92,7 +97,10 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => {
             set((state) => {
                 const updated = new Map(state.scenarios);
                 updated.set(id, newScenario);
-                return { scenarios: updated };
+                return {
+                    scenarios: updated,
+                    scenariosArray: updateScenariosArray(updated),
+                };
             });
 
             return id;
@@ -113,9 +121,7 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => {
                 // If deleting current scenario, switch selection
                 let newCurrentId = state.currentScenarioId;
                 if (currentScenarioId === id) {
-                    const allScenarios = Array.from(
-                        state.scenarios.values(),
-                    ).sort((a, b) => a.createdAt - b.createdAt);
+                    const allScenarios = state.scenariosArray;
                     const currentIndex = allScenarios.findIndex(
                         (s) => s.id === id,
                     );
@@ -127,7 +133,11 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => {
                     }
                 }
 
-                return { scenarios: next, currentScenarioId: newCurrentId };
+                return {
+                    scenarios: next,
+                    scenariosArray: updateScenariosArray(next),
+                    currentScenarioId: newCurrentId,
+                };
             });
         },
 
@@ -143,7 +153,10 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => {
                     updatedAt: Date.now(),
                 });
 
-                return { scenarios: updated };
+                return {
+                    scenarios: updated,
+                    scenariosArray: updateScenariosArray(updated),
+                };
             });
         },
 
@@ -159,6 +172,9 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => {
                 };
 
                 // Recalculate all mortgage values
+                // NOTE: This is expensive (~5-year projections).
+                // Debouncing at component level reduces frequency.
+                // Future optimization: Move to Web Worker for true async
                 const calculatedData = calculatePropertyData(mergedData);
 
                 const updated = new Map(state.scenarios);
@@ -168,7 +184,10 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => {
                     updatedAt: Date.now(),
                 });
 
-                return { scenarios: updated };
+                return {
+                    scenarios: updated,
+                    scenariosArray: updateScenariosArray(updated),
+                };
             });
         },
 
@@ -249,16 +268,9 @@ export function useComparisonState() {
 }
 
 /**
- * Only subscribes to all scenarios list - for scenario manager
- * Memoized to prevent infinite re-renders
+ * Only subscribes to scenarios array - optimized with cached sorted array
+ * This hook now reads a pre-computed array instead of recreating it on every access
  */
 export function useAllScenarios() {
-    const scenarios = useScenarioStore((state) => state.scenarios);
-    return useMemo(
-        () =>
-            Array.from(scenarios.values()).sort(
-                (a, b) => a.createdAt - b.createdAt,
-            ),
-        [scenarios],
-    );
+    return useScenarioStore((state) => state.scenariosArray);
 }

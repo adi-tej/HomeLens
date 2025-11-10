@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text, TextInput, useTheme } from "react-native-paper";
 import { CheckBox, PercentageInput, SegmentedToggle } from "../../inputs";
@@ -19,7 +19,7 @@ interface LoanSettingsSectionProps {
     pendingDepositRef: React.MutableRefObject<number | null>;
 }
 
-export default function LoanSettingsSection({
+function LoanSettingsSection({
     data,
     onUpdate,
     lvrText,
@@ -173,6 +173,8 @@ export default function LoanSettingsSection({
         </View>
     );
 }
+
+export default memo(LoanSettingsSection);
 
 const styles = StyleSheet.create({
     section: {

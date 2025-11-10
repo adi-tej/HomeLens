@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import React, { useCallback } from "react";
+import React, { lazy, useCallback } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import type { MD3Theme } from "react-native-paper";
 import { useTheme } from "react-native-paper";
@@ -7,10 +7,12 @@ import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-import Insights from "../screens/Insights";
-import Help from "../screens/Help";
-import Calculator from "../screens/Calculator";
-import Home from "../screens/Home";
+// Lazy load screens for faster initial load and code splitting
+// Each screen is loaded only when user navigates to it
+const Home = lazy(() => import("../screens/Home"));
+const Calculator = lazy(() => import("../screens/Calculator"));
+const Insights = lazy(() => import("../screens/Insights"));
+const Help = lazy(() => import("../screens/Help"));
 
 const Tab = createBottomTabNavigator();
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import Reanimated, {
     Extrapolation,
     interpolate,
@@ -8,11 +8,14 @@ import { useLeftDrawer, useRightDrawer } from "../hooks/useDrawer";
 import Drawer from "../components/Drawer";
 import AppHeader from "../components/AppHeader";
 import { BottomNavigator } from "./BottomNavigator";
-import ScenarioManager from "../screens/ScenarioManager";
 import MainMenu from "../components/MainMenu";
 import OverlayPanel from "../components/primitives/OverlayPanel";
-import Compare from "../screens/Compare";
+import LoadingScreen from "../components/primitives/LoadingScreen";
 import { useAppContext } from "../state/AppContext";
+
+// Lazy load heavy components for better initial load performance
+const ScenarioManager = lazy(() => import("../screens/ScenarioManager"));
+const Compare = lazy(() => import("../screens/Compare"));
 
 export function RootNavigator() {
     const { progress: progressRight } = useRightDrawer();
@@ -40,7 +43,10 @@ export function RootNavigator() {
         <>
             <Reanimated.View style={[{ flex: 1 }, translate]}>
                 <AppHeader />
-                <BottomNavigator />
+                {/* Suspense wrapper for lazy-loaded screens */}
+                <Suspense fallback={<LoadingScreen />}>
+                    <BottomNavigator />
+                </Suspense>
             </Reanimated.View>
 
             <Drawer side="left">
@@ -48,14 +54,18 @@ export function RootNavigator() {
             </Drawer>
 
             <Drawer side="right">
-                <ScenarioManager />
+                <Suspense fallback={<LoadingScreen />}>
+                    <ScenarioManager />
+                </Suspense>
             </Drawer>
 
             <OverlayPanel
                 visible={isCompareScreenActive}
                 onClose={() => setCompareScreenActive(false)}
             >
-                <Compare />
+                <Suspense fallback={<LoadingScreen />}>
+                    <Compare />
+                </Suspense>
             </OverlayPanel>
         </>
     );

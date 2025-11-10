@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import {
     CheckBox,
@@ -22,7 +22,7 @@ interface BasicDetailsSectionProps {
     onUpdate: (updates: Partial<PropertyData>) => void;
 }
 
-export default function BasicDetailsSection({
+function BasicDetailsSection({
     data,
     scenarioId,
     onUpdate,
@@ -125,6 +125,8 @@ export default function BasicDetailsSection({
         </View>
     );
 }
+
+export default memo(BasicDetailsSection);
 
 const styles = StyleSheet.create({
     rowInputs: {

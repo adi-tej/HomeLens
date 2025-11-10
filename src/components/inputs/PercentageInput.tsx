@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 import { Keyboard, Platform, View } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
 import SelectModal, { Option } from "../primitives/SelectModal";
@@ -17,7 +17,7 @@ export type PercentageInputProps = {
 
 const DEFAULT_PRESETS = [2, 3, 5, 8, 10];
 
-export function PercentageInput({
+function PercentageInputComponent({
     label = "Percentage",
     value,
     onChange,
@@ -128,3 +128,5 @@ export function PercentageInput({
         </View>
     );
 }
+
+export const PercentageInput = memo(PercentageInputComponent);

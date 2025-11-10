@@ -1,9 +1,9 @@
-import React from "react";
+import React, { memo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-export function CheckBox({
+function CheckBoxComponent({
     label,
     checked,
     onToggle,
@@ -61,6 +61,8 @@ export function CheckBox({
         </View>
     );
 }
+
+export const CheckBox = memo(CheckBoxComponent);
 
 const styles = StyleSheet.create({
     row: {

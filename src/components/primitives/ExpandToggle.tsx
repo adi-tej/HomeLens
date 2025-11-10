@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { memo, useEffect, useRef } from "react";
 import { Animated, Pressable, StyleSheet } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -18,7 +18,7 @@ interface ExpandToggleProps {
  * - Uses theme spacing & typography for consistency
  * - Slight text emphasis when expanded
  */
-export default function ExpandToggle({
+function ExpandToggle({
     label,
     isExpanded,
     onToggle,
@@ -89,6 +89,8 @@ export default function ExpandToggle({
         </Pressable>
     );
 }
+
+export default memo(ExpandToggle);
 
 const styles = StyleSheet.create({
     container: {

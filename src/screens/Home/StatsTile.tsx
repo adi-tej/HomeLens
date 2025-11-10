@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
 
@@ -8,7 +8,7 @@ type Props = {
     help?: string;
 };
 
-export default function StatsTile({ value, label, help }: Props) {
+function StatsTile({ value, label, help }: Props) {
     return (
         <View style={styles.statBox}>
             <Text variant="bodyLarge" style={styles.statValue}>
@@ -21,6 +21,8 @@ export default function StatsTile({ value, label, help }: Props) {
         </View>
     );
 }
+
+export default memo(StatsTile);
 
 const styles = StyleSheet.create({
     statBox: {

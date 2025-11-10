@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
 import { spacing } from "../../theme/spacing";
@@ -11,7 +11,7 @@ interface DataCellProps {
     cellWidth?: number;
 }
 
-export default function DataCell({
+function DataCell({
     value,
     highlight,
     theme,
@@ -36,6 +36,8 @@ export default function DataCell({
         </View>
     );
 }
+
+export default memo(DataCell);
 
 const styles = StyleSheet.create({
     container: {

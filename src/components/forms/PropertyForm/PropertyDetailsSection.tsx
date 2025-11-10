@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Divider, Text, useTheme } from "react-native-paper";
 import { CurrencySelect, ExpensesInput } from "../../inputs";
@@ -10,7 +10,7 @@ interface PropertyDetailsSectionProps {
     onUpdate: (updates: Partial<PropertyData>) => void;
 }
 
-export default function PropertyDetailsSection({
+function PropertyDetailsSection({
     data,
     onUpdate,
 }: PropertyDetailsSectionProps) {
@@ -133,6 +133,8 @@ export default function PropertyDetailsSection({
         </View>
     );
 }
+
+export default memo(PropertyDetailsSection);
 
 const styles = StyleSheet.create({
     section: {

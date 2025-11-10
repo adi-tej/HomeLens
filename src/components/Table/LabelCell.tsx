@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
 import { spacing } from "../../theme/spacing";
@@ -12,7 +12,7 @@ interface LabelCellProps {
     isSection?: boolean; // Section header flag
 }
 
-export default function LabelCell({
+function LabelCell({
     label,
     highlight,
     isLast,
@@ -73,6 +73,8 @@ export default function LabelCell({
         </View>
     );
 }
+
+export default memo(LabelCell);
 
 const styles = StyleSheet.create({
     container: {

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useDeferredValue, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { spacing } from "../theme/spacing";
@@ -10,15 +10,20 @@ export default function Insights() {
     const theme = useTheme();
     const { projections, insightsRows, currentScenario } = useInsightsData();
 
+    // Defer projections rendering to keep UI responsive
+    // This is especially helpful when switching scenarios or when data updates
+    const deferredProjections = useDeferredValue(projections);
+    const deferredRows = useDeferredValue(insightsRows);
+
     // Create columns from projections (years)
     const columns = useMemo(
         () =>
-            projections.map((projection) => ({
+            deferredProjections.map((projection) => ({
                 key: `year-${projection.year}`,
                 label: projection.year.toString(),
                 accessor: (p: Projection) => p.year.toString(),
             })),
-        [projections],
+        [deferredProjections],
     );
 
     if (!currentScenario) {
@@ -63,9 +68,9 @@ export default function Insights() {
 
             <Table
                 columns={columns}
-                rows={insightsRows}
-                data={projections}
-                cellWidth={getCellWidth("insights", projections.length)}
+                rows={deferredRows}
+                data={deferredProjections}
+                cellWidth={getCellWidth("insights", deferredProjections.length)}
                 cornerCell={
                     <View style={styles.cornerCell}>
                         <Text

@@ -13,13 +13,12 @@ export interface DrawerSnapshot {
     rightOpen: boolean;
 }
 
-// Spring config exported for consumers (Drawer gestures)
 export const SPRING_CONFIG = Platform.select({
     android: {
         damping: 30,
         mass: 1,
         stiffness: 350,
-        overshootClamping: false,
+        overshootClamping: true, // Prevent bounce on Android
         restDisplacementThreshold: 0.01,
         restSpeedThreshold: 0.01,
     },
@@ -27,7 +26,7 @@ export const SPRING_CONFIG = Platform.select({
         damping: 25,
         mass: 0.8,
         stiffness: 300,
-        overshootClamping: false,
+        overshootClamping: true, // Prevent bounce on iOS
         restDisplacementThreshold: 0.01,
         restSpeedThreshold: 0.01,
     },

@@ -13,6 +13,7 @@ import {
     useCurrentScenario,
     useScenarioActions,
 } from "../../../state/useScenarioStore";
+import { useDebouncedCallback } from "../../../hooks/useDebounce";
 import BasicDetailsSection from "./BasicDetailsSection";
 import LoanSettingsSection from "./LoanSettingsSection";
 import PropertyDetailsSection from "./PropertyDetailsSection";
@@ -24,6 +25,10 @@ const ANIMATION_DURATION_OPEN = 400;
 const ANIMATION_DURATION_CLOSE = 220;
 const ANIMATION_EASING = Easing.inOut(Easing.ease);
 const ESTIMATED_MAX_HEIGHT = 800; // adjust if advanced section grows
+
+// Debounce delay for expensive calculations (in milliseconds)
+// This controls how long to wait after user stops typing before recalculating
+const CALCULATION_DEBOUNCE_DELAY = 300;
 
 export default function PropertyForm() {
     const theme = useTheme();
@@ -71,9 +76,35 @@ export default function PropertyForm() {
         }
     }, [data.propertyValue, data.deposit, isEditingLVR]);
 
-    const onUpdate = (updates: Partial<PropertyData>) => {
-        updateScenarioData(currentScenarioId, updates);
-    };
+    // Debounced update function to prevent expensive calculations on every keystroke
+    const debouncedUpdate = useDebouncedCallback(
+        (updates: Partial<PropertyData>) => {
+            updateScenarioData(currentScenarioId, updates);
+        },
+        CALCULATION_DEBOUNCE_DELAY,
+    );
+
+    // Immediate update for non-expensive changes (checkboxes, selects, etc.)
+    const onUpdate = useCallback(
+        (updates: Partial<PropertyData>) => {
+            // Check if this is a simple toggle/select that doesn't need debouncing
+            const isSimpleUpdate =
+                updates.firstHomeBuyer !== undefined ||
+                updates.isLivingHere !== undefined ||
+                updates.isBrandNew !== undefined ||
+                updates.propertyType !== undefined ||
+                updates.state !== undefined;
+
+            if (isSimpleUpdate) {
+                // Update immediately for simple changes
+                updateScenarioData(currentScenarioId, updates);
+            } else {
+                // Debounce expensive calculations (property value, deposit, interest rate, etc.)
+                debouncedUpdate(updates);
+            }
+        },
+        [currentScenarioId, updateScenarioData, debouncedUpdate],
+    );
 
     // Animated styles for smooth expand/collapse
     const animatedContentStyle = useAnimatedStyle(() => ({

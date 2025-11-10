@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { memo, useMemo, useState } from "react";
 import { Keyboard, Pressable, View } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
 import SelectModal, { Option } from "../primitives/SelectModal";
@@ -11,7 +11,7 @@ export type SelectProps = {
     disabled?: boolean;
 };
 
-export function Select({
+function SelectComponent({
     label,
     value,
     onChange,
@@ -70,3 +70,5 @@ export function Select({
         </>
     );
 }
+
+export const Select = memo(SelectComponent);

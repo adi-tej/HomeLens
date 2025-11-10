@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
 import { spacing } from "../../theme/spacing";
@@ -12,7 +12,7 @@ export type ScenarioInputProps = {
     placeholder?: string;
 };
 
-export default function ScenarioInput({
+function ScenarioInput({
     value,
     onChangeText,
     onSubmit,
@@ -45,6 +45,8 @@ export default function ScenarioInput({
         </View>
     );
 }
+
+export default memo(ScenarioInput);
 
 const styles = StyleSheet.create({
     inputContainer: {

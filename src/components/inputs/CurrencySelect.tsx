@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { memo, useEffect, useMemo, useState } from "react";
 import { Keyboard, Platform } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
 import SelectModal, { Option } from "../primitives/SelectModal";
@@ -14,7 +14,7 @@ export type CurrencySelectProps = {
 
 const DEFAULT_PRESETS = [400000, 600000, 800000, 1000000, 1200000];
 
-export function CurrencySelect({
+function CurrencySelectComponent({
     label,
     value,
     onChange,
@@ -130,3 +130,5 @@ export function CurrencySelect({
         </>
     );
 }
+
+export const CurrencySelect = memo(CurrencySelectComponent);

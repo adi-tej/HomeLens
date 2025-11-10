@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { memo, useMemo, useRef, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
 import { spacing } from "../../theme/spacing";
@@ -12,7 +12,7 @@ export type DepositInputProps = {
     onChange: (v: number | undefined) => void;
 };
 
-export function DepositInput({
+function DepositInputComponent({
     propertyValue,
     deposit,
     onChange,
@@ -158,6 +158,8 @@ export function DepositInput({
         </View>
     );
 }
+
+export const DepositInput = memo(DepositInputComponent);
 
 const styles = StyleSheet.create({
     row: { flexDirection: "row", alignItems: "center" },

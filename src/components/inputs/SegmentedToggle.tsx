@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { spacing } from "../../theme/spacing";
@@ -19,7 +19,7 @@ interface SegmentedToggleProps {
  * SegmentedToggle — two-option segmented switch
  * Example:  [ Principal & Interest ] [ Interest Only ]
  */
-export function SegmentedToggle({
+function SegmentedToggleComponent({
     value,
     onToggle,
     label = "Repayment Type",
@@ -118,6 +118,8 @@ export function SegmentedToggle({
         </View>
     );
 }
+
+export const SegmentedToggle = memo(SegmentedToggleComponent);
 
 const styles = StyleSheet.create({
     wrapper: {

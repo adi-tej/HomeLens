@@ -1,9 +1,9 @@
-import React from "react";
+import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { spacing } from "../../theme/spacing";
 
-export default function EmptyState() {
+function EmptyState() {
     const theme = useTheme();
 
     return (
@@ -17,6 +17,8 @@ export default function EmptyState() {
         </View>
     );
 }
+
+export default memo(EmptyState);
 
 const styles = StyleSheet.create({
     emptyContainer: {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Divider, IconButton, Text, useTheme } from "react-native-paper";
 import ShareButton from "../../components/ShareButton";
@@ -12,7 +12,7 @@ interface CompareHeaderProps {
     selectedScenarioList: Scenario[];
 }
 
-export default function CompareHeader({
+function CompareHeader({
     onBack,
     comparisonRows,
     selectedScenarioList,
@@ -40,6 +40,8 @@ export default function CompareHeader({
         </>
     );
 }
+
+export default memo(CompareHeader);
 
 const styles = StyleSheet.create({
     header: {

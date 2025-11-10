@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useDeferredValue, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import ScreenContainer from "../components/primitives/ScreenContainer";
@@ -25,13 +25,18 @@ export default function Calculator() {
 
     const { data } = currentScenario;
 
+    // Use useDeferredValue to defer expensive Summary recalculations
+    // This keeps form inputs feeling instant while calculations happen in background
+    // React 19's useDeferredValue marks this as low-priority rendering
+    const deferredData = useDeferredValue(data);
+
     // Validate data
     const errors = validatePropertyData(data);
     const isInvalid = Object.keys(errors).length > 0;
 
     return (
         <ScreenContainer scrollRef={scrollViewRef}>
-            {/* Property Form */}
+            {/* Property Form - Always uses latest data for instant feedback */}
             <PropertyForm />
 
             {/* Validation Errors */}
@@ -58,8 +63,8 @@ export default function Calculator() {
                     </Text>
                 </View>
             )}
-            {/* Summary Cards */}
-            <Summary data={data} scrollViewRef={scrollViewRef} />
+            {/* Summary Cards - Uses deferred data for smoother updates */}
+            <Summary data={deferredData} scrollViewRef={scrollViewRef} />
         </ScreenContainer>
     );
 }

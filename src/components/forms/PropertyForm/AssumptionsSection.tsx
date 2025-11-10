@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Divider, Text, useTheme } from "react-native-paper";
 import { CurrencySelect, PercentageInput } from "../../inputs";
@@ -15,10 +15,7 @@ interface AssumptionsSectionProps {
     onUpdate: (updates: Partial<PropertyData>) => void;
 }
 
-export default function AssumptionsSection({
-    data,
-    onUpdate,
-}: AssumptionsSectionProps) {
+function AssumptionsSection({ data, onUpdate }: AssumptionsSectionProps) {
     const theme = useTheme();
     const isInvestment = !data.isLivingHere;
 
@@ -89,6 +86,8 @@ export default function AssumptionsSection({
         </View>
     );
 }
+
+export default memo(AssumptionsSection);
 
 const styles = StyleSheet.create({
     section: {
