@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
+    createNavigationContainerRef,
     DarkTheme as NavDarkTheme,
     DefaultTheme as NavDefaultTheme,
     NavigationContainer,
@@ -14,6 +15,7 @@ import { RootNavigator } from "./src/navigation/RootNavigator";
 import { ThemeMode, ThemeModeContext } from "./src/state/ThemeModeContext";
 import { AppProvider } from "./src/state/AppContext";
 import { darkTheme, lightTheme } from "./src/theme/theme";
+import ActiveRouteSync from "./src/navigation/ActiveRouteSync";
 
 function toNavigationTheme(
     paper: MD3Theme,
@@ -45,6 +47,7 @@ export default function App() {
     );
 
     const themeCtx = useMemo(() => ({ themeMode, setThemeMode }), [themeMode]);
+    const navigationRef = useRef(createNavigationContainerRef());
 
     return (
         <SafeAreaProvider>
@@ -52,8 +55,14 @@ export default function App() {
                 <PaperProvider theme={paperTheme}>
                     <ThemeModeContext.Provider value={themeCtx}>
                         <GestureHandlerRootView style={styles.flex}>
-                            <NavigationContainer theme={navTheme}>
+                            <NavigationContainer
+                                ref={navigationRef}
+                                theme={navTheme}
+                            >
                                 <AppProvider>
+                                    <ActiveRouteSync
+                                        navigationRef={navigationRef}
+                                    />
                                     <RootNavigator />
                                 </AppProvider>
                             </NavigationContainer>
