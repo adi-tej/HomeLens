@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Portal, TextInput, useTheme } from "react-native-paper";
+import { Portal, TextInput, useTheme } from "react-native-paper";
 import { Platform, StyleSheet } from "react-native";
 import { spacing } from "../../theme/spacing";
 import ExpensesForm from "../forms/ExpensesForm";
 import type { Expenses, OngoingExpenses } from "../../types";
 import { DEFAULT_ONGOING_EXPENSES } from "../../utils/defaults";
 import { formatCurrency, parseNumber } from "../../utils/parser";
-import ScreenContainer from "../primitives/ScreenContainer";
+import ReusableModal from "../primitives/ReusableModal";
 import { calculateOngoingExpenses } from "../../utils/calculations";
 
 export type ExpensesInputProps = {
@@ -204,27 +204,25 @@ export function ExpensesInput({
             />
 
             <Portal>
-                <Modal
+                <ReusableModal
                     visible={modalVisible}
                     onDismiss={closeModal}
-                    contentContainerStyle={styles.modalContent}
+                    contentStyle={styles.modalContent}
+                    hideClose={true}
+                    scrollProps={{
+                        style: { flex: 0 },
+                        bottomOffset: 0,
+                        contentContainerStyle: { padding: 0 },
+                    }}
                 >
-                    <ScreenContainer
-                        scrollProps={{
-                            style: { flex: 0 },
-                            bottomOffset: 0,
-                            contentContainerStyle: { padding: 0 },
-                        }}
-                    >
-                        <ExpensesForm
-                            isLand={isLand}
-                            isInvestment={isInvestment}
-                            value={config}
-                            onCancel={closeModal}
-                            onSave={handleSave}
-                        />
-                    </ScreenContainer>
-                </Modal>
+                    <ExpensesForm
+                        isLand={isLand}
+                        isInvestment={isInvestment}
+                        value={config}
+                        onCancel={closeModal}
+                        onSave={handleSave}
+                    />
+                </ReusableModal>
             </Portal>
         </>
     );

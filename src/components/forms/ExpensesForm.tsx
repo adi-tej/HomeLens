@@ -206,12 +206,7 @@ export default function ExpensesForm({
 function getStyles(theme: MD3Theme) {
     return StyleSheet.create({
         container: {
-            backgroundColor: theme.colors.surface,
-            padding: spacing.md,
-            borderRadius: 20,
             gap: spacing.md,
-            paddingBottom: spacing.xl,
-            flexGrow: 1,
         },
         header: {
             flexDirection: "row",

@@ -25,7 +25,8 @@ export default function ScreenContainer({
                 style={styles.scroll}
                 contentContainerStyle={styles.content}
                 bottomOffset={40}
-                showsVerticalScrollIndicator={false}
+                showsVerticalScrollIndicator={true}
+                keyboardShouldPersistTaps="handled"
                 disableScrollOnKeyboardHide={false}
                 {...scrollProps}
             >
@@ -46,6 +47,5 @@ const styles = StyleSheet.create({
         padding: spacing.lg,
         gap: spacing.md,
         paddingBottom: spacing.xl,
-        flexGrow: 1,
     },
 });

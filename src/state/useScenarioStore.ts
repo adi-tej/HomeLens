@@ -45,7 +45,7 @@ const createDefaultScenario = (): [ScenarioId, Scenario] => {
     const defaultId = generateId();
     const defaultScenario: Scenario = {
         id: defaultId,
-        name: "My first property",
+        name: "Case 1",
         createdAt: Date.now(),
         updatedAt: Date.now(),
         data: getDefaultPropertyData(),
