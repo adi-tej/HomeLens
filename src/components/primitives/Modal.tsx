@@ -54,7 +54,7 @@ export default function Modal({
                     ]}
                     bottomOffset={scrollProps?.bottomOffset ?? 40}
                     showsVerticalScrollIndicator={
-                        scrollProps?.showsVerticalScrollIndicator ?? true
+                        scrollProps?.showsVerticalScrollIndicator ?? false
                     }
                     keyboardShouldPersistTaps={
                         scrollProps?.keyboardShouldPersistTaps ?? "handled"
