@@ -76,7 +76,6 @@ export default function HelpScreen() {
                             "Open the top-right menu, choose 'Open Drawer', then tap the + icon to create a new scenario."
                         }
                         descriptionStyle={styles.descriptionText}
-                        descriptionNumberOfLines={10}
                     />
                     <List.Item
                         title="How do I rename a scenario?"
@@ -86,7 +85,6 @@ export default function HelpScreen() {
                             "Long-press the scenario name in the Scenario Manager to rename it."
                         }
                         descriptionStyle={styles.descriptionText}
-                        descriptionNumberOfLines={10}
                     />
                     <List.Item
                         title="How do I remove a scenario?"
@@ -96,7 +94,6 @@ export default function HelpScreen() {
                             "Swipe the scenario to the left in the Scenario Manager to reveal the Delete button."
                         }
                         descriptionStyle={styles.descriptionText}
-                        descriptionNumberOfLines={10}
                     />
                     <List.Item
                         title="What assumptions are used in insights?"
@@ -106,7 +103,6 @@ export default function HelpScreen() {
                             "Insights use the capital growth rate and rental yield assumptions for investment properties."
                         }
                         descriptionStyle={styles.descriptionText}
-                        descriptionNumberOfLines={10}
                     />
                 </List.Section>
 
@@ -204,6 +200,5 @@ const styles = StyleSheet.create({
     descriptionText: {
         flexWrap: "wrap",
         flexShrink: 1,
-        marginRight: spacing.md,
     },
 });

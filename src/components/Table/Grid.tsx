@@ -1,8 +1,12 @@
-import React, { useCallback, useMemo, useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import { Animated, StyleSheet, View } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import { useTheme } from "react-native-paper";
 import { TABLE_CONFIG } from "./TableConfig";
 import { spacing } from "../../theme/spacing";
+
+// Create Animated versions of gesture-handler ScrollView
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 interface Column<T> {
     key: string;
@@ -57,12 +61,13 @@ export default function Grid<T>({
 }: ProjectionTableProps<T>) {
     const theme = useTheme();
     const mainScrollRef = useRef<any>(null);
+    const verticalScrollRef = useRef<any>(null);
     const scrollY = useRef(new Animated.Value(0)).current;
     const scrollX = useRef(new Animated.Value(0)).current;
 
     const contentWidth = columns.length * cellWidth;
 
-    // Precompute row heights & offsets for stable layout
+    // Precompute row heights for stable layout
     const rowHeights = useMemo(
         () =>
             rows.map((row) =>
@@ -70,64 +75,6 @@ export default function Grid<T>({
             ),
         [rows, getRowHeight],
     );
-
-    const cumulativeOffsets = useMemo(() => {
-        let acc = 0;
-        return rowHeights.map((h) => {
-            const offset = acc;
-            acc += h;
-            return offset;
-        });
-    }, [rowHeights]);
-
-    const getItemLayout = useCallback(
-        (_: any, index: number) => ({
-            length: rowHeights[index],
-            offset: cumulativeOffsets[index],
-            index,
-        }),
-        [rowHeights, cumulativeOffsets],
-    );
-
-    const renderRow = useCallback(
-        ({ item: row, index }: any) => {
-            const isLast = index === rows.length - 1;
-            const rowHeight = rowHeights[index];
-
-            return (
-                <View style={styles.rowContainer}>
-                    <View style={styles.labelSpace} />
-                    <View
-                        style={[
-                            {
-                                flexDirection: "row",
-                                height: rowHeight,
-                                borderBottomWidth: isLast ? 0 : 1,
-                                borderBottomColor: theme.colors.outline,
-                                backgroundColor: row.highlight
-                                    ? theme.colors.secondaryContainer
-                                    : theme.colors.surfaceVariant,
-                            },
-                        ]}
-                    >
-                        {data.map((item, colIndex) => (
-                            <View key={colIndex}>
-                                {renderDataCell(
-                                    row,
-                                    item,
-                                    theme,
-                                    row.highlight,
-                                )}
-                            </View>
-                        ))}
-                    </View>
-                </View>
-            );
-        },
-        [rows.length, data, theme, renderDataCell, rowHeights],
-    );
-
-    const keyExtractor = useCallback((item: any) => item.key, []);
 
     return (
         <View
@@ -139,6 +86,7 @@ export default function Grid<T>({
                     borderRadius: TABLE_CONFIG.borderRadius,
                 },
             ]}
+            collapsable={false}
         >
             {/* Header overlay */}
             <View
@@ -149,7 +97,7 @@ export default function Grid<T>({
                         borderBottomColor: theme.colors.outline,
                     },
                 ]}
-                pointerEvents="none"
+                pointerEvents="box-none"
             >
                 {/* Fixed corner cell */}
                 <View
@@ -197,7 +145,7 @@ export default function Grid<T>({
             </View>
 
             {/* Scrollable content */}
-            <Animated.ScrollView
+            <AnimatedScrollView
                 ref={mainScrollRef}
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -211,18 +159,19 @@ export default function Grid<T>({
                     width: TABLE_CONFIG.labelWidth + contentWidth,
                     paddingTop: TABLE_CONFIG.headerHeight,
                 }}
+                nestedScrollEnabled={true}
+                overScrollMode="always"
+                directionalLockEnabled={false}
+                decelerationRate="normal"
+                bounces={false}
+                removeClippedSubviews={false}
+                disallowInterruption={true}
             >
-                <View style={{ flex: 1 }}>
-                    <Animated.FlatList
-                        data={rows}
-                        renderItem={renderRow}
-                        keyExtractor={keyExtractor}
-                        getItemLayout={getItemLayout}
-                        initialNumToRender={15}
+                <View style={{ flex: 1 }} collapsable={false}>
+                    <AnimatedScrollView
+                        ref={verticalScrollRef}
                         showsVerticalScrollIndicator={false}
-                        removeClippedSubviews={true}
-                        maxToRenderPerBatch={15}
-                        windowSize={15}
+                        scrollEventThrottle={16}
                         onScroll={Animated.event(
                             [
                                 {
@@ -233,13 +182,58 @@ export default function Grid<T>({
                             ],
                             { useNativeDriver: true },
                         )}
-                        scrollEventThrottle={16}
                         contentContainerStyle={{
                             paddingBottom: spacing.lg,
                         }}
-                    />
+                        nestedScrollEnabled={true}
+                        overScrollMode="always"
+                        directionalLockEnabled={false}
+                        decelerationRate="normal"
+                        bounces={false}
+                        removeClippedSubviews={false}
+                        disallowInterruption={true}
+                    >
+                        {rows.map((row, index) => {
+                            const isLast = index === rows.length - 1;
+                            const rowHeight = rowHeights[index];
+                            return (
+                                <View key={row.key} style={styles.rowContainer}>
+                                    <View style={styles.labelSpace} />
+                                    <View
+                                        style={[
+                                            {
+                                                flexDirection: "row",
+                                                height: rowHeight,
+                                                borderBottomWidth: isLast
+                                                    ? 0
+                                                    : 1,
+                                                borderBottomColor:
+                                                    theme.colors.outline,
+                                                backgroundColor: row.highlight
+                                                    ? theme.colors
+                                                          .secondaryContainer
+                                                    : theme.colors
+                                                          .surfaceVariant,
+                                            },
+                                        ]}
+                                    >
+                                        {data.map((item, colIndex) => (
+                                            <View key={colIndex}>
+                                                {renderDataCell(
+                                                    row,
+                                                    item,
+                                                    theme,
+                                                    row.highlight,
+                                                )}
+                                            </View>
+                                        ))}
+                                    </View>
+                                </View>
+                            );
+                        })}
+                    </AnimatedScrollView>
                 </View>
-            </Animated.ScrollView>
+            </AnimatedScrollView>
 
             {/* Label column overlay */}
             <View
@@ -250,7 +244,7 @@ export default function Grid<T>({
                         top: TABLE_CONFIG.headerHeight,
                     },
                 ]}
-                pointerEvents="none"
+                pointerEvents="box-none"
             >
                 <Animated.View
                     style={{

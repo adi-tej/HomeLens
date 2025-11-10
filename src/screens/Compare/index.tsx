@@ -50,6 +50,7 @@ export default function Compare() {
                     paddingBottom: insets.bottom + spacing.md,
                 },
             ]}
+            collapsable={false}
         >
             <CompareHeader
                 onBack={handleBack}

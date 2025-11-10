@@ -82,6 +82,8 @@ export default function OverlayPanel({
                     },
                     panelStyle,
                 ]}
+                collapsable={false}
+                renderToHardwareTextureAndroid
             >
                 {children}
             </Reanimated.View>

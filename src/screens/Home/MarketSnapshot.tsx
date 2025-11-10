@@ -9,6 +9,7 @@ import {
     useTheme,
 } from "react-native-paper";
 import StatsTile from "./StatsTile";
+import { formatCurrency } from "../../utils/parser";
 
 type Props = {
     statsData: {
@@ -73,7 +74,7 @@ export default function MarketSnapshot({
                     <StatsTile
                         value={
                             statsData.price != null
-                                ? String(statsData.price)
+                                ? String(formatCurrency(statsData.price))
                                 : "$--"
                         }
                         label="Median house price (AUS)"

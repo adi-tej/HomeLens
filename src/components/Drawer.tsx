@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import { Platform, Pressable, StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Reanimated, {
     cancelAnimation,
@@ -21,11 +21,24 @@ type Props = {
     children?: React.ReactNode;
 };
 
-const SPRING_CONFIG = {
-    damping: 20,
-    stiffness: 280,
-    overshootClamping: true,
-};
+const SPRING_CONFIG = Platform.select({
+    android: {
+        damping: 30,
+        mass: 1,
+        stiffness: 350,
+        overshootClamping: false,
+        restDisplacementThreshold: 0.01,
+        restSpeedThreshold: 0.01,
+    },
+    default: {
+        damping: 25,
+        mass: 0.8,
+        stiffness: 300,
+        overshootClamping: false,
+        restDisplacementThreshold: 0.01,
+        restSpeedThreshold: 0.01,
+    },
+});
 
 export default function Drawer({ side, children }: Props) {
     const { progress, drawerWidth, isOpen, open, close } = useDrawer(side);
@@ -65,11 +78,7 @@ export default function Drawer({ side, children }: Props) {
     useEffect(() => {
         const targetValue = isOpen ? 1 : 0;
         cancelAnimation(progress);
-        progress.value = withSpring(targetValue, {
-            damping: 15,
-            stiffness: 250,
-            overshootClamping: true,
-        });
+        progress.value = withSpring(targetValue, SPRING_CONFIG);
     }, [isOpen, progress]);
 
     // Gesture factory
@@ -134,7 +143,20 @@ export default function Drawer({ side, children }: Props) {
         isOpen && isGestureEnabled,
         true,
     );
-    const scrimGesture = createGesture(
+
+    // Use Tap gesture for scrim instead of Pan for better Android compatibility
+    const scrimTapGesture = useMemo(
+        () =>
+            Gesture.Tap()
+                .enabled(isOpen && isGestureEnabled && allowScrimClose)
+                .onEnd(() => {
+                    "worklet";
+                    runOnJS(close)();
+                }),
+        [isOpen, isGestureEnabled, allowScrimClose, close],
+    );
+
+    const scrimPanGesture = createGesture(
         isLeft ? [-10, -Infinity] : [10, Infinity],
         isOpen && isGestureEnabled,
         true,
@@ -170,25 +192,24 @@ export default function Drawer({ side, children }: Props) {
             )}
 
             {/* Scrim overlay */}
-            <GestureDetector gesture={scrimGesture}>
+            <GestureDetector
+                gesture={Gesture.Exclusive(scrimTapGesture, scrimPanGesture)}
+            >
                 <Reanimated.View
-                    pointerEvents={isOpen && allowScrimClose ? "auto" : "none"}
+                    renderToHardwareTextureAndroid
+                    pointerEvents={isOpen ? "auto" : "none"}
                     style={[
                         styles.scrim,
                         { backgroundColor: theme.colors.backdrop },
                         scrimStyle,
                     ]}
-                >
-                    <Pressable
-                        style={styles.scrimPressable}
-                        onPress={allowScrimClose ? close : undefined}
-                    />
-                </Reanimated.View>
+                />
             </GestureDetector>
 
             {/* Drawer */}
             <GestureDetector gesture={drawerGesture}>
                 <Reanimated.View
+                    renderToHardwareTextureAndroid
                     style={[
                         styles.drawer,
                         {
@@ -220,9 +241,6 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         zIndex: 998,
-    },
-    scrimPressable: {
-        flex: 1,
     },
     drawer: {
         position: "absolute",
