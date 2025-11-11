@@ -43,3 +43,7 @@ yarn-error.*
 # IDE
 .idea/
 .vscode/
+
+# Config
+google-services.json
+GoogleService-Info.plist

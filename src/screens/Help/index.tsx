@@ -56,7 +56,6 @@ export default function HelpScreen() {
                     onPress: async () => {
                         try {
                             await OnboardingStorage.reset();
-                            // Reload the app to show onboarding
                             await Updates.reloadAsync();
                         } catch (error) {
                             console.error("Failed to reset onboarding:", error);

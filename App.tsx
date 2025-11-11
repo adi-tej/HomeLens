@@ -11,6 +11,7 @@ import { MD3Theme, PaperProvider } from "react-native-paper";
 import { StyleSheet, useColorScheme, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+// import analytics from "@react-native-firebase/analytics";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { ThemeMode, ThemeModeContext } from "./src/state/ThemeModeContext";
 import { darkTheme, lightTheme } from "./src/theme/theme";
@@ -70,7 +71,13 @@ export default function App() {
     const handleOnboardingComplete = async (email: string) => {
         try {
             await OnboardingStorage.setCompleted(email);
-            // TODO: Send email to HubSpot/Firebase
+
+            // Track onboarding completion
+            // await analytics().logEvent('onboarding_complete', {
+            //     method: 'email',
+            //     email_domain: email.split('@')[1],
+            // });
+
             console.log("User email:", email);
             setOnboardingCompleted(true);
         } catch (error) {
@@ -119,6 +126,28 @@ export default function App() {
                             <NavigationContainer
                                 ref={navigationRef}
                                 theme={navTheme}
+                                // onReady={() => {
+                                //     // Track initial screen
+                                //     const route =
+                                //         navigationRef.current?.getCurrentRoute();
+                                //     if (route?.name) {
+                                //         analytics().logScreenView({
+                                //             screen_name: route.name,
+                                //             screen_class: route.name,
+                                //         });
+                                //     }
+                                // }}
+                                // onStateChange={async () => {
+                                //     // Track screen changes
+                                //     const route =
+                                //         navigationRef.current?.getCurrentRoute();
+                                //     if (route?.name) {
+                                //         await analytics().logScreenView({
+                                //             screen_name: route.name,
+                                //             screen_class: route.name,
+                                //         });
+                                //     }
+                                // }}
                             >
                                 <ActiveRouteSync
                                     navigationRef={navigationRef}

@@ -15,6 +15,7 @@ import Scenario from "./Scenario";
 import ScenarioInput from "../../components/inputs/ScenarioInput";
 import CompareButton from "./CompareButton";
 import { spacing } from "../../theme/spacing";
+import { Analytics, FeatureName } from "../../services/analytics";
 
 export default function ScenarioManager() {
     const theme = useTheme();
@@ -53,8 +54,16 @@ export default function ScenarioManager() {
                 if (isAddingNew) {
                     const newId = createScenario(trimmed);
                     setCurrentScenario(newId);
+                    // Track scenario creation
+                    Analytics.logFeatureUsed(FeatureName.CREATE_SCENARIO, {
+                        scenario_name: trimmed,
+                    });
                 } else if (editingScenarioId) {
                     updateScenario(editingScenarioId, { name: trimmed });
+                    // Track scenario edit
+                    Analytics.logFeatureUsed(FeatureName.EDIT_SCENARIO, {
+                        scenario_id: editingScenarioId,
+                    });
                 }
             }
             // Reset editing state
@@ -123,6 +132,10 @@ export default function ScenarioManager() {
                 commitEditing(false);
             }
             deleteScenario(scenarioId);
+            // Track scenario deletion
+            Analytics.logFeatureUsed(FeatureName.DELETE_SCENARIO, {
+                scenario_id: scenarioId,
+            });
         },
         [editingScenarioId, commitEditing, deleteScenario],
     );
@@ -153,7 +166,11 @@ export default function ScenarioManager() {
 
     const handleProceed = useCallback(() => {
         setCompareScreenActive(true);
-    }, [setCompareScreenActive]);
+        // Track comparison
+        Analytics.logFeatureUsed(FeatureName.COMPARE_SCENARIOS, {
+            scenario_count: selectedScenarios.size,
+        });
+    }, [setCompareScreenActive, selectedScenarios.size]);
 
     const renderScenario = useCallback(
         (scenario: (typeof scenarios)[number]) => {
