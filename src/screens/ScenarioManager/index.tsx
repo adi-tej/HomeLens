@@ -1,5 +1,5 @@
-import React, { useCallback, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Divider, IconButton, Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScreenContainer from "../../components/primitives/ScreenContainer";
@@ -10,6 +10,7 @@ import {
     useCurrentScenario,
     useScenarioActions,
 } from "../../state/useScenarioStore";
+import { useRightDrawer } from "../../hooks/useDrawer";
 import Scenario from "./Scenario";
 import ScenarioInput from "../../components/inputs/ScenarioInput";
 import CompareButton from "./CompareButton";
@@ -37,107 +38,109 @@ export default function ScenarioManager() {
         toggleScenarioSelection,
         clearSelectedScenarios,
     } = useComparisonState();
-    const [newScenarioName, setNewScenarioName] = useState("");
-    const [isAddingNew, setIsAddingNew] = useState(false);
+    const [editingName, setEditingName] = useState("");
+    const [isAddingNew, setIsAddingNew] = useState(false); // keep to position input for creation
     const [editingScenarioId, setEditingScenarioId] = useState<string | null>(
         null,
     );
-    const [editScenarioName, setEditScenarioName] = useState("");
+    const { isOpen: isDrawerOpen } = useRightDrawer();
 
-    // Prevent double submission on Android when both onSubmit and onBlur fire
-    const submitLockRef = useRef(false);
-
-    // Generic handler for form submission with debounce protection
-    const handleSubmit = useCallback((action: () => void) => {
-        if (submitLockRef.current) return;
-
-        submitLockRef.current = true;
-        action();
-
-        setTimeout(() => {
-            submitLockRef.current = false;
-        }, 100);
-    }, []);
-
-    // Add new scenario handlers
-    const addScenario = useCallback(() => {
-        const trimmedName = newScenarioName.trim();
-        if (!trimmedName) return;
-
-        const newId = createScenario(trimmedName);
-        setCurrentScenario(newId); // Automatically select the newly created scenario
-        setNewScenarioName("");
-        setIsAddingNew(false);
-    }, [newScenarioName, createScenario, setCurrentScenario]);
-
-    const handleAddScenario = useCallback(() => {
-        handleSubmit(addScenario);
-    }, [handleSubmit, addScenario]);
-
-    const handleAddBlur = useCallback(() => {
-        if (submitLockRef.current) return;
-
-        if (newScenarioName.trim()) {
-            handleSubmit(addScenario);
-        } else {
-            setIsAddingNew(false);
-            setNewScenarioName("");
-        }
-    }, [newScenarioName, handleSubmit, addScenario]);
-
-    const handleCancelAdd = useCallback(() => {
-        setIsAddingNew(false);
-        setNewScenarioName("");
-    }, []);
-
-    // Edit scenario handlers
-    const saveEdit = useCallback(() => {
-        const trimmedName = editScenarioName.trim();
-        if (!editingScenarioId || !trimmedName) return;
-
-        updateScenario(editingScenarioId, { name: trimmedName });
-        setEditingScenarioId(null);
-        setEditScenarioName("");
-    }, [editingScenarioId, editScenarioName, updateScenario]);
-
-    const handleSaveEdit = useCallback(() => {
-        handleSubmit(saveEdit);
-    }, [handleSubmit, saveEdit]);
-
-    const handleEditBlur = useCallback(() => {
-        if (submitLockRef.current) return;
-
-        if (editScenarioName.trim()) {
-            handleSubmit(saveEdit);
-        } else {
-            setEditingScenarioId(null);
-            setEditScenarioName("");
-        }
-    }, [editScenarioName, handleSubmit, saveEdit]);
-
-    const handleCancelEdit = useCallback(() => {
-        setEditingScenarioId(null);
-        setEditScenarioName("");
-    }, []);
-
-    // Scenario interaction handlers
-    const handleScenarioPress = useCallback(
-        (scenarioId: string) => {
-            if (!comparisonMode) {
-                setCurrentScenario(scenarioId);
+    // Unified commit for both create and edit
+    const commitEditing = useCallback(
+        (saveIfValid: boolean = true) => {
+            const trimmed = editingName.trim();
+            if (saveIfValid && trimmed) {
+                if (isAddingNew) {
+                    const newId = createScenario(trimmed);
+                    setCurrentScenario(newId);
+                } else if (editingScenarioId) {
+                    updateScenario(editingScenarioId, { name: trimmed });
+                }
             }
+            // Reset editing state
+            setEditingScenarioId(null);
+            setEditingName("");
+            setIsAddingNew(false);
         },
-        [comparisonMode, setCurrentScenario],
+        [
+            editingName,
+            isAddingNew,
+            editingScenarioId,
+            createScenario,
+            setCurrentScenario,
+            updateScenario,
+        ],
     );
 
-    const handleLongPress = useCallback(
+    // Close drawer: commit (save if valid) any transient editing
+    useEffect(() => {
+        if (!isDrawerOpen && (isAddingNew || editingScenarioId)) {
+            commitEditing(true);
+        }
+    }, [isDrawerOpen, isAddingNew, editingScenarioId, commitEditing]);
+
+    // Start editing existing scenario
+    const beginEditScenario = useCallback(
         (scenarioId: string, currentName: string) => {
-            if (!comparisonMode) {
-                setEditingScenarioId(scenarioId);
-                setEditScenarioName(currentName);
-            }
+            commitEditing(true); // commit any previous
+            setEditingScenarioId(scenarioId);
+            setEditingName(currentName);
+            setIsAddingNew(false);
         },
-        [comparisonMode],
+        [commitEditing],
+    );
+
+    // Start creating new scenario
+    const beginCreateScenario = useCallback(() => {
+        commitEditing(true); // commit any previous
+        setEditingScenarioId(null);
+        setEditingName("");
+        setIsAddingNew(true);
+    }, [commitEditing]);
+
+    // Scenario press: commit then select
+    const handleScenarioPress = useCallback(
+        (scenarioId: string) => {
+            commitEditing(true);
+            if (!comparisonMode) setCurrentScenario(scenarioId);
+        },
+        [commitEditing, comparisonMode, setCurrentScenario],
+    );
+
+    // Long press: begin editing existing
+    const handleLongPress = useCallback(
+        (scenarioId: string, name: string) => {
+            if (!comparisonMode) beginEditScenario(scenarioId, name);
+        },
+        [comparisonMode, beginEditScenario],
+    );
+
+    // Delete scenario: commit edit first, then delete
+    const handleDeleteScenario = useCallback(
+        (scenarioId: string) => {
+            // If deleting the scenario being edited, commit without saving
+            if (editingScenarioId === scenarioId) {
+                commitEditing(false);
+            }
+            deleteScenario(scenarioId);
+        },
+        [editingScenarioId, commitEditing, deleteScenario],
+    );
+
+    // Background tap: commit (save if valid)
+    const handleBackgroundTap = useCallback(() => {
+        commitEditing(true);
+    }, [commitEditing]);
+
+    // Input handlers (shared)
+    const inputSubmit = useCallback(() => commitEditing(true), [commitEditing]);
+    const inputBlur = useCallback(
+        () => commitEditing(!!editingName.trim()),
+        [commitEditing, editingName],
+    );
+    const inputCancel = useCallback(
+        () => commitEditing(false),
+        [commitEditing],
     );
 
     // Comparison mode handlers
@@ -154,21 +157,21 @@ export default function ScenarioManager() {
 
     const renderScenario = useCallback(
         (scenario: (typeof scenarios)[number]) => {
-            const isEditing = editingScenarioId === scenario.id;
-
-            if (isEditing) {
+            const isEditingThis =
+                !isAddingNew && editingScenarioId === scenario.id;
+            if (isEditingThis) {
                 return (
                     <ScenarioInput
                         key={scenario.id}
-                        value={editScenarioName}
-                        onChangeText={setEditScenarioName}
-                        onSubmit={handleSaveEdit}
-                        onBlur={handleEditBlur}
-                        onCancel={handleCancelEdit}
+                        value={editingName}
+                        onChangeText={setEditingName}
+                        onSubmit={inputSubmit}
+                        onBlur={inputBlur}
+                        onCancel={inputCancel}
+                        placeholder="Scenario name"
                     />
                 );
             }
-
             return (
                 <Scenario
                     key={scenario.id}
@@ -176,7 +179,7 @@ export default function ScenarioManager() {
                     isSelected={scenario.id === currentScenarioId}
                     canDelete={scenarios.length > 1 && !comparisonMode}
                     onPress={() => handleScenarioPress(scenario.id)}
-                    onDelete={() => deleteScenario(scenario.id)}
+                    onDelete={() => handleDeleteScenario(scenario.id)}
                     onLongPress={() =>
                         handleLongPress(scenario.id, scenario.name)
                     }
@@ -189,19 +192,20 @@ export default function ScenarioManager() {
             );
         },
         [
+            isAddingNew,
             editingScenarioId,
-            editScenarioName,
+            editingName,
             currentScenarioId,
             scenarios.length,
             comparisonMode,
             selectedScenarios,
             handleScenarioPress,
-            deleteScenario,
+            handleDeleteScenario,
             handleLongPress,
             toggleScenarioSelection,
-            handleSaveEdit,
-            handleEditBlur,
-            handleCancelEdit,
+            inputSubmit,
+            inputBlur,
+            inputCancel,
         ],
     );
 
@@ -231,34 +235,40 @@ export default function ScenarioManager() {
                     disableScrollOnKeyboardHide: true,
                 }}
             >
-                {scenarios.map(renderScenario)}
+                <Pressable
+                    onPress={handleBackgroundTap}
+                    style={styles.pressCatch}
+                >
+                    {scenarios.map(renderScenario)}
 
-                {!comparisonMode &&
-                    (isAddingNew ? (
-                        <ScenarioInput
-                            key="new-scenario-input"
-                            value={newScenarioName}
-                            onChangeText={setNewScenarioName}
-                            onSubmit={handleAddScenario}
-                            onBlur={handleAddBlur}
-                            onCancel={handleCancelAdd}
-                        />
-                    ) : (
-                        <View
-                            key="add-button"
-                            style={styles.addButtonContainer}
-                        >
-                            <IconButton
-                                icon="plus"
-                                mode="contained"
-                                size={24}
-                                iconColor={theme.colors.onPrimary}
-                                containerColor={theme.colors.primary}
-                                onPress={() => setIsAddingNew(true)}
-                                style={styles.addButton}
+                    {!comparisonMode &&
+                        (isAddingNew ? (
+                            <ScenarioInput
+                                key="new-scenario-input"
+                                value={editingName}
+                                onChangeText={setEditingName}
+                                onSubmit={inputSubmit}
+                                onBlur={inputBlur}
+                                onCancel={inputCancel}
+                                placeholder="Scenario name"
                             />
-                        </View>
-                    ))}
+                        ) : (
+                            <View
+                                key="add-button"
+                                style={styles.addButtonContainer}
+                            >
+                                <IconButton
+                                    icon="plus"
+                                    mode="contained"
+                                    size={24}
+                                    iconColor={theme.colors.onPrimary}
+                                    containerColor={theme.colors.primary}
+                                    onPress={beginCreateScenario}
+                                    style={styles.addButton}
+                                />
+                            </View>
+                        ))}
+                </Pressable>
             </ScreenContainer>
 
             <CompareButton
@@ -294,5 +304,8 @@ const styles = StyleSheet.create({
     },
     addButton: {
         margin: 0,
+    },
+    pressCatch: {
+        flex: 1,
     },
 });
