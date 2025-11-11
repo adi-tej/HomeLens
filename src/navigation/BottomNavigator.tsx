@@ -5,6 +5,7 @@ import type { MD3Theme } from "react-native-paper";
 import { useTheme } from "react-native-paper";
 import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 // Lazy load screens for faster initial load and code splitting
@@ -13,8 +14,10 @@ const Calculator = lazy(() => import("../screens/Calculator/index"));
 const Insights = lazy(() => import("../screens/Insights/index"));
 const Learn = lazy(() => import("../screens/Learn"));
 const Help = lazy(() => import("../screens/Help"));
+const About = lazy(() => import("../screens/About"));
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
 type MCIconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 
@@ -52,17 +55,50 @@ function screenOptionsFactory(theme: MD3Theme) {
     });
 }
 
-export function BottomNavigator() {
+function BottomTabs() {
     const theme = useTheme() as MD3Theme;
     const screenOptions = useCallback(screenOptionsFactory(theme), [theme]);
     return (
+        <Tab.Navigator screenOptions={screenOptions}>
+            <Tab.Screen name="Calculator" component={Calculator} />
+            <Tab.Screen name="Insights" component={Insights} />
+            <Tab.Screen name="Learn" component={Learn} />
+            <Tab.Screen name="Help" component={Help} />
+        </Tab.Navigator>
+    );
+}
+
+export function BottomNavigator() {
+    const theme = useTheme() as MD3Theme;
+    return (
         <View style={styles.root}>
-            <Tab.Navigator screenOptions={screenOptions}>
-                <Tab.Screen name="Calculator" component={Calculator} />
-                <Tab.Screen name="Insights" component={Insights} />
-                <Tab.Screen name="Learn" component={Learn} />
-                <Tab.Screen name="Help" component={Help} />
-            </Tab.Navigator>
+            <Stack.Navigator
+                screenOptions={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: theme.colors.background },
+                }}
+            >
+                <Stack.Screen
+                    name="Back"
+                    component={BottomTabs}
+                    options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                    name="About Us"
+                    component={About}
+                    options={{
+                        headerShown: true,
+                        headerStyle: {
+                            backgroundColor: theme.colors.surface,
+                        },
+                        headerTintColor: theme.colors.onSurface,
+                        headerTitleStyle: {
+                            fontWeight: "600",
+                        },
+                        title: "About",
+                    }}
+                />
+            </Stack.Navigator>
         </View>
     );
 }

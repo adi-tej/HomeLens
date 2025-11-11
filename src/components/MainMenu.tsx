@@ -38,13 +38,13 @@ function MainMenu() {
                 route: "Insights",
             },
             { title: "Learn More", icon: "book-open-variant", route: "Learn" },
-            { title: "About", icon: "information-outline", route: "About Us" },
-            { title: "Contact Us", icon: "email-outline", route: "Contact" },
-            {
-                title: "Admin",
-                icon: "account-cog-outline",
-                route: "Admin Panel",
-            },
+            { title: "About Us", icon: "information-outline", route: "About" },
+            { title: "Contact Us", icon: "email-outline", route: "Help" },
+            // {
+            //     title: "Admin",
+            //     icon: "account-cog-outline",
+            //     route: "Admin Panel",
+            // },
         ],
         [],
     );

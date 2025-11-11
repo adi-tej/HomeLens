@@ -1,8 +1,7 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Platform, Pressable, StyleSheet, View } from "react-native";
 import {
     Card,
-    Divider,
     IconButton,
     Searchbar,
     Text,
@@ -153,11 +152,23 @@ function TopicCard({ topic }: { topic: Topic }) {
     const theme = useTheme();
     const [expanded, setExpanded] = useState(false);
 
+    const cardStyle = {
+        backgroundColor: theme.colors.surface,
+        ...Platform.select({
+            ios: {
+                shadowColor: theme.colors.primary,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: theme.dark ? 0.15 : 0.1,
+                shadowRadius: 4,
+            },
+            android: {
+                elevation: 3,
+            },
+        }),
+    };
+
     return (
-        <Card
-            mode="elevated"
-            style={[styles.card, { backgroundColor: theme.colors.surface }]}
-        >
+        <Card mode="elevated" style={[styles.card, cardStyle]}>
             <Card.Title
                 title={topic.title}
                 titleVariant="titleMedium"
@@ -293,21 +304,8 @@ export default function Learn() {
                     keyboardShouldPersistTaps: "handled",
                 }}
             >
-                {results.map((t, idx) => (
-                    <View key={t.key}>
-                        <TopicCard topic={t} />
-                        {idx < results.length - 1 && (
-                            <Divider
-                                style={[
-                                    styles.divider,
-                                    {
-                                        backgroundColor:
-                                            theme.colors.outlineVariant,
-                                    },
-                                ]}
-                            />
-                        )}
-                    </View>
+                {results.map((t) => (
+                    <TopicCard key={t.key} topic={t} />
                 ))}
 
                 {results.length === 0 && (
@@ -396,9 +394,6 @@ const styles = StyleSheet.create({
     },
     pointText: {
         flex: 1,
-    },
-    divider: {
-        marginBottom: spacing.xs,
     },
     empty: {
         paddingVertical: spacing.xl,
