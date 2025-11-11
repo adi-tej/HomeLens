@@ -84,7 +84,7 @@ export function BottomNavigator() {
                     options={{ headerShown: false }}
                 />
                 <Stack.Screen
-                    name="About Us"
+                    name="About"
                     component={About}
                     options={{
                         headerShown: true,
