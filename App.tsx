@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
     createNavigationContainerRef,
     DarkTheme as NavDarkTheme,
@@ -8,13 +8,16 @@ import {
 } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { MD3Theme, PaperProvider } from "react-native-paper";
-import { StyleSheet, useColorScheme } from "react-native";
+import { StyleSheet, useColorScheme, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { ThemeMode, ThemeModeContext } from "./src/state/ThemeModeContext";
 import { darkTheme, lightTheme } from "./src/theme/theme";
 import ActiveRouteSync from "./src/navigation/ActiveRouteSync";
+import Onboarding from "./src/screens/Onboarding";
+import { OnboardingStorage } from "./src/services/onboardingStorage";
+import LoadingScreen from "./src/components/primitives/LoadingScreen";
 
 function toNavigationTheme(
     paper: MD3Theme,
@@ -37,6 +40,9 @@ function toNavigationTheme(
 export default function App() {
     const systemScheme = useColorScheme();
     const [themeMode, setThemeMode] = useState<ThemeMode>(undefined);
+    const [onboardingCompleted, setOnboardingCompleted] = useState<
+        boolean | null
+    >(null);
     const isDark = (themeMode ?? systemScheme) === "dark";
 
     const paperTheme = isDark ? darkTheme : lightTheme;
@@ -52,6 +58,58 @@ export default function App() {
     const themeCtx = useMemo(() => ({ themeMode, setThemeMode }), [themeMode]);
     const navigationRef = useRef(createNavigationContainerRef());
 
+    // Check onboarding status on mount
+    useEffect(() => {
+        const checkOnboarding = async () => {
+            const completed = await OnboardingStorage.isCompleted();
+            setOnboardingCompleted(completed);
+        };
+        checkOnboarding();
+    }, []);
+
+    const handleOnboardingComplete = async (email: string) => {
+        try {
+            await OnboardingStorage.setCompleted(email);
+            // TODO: Send email to HubSpot/Firebase
+            console.log("User email:", email);
+            setOnboardingCompleted(true);
+        } catch (error) {
+            console.error("Failed to complete onboarding:", error);
+        }
+    };
+
+    // Show loading screen while checking onboarding status
+    if (onboardingCompleted === null) {
+        return (
+            <SafeAreaProvider>
+                <PaperProvider theme={paperTheme}>
+                    <View
+                        style={[
+                            styles.flex,
+                            { backgroundColor: paperTheme.colors.background },
+                        ]}
+                    >
+                        <LoadingScreen />
+                    </View>
+                </PaperProvider>
+            </SafeAreaProvider>
+        );
+    }
+
+    // Show onboarding if not completed
+    if (!onboardingCompleted) {
+        return (
+            <SafeAreaProvider>
+                <PaperProvider theme={paperTheme}>
+                    <ThemeModeContext.Provider value={themeCtx}>
+                        <Onboarding onComplete={handleOnboardingComplete} />
+                    </ThemeModeContext.Provider>
+                </PaperProvider>
+            </SafeAreaProvider>
+        );
+    }
+
+    // Main app - only shown after onboarding is completed
     return (
         <SafeAreaProvider>
             <KeyboardProvider>
