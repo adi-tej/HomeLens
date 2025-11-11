@@ -1,11 +1,12 @@
 import React from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import { useTheme } from "react-native-paper";
 import DataCell from "./DataCell";
 import HeaderCell from "./HeaderCell";
 import LabelCell from "./LabelCell";
 import Grid from "./Grid";
 import { getCellWidth, TABLE_CONFIG } from "./TableConfig";
+import Logo from "../Logo";
 
 // Re-export TABLE_CONFIG and getCellWidth for external consumers
 export { TABLE_CONFIG, getCellWidth };
@@ -91,23 +92,7 @@ export default function Table<T>({
                     isSection={row.section === "header"}
                 />
             )}
-            cornerIcon={
-                cornerCell || (
-                    <Image
-                        source={require("../../../assets/icon.png")}
-                        style={styles.cornerIcon}
-                        accessibilityLabel="App icon"
-                    />
-                )
-            }
+            cornerIcon={cornerCell || <Logo width={28} height={28} />}
         />
     );
 }
-
-const styles = StyleSheet.create({
-    cornerIcon: {
-        width: 32,
-        height: 32,
-        borderRadius: 8,
-    },
-});

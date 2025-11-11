@@ -191,7 +191,7 @@ export default function ScenarioManager() {
             }
             return (
                 <Scenario
-                    key={scenario.id}
+                    key={`${scenario.id}-${theme.dark ? "dark" : "light"}`}
                     scenario={scenario}
                     isSelected={scenario.id === currentScenarioId}
                     canDelete={scenarios.length > 1 && !comparisonMode}
@@ -209,6 +209,7 @@ export default function ScenarioManager() {
             );
         },
         [
+            theme.dark,
             isAddingNew,
             editingScenarioId,
             editingName,

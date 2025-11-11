@@ -119,7 +119,9 @@ export default function App() {
             <SafeAreaProvider>
                 <PaperProvider theme={paperTheme}>
                     <ThemeModeContext.Provider value={themeCtx}>
-                        <Onboarding onComplete={handleOnboardingComplete} />
+                        <KeyboardProvider>
+                            <Onboarding onComplete={handleOnboardingComplete} />
+                        </KeyboardProvider>
                     </ThemeModeContext.Provider>
                 </PaperProvider>
             </SafeAreaProvider>

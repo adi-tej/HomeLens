@@ -1,8 +1,9 @@
 import React from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Appbar, Text, useTheme } from "react-native-paper";
 import { spacing } from "../theme/spacing";
 import { useLeftDrawer, useRightDrawer } from "../hooks/useDrawer";
+import Logo from "./Logo";
 
 export default function AppHeader() {
     const theme = useTheme();
@@ -38,11 +39,11 @@ export default function AppHeader() {
                     style={styles.leftMenuButton}
                 />
                 <View style={styles.centerContainer}>
-                    <Image
-                        source={require("../../assets/icon.png")}
-                        style={styles.logo}
-                    />
+                    <View style={styles.logoContainer}>
+                        <Logo width={28} height={28} />
+                    </View>
                     <Text
+                        variant={"headlineSmall"}
                         style={[
                             styles.brandText,
                             { color: theme.colors.primary },
@@ -79,28 +80,21 @@ const styles = StyleSheet.create({
         marginLeft: -spacing.sm,
     },
     centerContainer: {
-        position: "absolute",
-        left: 0,
-        right: 0,
         flexDirection: "row",
-        alignItems: "baseline",
+        alignItems: "center",
         justifyContent: "center",
         gap: spacing.sm,
         pointerEvents: "none",
     },
-    logo: {
-        width: 28,
+    logoContainer: {
         height: 28,
-        resizeMode: "contain",
     },
     brandText: {
-        fontSize: 28,
         fontWeight: "400",
-        lineHeight: 28,
         letterSpacing: -0.5,
+        marginBottom: -spacing.sm,
     },
     menuButton: {
         margin: 0,
-        marginRight: -spacing.sm,
     },
 });

@@ -110,7 +110,6 @@ export default function Scenario({
                 enabled={canSwipe}
                 overshootRight={false}
                 rightThreshold={40}
-                containerStyle={styles.container}
             >
                 <Pressable
                     onPress={handlePress}
@@ -170,7 +169,6 @@ const styles = StyleSheet.create({
         overflow: "hidden",
         marginBottom: spacing.md,
     },
-    container: {},
     scenarioCard: {
         paddingVertical: spacing.md,
         paddingHorizontal: spacing.md,

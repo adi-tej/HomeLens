@@ -1,14 +1,9 @@
 import React, { useState } from "react";
-import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    View,
-} from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Button, Text, TextInput, useTheme } from "react-native-paper";
 import { spacing } from "../theme/spacing";
 import { submitUserEmail } from "../services/backend";
+import ScreenContainer from "../components/primitives/ScreenContainer";
 
 type OnboardingProps = {
     onComplete: (email: string) => void;
@@ -55,18 +50,19 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     };
 
     return (
-        <KeyboardAvoidingView
+        <View
             style={[
                 styles.container,
                 { backgroundColor: theme.colors.background },
             ]}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={0}
         >
-            <ScrollView
-                contentContainerStyle={styles.scrollContent}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
+            <ScreenContainer
+                scroll={true}
+                scrollProps={{
+                    contentContainerStyle: styles.scrollContent,
+                    keyboardShouldPersistTaps: "handled",
+                    showsVerticalScrollIndicator: false,
+                }}
             >
                 <View style={styles.content}>
                     <Text
@@ -119,6 +115,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                         disabled={isSubmitting}
                         returnKeyType="done"
                         onSubmitEditing={handleSubmit}
+                        blurOnSubmit={true}
                     />
 
                     {error ? (
@@ -155,8 +152,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                         securely and never shared with third parties.
                     </Text>
                 </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
+            </ScreenContainer>
+        </View>
     );
 }
 
