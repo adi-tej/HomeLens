@@ -8,13 +8,8 @@ import type {
 } from "../types";
 
 /**
- * Admin/Developer Mode Flag
- * Set to true to enable developer features like reset onboarding
- * Set to false for production builds
+ * Conversion constants
  */
-export const ADMIN_MODE = false; // Change to true for testing
-
-// Conversion constants
 export const QUARTERS_PER_YEAR = 4;
 export const MONTHS_PER_YEAR = 12;
 

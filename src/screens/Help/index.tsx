@@ -11,7 +11,7 @@ import FeedbackDialog from "./FeedbackDialog";
 import PrivacyModal from "./PrivacyModal";
 import TermsModal from "./TermsModal";
 import { OnboardingStorage } from "../../services/onboardingStorage";
-import { ADMIN_MODE } from "../../utils/defaults";
+import { ENV } from "../../state/env";
 
 export default function HelpScreen() {
     const [feedbackVisible, setFeedbackVisible] = useState(false);
@@ -120,7 +120,7 @@ export default function HelpScreen() {
                     onOpenTerms={() => setTermsVisible(true)}
                 />
 
-                {ADMIN_MODE && (
+                {ENV.DEV && (
                     <DeveloperSection
                         onResetOnboarding={handleResetOnboarding}
                     />

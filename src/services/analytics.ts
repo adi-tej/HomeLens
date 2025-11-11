@@ -7,6 +7,7 @@
 import { Dimensions, Platform } from "react-native";
 import * as Device from "expo-device";
 import Constants from "expo-constants";
+import { ENV } from "../state/env";
 
 let analytics: any = null;
 let crashlytics: any = null;
@@ -71,7 +72,7 @@ export const Analytics = {
                     screen_class: screenName,
                 });
             }
-            console.log("[Analytics] Screen View:", screenName);
+            if (ENV.DEV) console.log("[Analytics] Screen View:", screenName);
         } catch (error) {
             console.error("[Analytics] Failed to log screen view:", error);
         }
@@ -88,7 +89,8 @@ export const Analytics = {
                     ...properties,
                 });
             }
-            console.log("[Analytics] Feature Used:", feature, properties);
+            if (ENV.DEV)
+                console.log("[Analytics] Feature Used:", feature, properties);
         } catch (error) {
             console.error("[Analytics] Failed to log feature:", error);
         }
@@ -101,7 +103,8 @@ export const Analytics = {
                     scenario_name: scenarioName,
                 });
             }
-            console.log("[Analytics] Scenario Created:", scenarioName);
+            if (ENV.DEV)
+                console.log("[Analytics] Scenario Created:", scenarioName);
         } catch (error) {
             console.error(
                 "[Analytics] Failed to log scenario creation:",
@@ -117,7 +120,8 @@ export const Analytics = {
                     scenario_count: scenarioCount,
                 });
             }
-            console.log("[Analytics] Scenarios Compared:", scenarioCount);
+            if (ENV.DEV)
+                console.log("[Analytics] Scenarios Compared:", scenarioCount);
         } catch (error) {
             console.error("[Analytics] Failed to log comparison:", error);
         }
@@ -134,11 +138,12 @@ export const Analytics = {
                     property_type: propertyType,
                 });
             }
-            console.log(
-                "[Analytics] Calculation:",
-                calculationType,
-                propertyType,
-            );
+            if (ENV.DEV)
+                console.log(
+                    "[Analytics] Calculation:",
+                    calculationType,
+                    propertyType,
+                );
         } catch (error) {
             console.error("[Analytics] Failed to log calculation:", error);
         }
@@ -155,12 +160,13 @@ export const Analytics = {
                     value_range: getValueRange(value),
                 });
             }
-            console.log(
-                "[Analytics] Property Input:",
-                propertyType,
-                value,
-                getValueRange(value),
-            );
+            if (ENV.DEV)
+                console.log(
+                    "[Analytics] Property Input:",
+                    propertyType,
+                    value,
+                    getValueRange(value),
+                );
         } catch (error) {
             console.error("[Analytics] Failed to log property input:", error);
         }
@@ -173,7 +179,7 @@ export const Analytics = {
                     duration_seconds: Math.round(duration / 1000),
                 });
             }
-            console.log("[Analytics] Engagement:", duration);
+            if (ENV.DEV) console.log("[Analytics] Engagement:", duration);
         } catch (error) {
             console.error("[Analytics] Failed to log engagement:", error);
         }
@@ -187,7 +193,7 @@ export const Analytics = {
                     method: "native_share",
                 });
             }
-            console.log("[Analytics] Share:", contentType);
+            if (ENV.DEV) console.log("[Analytics] Share:", contentType);
         } catch (error) {
             console.error("[Analytics] Failed to log share:", error);
         }
@@ -233,7 +239,8 @@ export const Analytics = {
                     );
                 }
             }
-            console.log("[Analytics] User Properties:", properties);
+            if (ENV.DEV)
+                console.log("[Analytics] User Properties:", properties);
         } catch (error) {
             console.error("[Analytics] Failed to set user properties:", error);
         }
@@ -252,7 +259,7 @@ export const Analytics = {
                     property_type: profile.propertyType,
                 });
             }
-            console.log("[Analytics] User Profile:", profile);
+            if (ENV.DEV) console.log("[Analytics] User Profile:", profile);
         } catch (error) {
             console.error("[Analytics] Failed to log user profile:", error);
         }
@@ -266,7 +273,7 @@ export const Analytics = {
                     email_domain: email.split("@")[1],
                 });
             }
-            console.log("[Analytics] Onboarding Complete:", email);
+            if (ENV.DEV) console.log("[Analytics] Onboarding Complete:", email);
         } catch (error) {
             console.error("[Analytics] Failed to log onboarding:", error);
         }
@@ -283,7 +290,13 @@ export const Analytics = {
                     destination,
                 });
             }
-            console.log("[Analytics] Menu Usage:", menuType, "→", destination);
+            if (ENV.DEV)
+                console.log(
+                    "[Analytics] Menu Usage:",
+                    menuType,
+                    "→",
+                    destination,
+                );
         } catch (error) {
             console.error("[Analytics] Failed to log menu usage:", error);
         }
@@ -296,7 +309,7 @@ export const Analytics = {
                     drawer_side: source,
                 });
             }
-            console.log("[Analytics] Drawer Opened:", source);
+            if (ENV.DEV) console.log("[Analytics] Drawer Opened:", source);
         } catch (error) {
             console.error("[Analytics] Failed to log drawer open:", error);
         }
@@ -350,7 +363,11 @@ export const Analytics = {
             // Log device info event
             await this.logDeviceInfo(deviceInfo);
 
-            console.log("[Analytics] Device Tracking Initialized:", deviceInfo);
+            if (ENV.DEV)
+                console.log(
+                    "[Analytics] Device Tracking Initialized:",
+                    deviceInfo,
+                );
         } catch (error) {
             console.error(
                 "[Analytics] Failed to initialize device tracking:",
@@ -364,7 +381,7 @@ export const Analytics = {
             if (analytics) {
                 await analytics().logEvent("device_info", deviceInfo);
             }
-            console.log("[Analytics] Device Info:", deviceInfo);
+            if (ENV.DEV) console.log("[Analytics] Device Info:", deviceInfo);
         } catch (error) {
             console.error("[Analytics] Failed to log device info:", error);
         }
@@ -378,7 +395,7 @@ export const Analytics = {
                     timestamp: new Date().toISOString(),
                 });
             }
-            console.log("[Analytics] App Opened:", Platform.OS);
+            if (ENV.DEV) console.log("[Analytics] App Opened:", Platform.OS);
         } catch (error) {
             console.error("[Analytics] Failed to log app open:", error);
         }
@@ -392,11 +409,12 @@ export const Analytics = {
                     platform: Platform.OS,
                 });
             }
-            console.log(
-                "[Analytics] App Closed. Session:",
-                sessionDuration,
-                "ms",
-            );
+            if (ENV.DEV)
+                console.log(
+                    "[Analytics] App Closed. Session:",
+                    sessionDuration,
+                    "ms",
+                );
         } catch (error) {
             console.error("[Analytics] Failed to log app close:", error);
         }
@@ -416,12 +434,13 @@ export const Analytics = {
                     ...properties,
                 });
             }
-            console.log(
-                "[Analytics] UI Interaction:",
-                component,
-                action,
-                properties,
-            );
+            if (ENV.DEV)
+                console.log(
+                    "[Analytics] UI Interaction:",
+                    component,
+                    action,
+                    properties,
+                );
         } catch (error) {
             console.error("[Analytics] Failed to log UI interaction:", error);
         }
@@ -437,7 +456,8 @@ export const Analytics = {
                     platform: Platform.OS,
                 });
             }
-            console.error("[Analytics] Error Logged:", context, error);
+            if (ENV.DEV)
+                console.error("[Analytics] Error Logged:", context, error);
 
             // Also send to Crashlytics
             Crashlytics.recordError(error, context);
@@ -460,7 +480,8 @@ export const Analytics = {
                     platform: Platform.OS,
                 });
             }
-            console.log("[Analytics] Performance:", metric, value, unit);
+            if (ENV.DEV)
+                console.log("[Analytics] Performance:", metric, value, unit);
         } catch (error) {
             console.error("[Analytics] Failed to log performance:", error);
         }
@@ -480,7 +501,7 @@ export const Crashlytics = {
                 }
                 crashlytics().recordError(error);
             }
-            console.error("[Crashlytics] Error:", context, error);
+            if (ENV.DEV) console.error("[Crashlytics] Error:", context, error);
         } catch (err) {
             console.error("[Crashlytics] Failed to record error:", err);
         }
@@ -491,7 +512,7 @@ export const Crashlytics = {
             if (crashlytics) {
                 crashlytics().setUserId(userId);
             }
-            console.log("[Crashlytics] User ID:", userId);
+            if (ENV.DEV) console.log("[Crashlytics] User ID:", userId);
         } catch (error) {
             console.error("[Crashlytics] Failed to set user ID:", error);
         }
@@ -502,7 +523,7 @@ export const Crashlytics = {
             if (crashlytics) {
                 crashlytics().log(message);
             }
-            console.log("[Crashlytics]", message);
+            if (ENV.DEV) console.log("[Crashlytics]", message);
         } catch (error) {
             console.error("[Crashlytics] Failed to log message:", error);
         }
@@ -513,7 +534,7 @@ export const Crashlytics = {
             if (crashlytics) {
                 crashlytics().setAttribute(key, value);
             }
-            console.log("[Crashlytics] Attribute:", key, value);
+            if (ENV.DEV) console.log("[Crashlytics] Attribute:", key, value);
         } catch (error) {
             console.error("[Crashlytics] Failed to set attribute:", error);
         }
