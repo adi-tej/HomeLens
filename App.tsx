@@ -11,7 +11,6 @@ import { MD3Theme, PaperProvider } from "react-native-paper";
 import { StyleSheet, useColorScheme, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
-// import analytics from "@react-native-firebase/analytics";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { ThemeMode, ThemeModeContext } from "./src/state/ThemeModeContext";
 import { darkTheme, lightTheme } from "./src/theme/theme";
@@ -19,6 +18,7 @@ import ActiveRouteSync from "./src/navigation/ActiveRouteSync";
 import Onboarding from "./src/screens/Onboarding";
 import { OnboardingStorage } from "./src/services/onboardingStorage";
 import LoadingScreen from "./src/components/primitives/LoadingScreen";
+import { Analytics } from "./src/services/analytics";
 
 function toNavigationTheme(
     paper: MD3Theme,
@@ -73,10 +73,7 @@ export default function App() {
             await OnboardingStorage.setCompleted(email);
 
             // Track onboarding completion
-            // await analytics().logEvent('onboarding_complete', {
-            //     method: 'email',
-            //     email_domain: email.split('@')[1],
-            // });
+            await Analytics.logOnboardingComplete(email);
 
             console.log("User email:", email);
             setOnboardingCompleted(true);

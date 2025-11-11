@@ -9,6 +9,7 @@ import { useThemeMode } from "../state/ThemeModeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { spacing } from "../theme/spacing";
 import { useActiveRoute } from "../state/useAppStore";
+import { Analytics } from "../services/analytics";
 
 interface MenuItem {
     title: string;
@@ -51,6 +52,9 @@ function MainMenu() {
 
     const navigateTo = useCallback(
         (name: string) => {
+            // Track main menu usage
+            Analytics.logMenuUsage("main_menu", name);
+
             close();
             try {
                 nav.navigate(name as never);

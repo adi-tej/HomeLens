@@ -7,6 +7,7 @@ import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Analytics } from "../services/analytics";
 
 // Lazy load screens for faster initial load and code splitting
 // Each screen is loaded only when user navigates to it
@@ -58,8 +59,21 @@ function screenOptionsFactory(theme: MD3Theme) {
 function BottomTabs() {
     const theme = useTheme() as MD3Theme;
     const screenOptions = useCallback(screenOptionsFactory(theme), [theme]);
+
     return (
-        <Tab.Navigator screenOptions={screenOptions}>
+        <Tab.Navigator
+            screenOptions={screenOptions}
+            screenListeners={{
+                state: (e) => {
+                    // Track bottom tab navigation
+                    const state = e.data.state;
+                    if (state) {
+                        const currentRoute = state.routes[state.index];
+                        Analytics.logMenuUsage("bottom_tab", currentRoute.name);
+                    }
+                },
+            }}
+        >
             <Tab.Screen name="Calculator" component={Calculator} />
             <Tab.Screen name="Insights" component={Insights} />
             <Tab.Screen name="Learn" component={Learn} />

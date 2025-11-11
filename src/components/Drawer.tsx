@@ -18,6 +18,7 @@ import {
     useDrawerState,
 } from "../state/useAppStore";
 import { useComparisonState } from "../state/useScenarioStore";
+import { Analytics } from "../services/analytics";
 
 type Side = "left" | "right";
 
@@ -48,6 +49,13 @@ export default function Drawer({ side, children }: Props) {
 
     // Memoize drawerWidth as shared value for better animation performance
     const drawerWidthValue = useSharedValue(drawerWidth);
+
+    // Track drawer open and close events
+    useEffect(() => {
+        if (isOpen) {
+            Analytics.logDrawerOpen(side);
+        }
+    }, [isOpen, side]);
 
     // Update shared value when drawerWidth changes
     useEffect(() => {

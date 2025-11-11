@@ -1,15 +1,22 @@
-// import analytics from '@react-native-firebase/analytics';
-// import crashlytics from '@react-native-firebase/crashlytics';
-
 /**
- * Firebase Analytics Service - STUBBED
- * Currently using console.log until native Firebase modules are built via prebuild
- *
- * To enable Firebase:
- * 1. Run: npx expo prebuild --clean
- * 2. Uncomment the imports above
- * 3. Replace console.log calls with actual Firebase calls
+ * Firebase Analytics Service
+ * Works in both development (console.log) and production (Firebase)
+ * Safely handles cases where Firebase native modules aren't available
  */
+
+let analytics: any = null;
+let crashlytics: any = null;
+
+// Try to load Firebase modules (will fail gracefully if not available)
+try {
+    analytics = require("@react-native-firebase/analytics").default;
+    crashlytics = require("@react-native-firebase/crashlytics").default;
+} catch (error) {
+    // Firebase not available - will use console.log fallback
+    console.log(
+        "[Analytics] Firebase modules not available, using console.log fallback",
+    );
+}
 
 // Screen names enum for consistency
 export enum ScreenName {
@@ -34,6 +41,9 @@ export enum FeatureName {
     VIEW_PROJECTIONS = "view_projections",
     EXPORT_SHARE = "export_share",
     RESET_ONBOARDING = "reset_onboarding",
+    USE_BOTTOM_TAB = "use_bottom_tab",
+    USE_MAIN_MENU = "use_main_menu",
+    OPEN_DRAWER = "open_drawer",
 }
 
 // Property type enum
@@ -45,86 +55,300 @@ export enum PropertyType {
 }
 
 /**
- * Analytics Service (STUBBED - using console.log)
+ * Analytics Service
+ * Automatically uses Firebase if available, falls back to console.log
  */
 export const Analytics = {
     async logScreenView(screenName: ScreenName): Promise<void> {
-        console.log("[Analytics] Screen View:", screenName);
+        try {
+            if (analytics) {
+                await analytics().logScreenView({
+                    screen_name: screenName,
+                    screen_class: screenName,
+                });
+            }
+            console.log("[Analytics] Screen View:", screenName);
+        } catch (error) {
+            console.error("[Analytics] Failed to log screen view:", error);
+        }
     },
 
     async logFeatureUsed(
         feature: FeatureName,
         properties?: Record<string, any>,
     ): Promise<void> {
-        console.log("[Analytics] Feature Used:", feature, properties);
+        try {
+            if (analytics) {
+                await analytics().logEvent("feature_used", {
+                    feature,
+                    ...properties,
+                });
+            }
+            console.log("[Analytics] Feature Used:", feature, properties);
+        } catch (error) {
+            console.error("[Analytics] Failed to log feature:", error);
+        }
     },
 
     async logScenarioCreated(scenarioName: string): Promise<void> {
-        console.log("[Analytics] Scenario Created:", scenarioName);
+        try {
+            if (analytics) {
+                await analytics().logEvent("scenario_created", {
+                    scenario_name: scenarioName,
+                });
+            }
+            console.log("[Analytics] Scenario Created:", scenarioName);
+        } catch (error) {
+            console.error(
+                "[Analytics] Failed to log scenario creation:",
+                error,
+            );
+        }
     },
 
     async logScenarioComparison(scenarioCount: number): Promise<void> {
-        console.log("[Analytics] Scenarios Compared:", scenarioCount);
+        try {
+            if (analytics) {
+                await analytics().logEvent("scenarios_compared", {
+                    scenario_count: scenarioCount,
+                });
+            }
+            console.log("[Analytics] Scenarios Compared:", scenarioCount);
+        } catch (error) {
+            console.error("[Analytics] Failed to log comparison:", error);
+        }
     },
 
     async logCalculation(
         calculationType: string,
         propertyType?: PropertyType,
     ): Promise<void> {
-        console.log("[Analytics] Calculation:", calculationType, propertyType);
+        try {
+            if (analytics) {
+                await analytics().logEvent("calculation_performed", {
+                    calculation_type: calculationType,
+                    property_type: propertyType,
+                });
+            }
+            console.log(
+                "[Analytics] Calculation:",
+                calculationType,
+                propertyType,
+            );
+        } catch (error) {
+            console.error("[Analytics] Failed to log calculation:", error);
+        }
     },
 
     async logPropertyInput(
         propertyType: PropertyType,
         value: number,
     ): Promise<void> {
-        console.log(
-            "[Analytics] Property Input:",
-            propertyType,
-            value,
-            getValueRange(value),
-        );
+        try {
+            if (analytics) {
+                await analytics().logEvent("property_value_entered", {
+                    property_type: propertyType,
+                    value_range: getValueRange(value),
+                });
+            }
+            console.log(
+                "[Analytics] Property Input:",
+                propertyType,
+                value,
+                getValueRange(value),
+            );
+        } catch (error) {
+            console.error("[Analytics] Failed to log property input:", error);
+        }
     },
 
     async logEngagement(duration: number): Promise<void> {
-        console.log("[Analytics] Engagement:", duration);
+        try {
+            if (analytics) {
+                await analytics().logEvent("session_duration", {
+                    duration_seconds: Math.round(duration / 1000),
+                });
+            }
+            console.log("[Analytics] Engagement:", duration);
+        } catch (error) {
+            console.error("[Analytics] Failed to log engagement:", error);
+        }
     },
 
     async logShare(contentType: string): Promise<void> {
-        console.log("[Analytics] Share:", contentType);
+        try {
+            if (analytics) {
+                await analytics().logEvent("share", {
+                    content_type: contentType,
+                    method: "native_share",
+                });
+            }
+            console.log("[Analytics] Share:", contentType);
+        } catch (error) {
+            console.error("[Analytics] Failed to log share:", error);
+        }
     },
 
     async setUserProperties(properties: {
         userType?: "first_time_buyer" | "investor" | "upgrader";
         preferredPropertyType?: PropertyType;
         numberOfScenarios?: number;
+        state?: string;
+        buyerType?: "first_home_buyer" | "upgrader" | "investor" | "unknown";
     }): Promise<void> {
-        console.log("[Analytics] User Properties:", properties);
+        try {
+            if (analytics) {
+                if (properties.userType) {
+                    await analytics().setUserProperty(
+                        "user_type",
+                        properties.userType,
+                    );
+                }
+                if (properties.preferredPropertyType) {
+                    await analytics().setUserProperty(
+                        "preferred_property_type",
+                        properties.preferredPropertyType,
+                    );
+                }
+                if (properties.numberOfScenarios !== undefined) {
+                    await analytics().setUserProperty(
+                        "scenario_count",
+                        String(properties.numberOfScenarios),
+                    );
+                }
+                if (properties.state) {
+                    await analytics().setUserProperty(
+                        "user_state",
+                        properties.state,
+                    );
+                }
+                if (properties.buyerType) {
+                    await analytics().setUserProperty(
+                        "buyer_type",
+                        properties.buyerType,
+                    );
+                }
+            }
+            console.log("[Analytics] User Properties:", properties);
+        } catch (error) {
+            console.error("[Analytics] Failed to set user properties:", error);
+        }
+    },
+
+    async logUserProfile(profile: {
+        state?: string;
+        buyerType?: "first_home_buyer" | "upgrader" | "investor" | "unknown";
+        propertyType?: PropertyType;
+    }): Promise<void> {
+        try {
+            if (analytics) {
+                await analytics().logEvent("user_profile_updated", {
+                    state: profile.state,
+                    buyer_type: profile.buyerType,
+                    property_type: profile.propertyType,
+                });
+            }
+            console.log("[Analytics] User Profile:", profile);
+        } catch (error) {
+            console.error("[Analytics] Failed to log user profile:", error);
+        }
     },
 
     async logOnboardingComplete(email: string): Promise<void> {
-        console.log("[Analytics] Onboarding Complete:", email);
+        try {
+            if (analytics) {
+                await analytics().logEvent("onboarding_complete", {
+                    method: "email",
+                    email_domain: email.split("@")[1],
+                });
+            }
+            console.log("[Analytics] Onboarding Complete:", email);
+        } catch (error) {
+            console.error("[Analytics] Failed to log onboarding:", error);
+        }
+    },
+
+    async logMenuUsage(
+        menuType: "bottom_tab" | "main_menu",
+        destination: string,
+    ): Promise<void> {
+        try {
+            if (analytics) {
+                await analytics().logEvent("menu_navigation", {
+                    menu_type: menuType,
+                    destination,
+                });
+            }
+            console.log("[Analytics] Menu Usage:", menuType, "→", destination);
+        } catch (error) {
+            console.error("[Analytics] Failed to log menu usage:", error);
+        }
+    },
+
+    async logDrawerOpen(source: "left" | "right"): Promise<void> {
+        try {
+            if (analytics) {
+                await analytics().logEvent("drawer_opened", {
+                    drawer_side: source,
+                });
+            }
+            console.log("[Analytics] Drawer Opened:", source);
+        } catch (error) {
+            console.error("[Analytics] Failed to log drawer open:", error);
+        }
     },
 };
 
 /**
- * Crashlytics Service (STUBBED - using console.log)
+ * Crashlytics Service
+ * Automatically uses Firebase if available, falls back to console.log
  */
 export const Crashlytics = {
     recordError(error: Error, context?: string): void {
-        console.error("[Crashlytics] Error:", context, error);
+        try {
+            if (crashlytics) {
+                if (context) {
+                    crashlytics().log(`Context: ${context}`);
+                }
+                crashlytics().recordError(error);
+            }
+            console.error("[Crashlytics] Error:", context, error);
+        } catch (err) {
+            console.error("[Crashlytics] Failed to record error:", err);
+        }
     },
 
     setUserId(userId: string): void {
-        console.log("[Crashlytics] User ID:", userId);
+        try {
+            if (crashlytics) {
+                crashlytics().setUserId(userId);
+            }
+            console.log("[Crashlytics] User ID:", userId);
+        } catch (error) {
+            console.error("[Crashlytics] Failed to set user ID:", error);
+        }
     },
 
     log(message: string): void {
-        console.log("[Crashlytics]", message);
+        try {
+            if (crashlytics) {
+                crashlytics().log(message);
+            }
+            console.log("[Crashlytics]", message);
+        } catch (error) {
+            console.error("[Crashlytics] Failed to log message:", error);
+        }
     },
 
     setAttribute(key: string, value: string): void {
-        console.log("[Crashlytics] Attribute:", key, value);
+        try {
+            if (crashlytics) {
+                crashlytics().setAttribute(key, value);
+            }
+            console.log("[Crashlytics] Attribute:", key, value);
+        } catch (error) {
+            console.error("[Crashlytics] Failed to set attribute:", error);
+        }
     },
 };
 

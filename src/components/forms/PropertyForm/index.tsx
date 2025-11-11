@@ -14,6 +14,7 @@ import {
     useScenarioActions,
 } from "../../../state/useScenarioStore";
 import { useDebouncedCallback } from "../../../hooks/useDebounce";
+import { analyzePropertyData } from "../../../services/userProfile";
 import BasicDetailsSection from "./BasicDetailsSection";
 import LoanSettingsSection from "./LoanSettingsSection";
 import PropertyDetailsSection from "./PropertyDetailsSection";
@@ -98,6 +99,29 @@ export default function PropertyForm() {
             if (isSimpleUpdate) {
                 // Update immediately for simple changes
                 updateScenarioData(currentScenarioId, updates);
+
+                // Track user profile data when key fields change
+                if (
+                    updates.state !== undefined ||
+                    updates.firstHomeBuyer !== undefined ||
+                    updates.isLivingHere !== undefined
+                ) {
+                    analyzePropertyData({
+                        stampDutyState: updates.state || data?.state,
+                        isOwnerOccupied:
+                            updates.isLivingHere !== undefined
+                                ? updates.isLivingHere
+                                : data?.isLivingHere,
+                        isInvestment:
+                            updates.isLivingHere !== undefined
+                                ? !updates.isLivingHere
+                                : !data?.isLivingHere,
+                        hasExistingHome:
+                            updates.firstHomeBuyer !== undefined
+                                ? !updates.firstHomeBuyer
+                                : !data?.firstHomeBuyer,
+                    });
+                }
             } else {
                 // Debounce expensive calculations (property value, deposit, interest rate, etc.)
                 debouncedUpdate(updates);
