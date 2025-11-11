@@ -136,7 +136,7 @@ export default function TermsModal({ visible, onDismiss }: TermsModalProps) {
             </Text>
             <Text variant="bodyMedium" style={styles.section}>
                 If you have questions about these Terms & Conditions, please
-                contact us at gday@aditeja.com.
+                contact us at hello.homelens@gmail.com.
             </Text>
 
             <Text

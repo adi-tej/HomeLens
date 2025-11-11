@@ -35,7 +35,7 @@ export default function HelpScreen() {
         }
         const subject = "HomeLens Feedback";
         const body = feedbackText + "\n\n--\nSent from HomeLens";
-        openMailTo("gday@aditeja.com", subject, body);
+        openMailTo("hello.homelens@gmail.com", subject, body);
         setFeedbackVisible(false);
         setFeedbackText("");
         setSnackbarVisible(true);
@@ -96,7 +96,7 @@ export default function HelpScreen() {
                 <SupportSection
                     onContactSupport={() =>
                         openMailTo(
-                            "gday@aditeja.com",
+                            "hello.homelens@gmail.com",
                             "Support request from HomeLens",
                         )
                     }

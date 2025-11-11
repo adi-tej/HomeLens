@@ -70,7 +70,7 @@ export default function PrivacyModal({
             </Text>
             <Text variant="bodyMedium" style={styles.section}>
                 If you have questions about this privacy policy, please contact
-                us at gday@aditeja.com.
+                us at hello.homelens@gmail.com.
             </Text>
 
             <Text
