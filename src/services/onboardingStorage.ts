@@ -16,10 +16,8 @@ export const OnboardingStorage = {
 
     async setCompleted(email: string): Promise<void> {
         try {
-            await AsyncStorage.multiSet([
-                [ONBOARDING_KEY, "true"],
-                [USER_EMAIL_KEY, email],
-            ]);
+            await AsyncStorage.setItem(ONBOARDING_KEY, "true");
+            await AsyncStorage.setItem(USER_EMAIL_KEY, email);
         } catch (error) {
             console.error("Error saving onboarding status:", error);
             throw error;
@@ -37,9 +35,15 @@ export const OnboardingStorage = {
 
     async reset(): Promise<void> {
         try {
-            await AsyncStorage.multiRemove([ONBOARDING_KEY, USER_EMAIL_KEY]);
+            console.log("[OnboardingStorage] Resetting onboarding...");
+            await AsyncStorage.removeItem(ONBOARDING_KEY);
+            await AsyncStorage.removeItem(USER_EMAIL_KEY);
+            console.log("[OnboardingStorage] Reset complete");
         } catch (error) {
-            console.error("Error resetting onboarding:", error);
+            console.error(
+                "[OnboardingStorage] Error resetting onboarding:",
+                error,
+            );
             throw error;
         }
     },

@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import {
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    View,
+} from "react-native";
 import { Button, Text, TextInput, useTheme } from "react-native-paper";
 import { spacing } from "../theme/spacing";
 import { submitUserEmail } from "../services/backend";
@@ -49,100 +55,120 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     };
 
     return (
-        <View
+        <KeyboardAvoidingView
             style={[
                 styles.container,
                 { backgroundColor: theme.colors.background },
             ]}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={0}
         >
-            <View style={styles.content}>
-                <Text
-                    variant="headlineMedium"
-                    style={[styles.title, { color: theme.colors.onBackground }]}
-                >
-                    Welcome to HomeLens
-                </Text>
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+            >
+                <View style={styles.content}>
+                    <Text
+                        variant="headlineMedium"
+                        style={[
+                            styles.title,
+                            { color: theme.colors.onBackground },
+                        ]}
+                    >
+                        Welcome to HomeLens
+                    </Text>
 
-                <Text
-                    variant="bodyLarge"
-                    style={[
-                        styles.subtitle,
-                        { color: theme.colors.onSurfaceVariant },
-                    ]}
-                >
-                    Your smart property investment calculator
-                </Text>
+                    <Text
+                        variant="bodyLarge"
+                        style={[
+                            styles.subtitle,
+                            { color: theme.colors.onSurfaceVariant },
+                        ]}
+                    >
+                        Your smart property investment calculator
+                    </Text>
 
-                <Text
-                    variant="bodyMedium"
-                    style={[
-                        styles.description,
-                        { color: theme.colors.onSurfaceVariant },
-                    ]}
-                >
-                    To get started, please provide your email address. This
-                    helps us improve the app and keep you updated with new
-                    features.
-                </Text>
+                    <Text
+                        variant="bodyMedium"
+                        style={[
+                            styles.description,
+                            { color: theme.colors.onSurfaceVariant },
+                        ]}
+                    >
+                        To get started, please provide your email address. This
+                        helps us improve the app and keep you updated with new
+                        features.
+                    </Text>
 
-                <TextInput
-                    mode="outlined"
-                    label="Email Address"
-                    value={email}
-                    onChangeText={(text) => {
-                        setEmail(text);
-                        setError("");
-                    }}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoComplete="email"
-                    error={!!error}
-                    style={styles.input}
-                    outlineColor={theme.colors.outline}
-                    activeOutlineColor={theme.colors.primary}
-                    disabled={isSubmitting}
-                />
+                    <TextInput
+                        mode="outlined"
+                        label="Email Address"
+                        value={email}
+                        onChangeText={(text) => {
+                            setEmail(text);
+                            setError("");
+                        }}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        autoComplete="email"
+                        error={!!error}
+                        style={styles.input}
+                        outlineColor={theme.colors.outline}
+                        activeOutlineColor={theme.colors.primary}
+                        disabled={isSubmitting}
+                        returnKeyType="done"
+                        onSubmitEditing={handleSubmit}
+                    />
 
-                {error ? (
+                    {error ? (
+                        <Text
+                            variant="bodySmall"
+                            style={[
+                                styles.error,
+                                { color: theme.colors.error },
+                            ]}
+                        >
+                            {error}
+                        </Text>
+                    ) : null}
+
+                    <Button
+                        mode="contained"
+                        onPress={handleSubmit}
+                        loading={isSubmitting}
+                        disabled={isSubmitting}
+                        style={styles.button}
+                        contentStyle={styles.buttonContent}
+                    >
+                        Get Started
+                    </Button>
+
                     <Text
                         variant="bodySmall"
-                        style={[styles.error, { color: theme.colors.error }]}
+                        style={[
+                            styles.privacy,
+                            { color: theme.colors.onSurfaceVariant },
+                        ]}
                     >
-                        {error}
+                        We respect your privacy. Your email will be stored
+                        securely and never shared with third parties.
                     </Text>
-                ) : null}
-
-                <Button
-                    mode="contained"
-                    onPress={handleSubmit}
-                    loading={isSubmitting}
-                    disabled={isSubmitting}
-                    style={styles.button}
-                    contentStyle={styles.buttonContent}
-                >
-                    Get Started
-                </Button>
-
-                <Text
-                    variant="bodySmall"
-                    style={[
-                        styles.privacy,
-                        { color: theme.colors.onSurfaceVariant },
-                    ]}
-                >
-                    We respect your privacy. Your email will be stored securely
-                    and never shared with third parties.
-                </Text>
-            </View>
-        </View>
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    scrollContent: {
+        flexGrow: 1,
         justifyContent: "center",
         paddingHorizontal: spacing.xl,
+        paddingVertical: spacing.xl,
     },
     content: {
         maxWidth: 400,

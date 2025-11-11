@@ -11,7 +11,7 @@ import FeedbackDialog from "./FeedbackDialog";
 import PrivacyModal from "./PrivacyModal";
 import TermsModal from "./TermsModal";
 import { OnboardingStorage } from "../../services/onboardingStorage";
-// import analytics from "@react-native-firebase/analytics";
+import { ADMIN_MODE } from "../../utils/defaults";
 
 export default function HelpScreen() {
     const [feedbackVisible, setFeedbackVisible] = useState(false);
@@ -55,13 +55,28 @@ export default function HelpScreen() {
                     style: "destructive",
                     onPress: async () => {
                         try {
+                            console.log("[Reset] Starting onboarding reset...");
                             await OnboardingStorage.reset();
-                            await Updates.reloadAsync();
+                            console.log("[Reset] Storage cleared successfully");
+                            if (Updates.reloadAsync) {
+                                await Updates.reloadAsync();
+                            } else {
+                                console.warn(
+                                    "[Reset] Updates.reloadAsync not available",
+                                );
+                                Alert.alert(
+                                    "Reset Complete",
+                                    "Please close and restart the app manually to see the onboarding screen.",
+                                );
+                            }
                         } catch (error) {
-                            console.error("Failed to reset onboarding:", error);
+                            console.error(
+                                "[Reset] Failed to reset onboarding:",
+                                error,
+                            );
                             Alert.alert(
                                 "Error",
-                                "Failed to reset onboarding. Please try again.",
+                                `Failed to reset onboarding: ${error instanceof Error ? error.message : String(error)}`,
                             );
                         }
                     },
@@ -105,7 +120,11 @@ export default function HelpScreen() {
                     onOpenTerms={() => setTermsVisible(true)}
                 />
 
-                <DeveloperSection onResetOnboarding={handleResetOnboarding} />
+                {ADMIN_MODE && (
+                    <DeveloperSection
+                        onResetOnboarding={handleResetOnboarding}
+                    />
+                )}
 
                 <FeedbackDialog
                     visible={feedbackVisible}
