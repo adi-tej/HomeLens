@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "95048235285",
+    "project_id": "home-lens",
+    "storage_bucket": "home-lens.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:95048235285:android:85b6e489bb35a3f136511c",
+        "android_client_info": {
+          "package_name": "com.homelens.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHYt-8z5p5C2Cngm_DpP0nA6g8I1h-yBo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

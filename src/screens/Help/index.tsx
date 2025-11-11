@@ -1,13 +1,16 @@
 import React, { useState } from "react";
 import { Alert, Linking, StyleSheet, View } from "react-native";
 import { Snackbar, Text } from "react-native-paper";
+import * as Updates from "expo-updates";
 import { spacing } from "../../theme/spacing";
 import ScreenContainer from "../../components/primitives/ScreenContainer";
 import FAQSection from "./FAQSection";
 import SupportSection from "./SupportSection";
+import DeveloperSection from "./DeveloperSection";
 import FeedbackDialog from "./FeedbackDialog";
 import PrivacyModal from "./PrivacyModal";
 import TermsModal from "./TermsModal";
+import { OnboardingStorage } from "../../services/onboardingStorage";
 
 export default function HelpScreen() {
     const [feedbackVisible, setFeedbackVisible] = useState(false);
@@ -36,6 +39,36 @@ export default function HelpScreen() {
         setFeedbackVisible(false);
         setFeedbackText("");
         setSnackbarVisible(true);
+    };
+
+    const handleResetOnboarding = async () => {
+        Alert.alert(
+            "Reset Onboarding",
+            "This will clear your onboarding status and restart the app. You'll see the welcome screen again. Continue?",
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel",
+                },
+                {
+                    text: "Reset",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await OnboardingStorage.reset();
+                            // Reload the app to show onboarding
+                            await Updates.reloadAsync();
+                        } catch (error) {
+                            console.error("Failed to reset onboarding:", error);
+                            Alert.alert(
+                                "Error",
+                                "Failed to reset onboarding. Please try again.",
+                            );
+                        }
+                    },
+                },
+            ],
+        );
     };
 
     return (
@@ -72,6 +105,8 @@ export default function HelpScreen() {
                     onOpenPrivacy={() => setPrivacyVisible(true)}
                     onOpenTerms={() => setTermsVisible(true)}
                 />
+
+                <DeveloperSection onResetOnboarding={handleResetOnboarding} />
 
                 <FeedbackDialog
                     visible={feedbackVisible}
