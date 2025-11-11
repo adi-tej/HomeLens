@@ -45,6 +45,7 @@ export default function App() {
         boolean | null
     >(null);
     const isDark = (themeMode ?? systemScheme) === "dark";
+    const sessionStartTime = useRef<number>(Date.now());
 
     const paperTheme = isDark ? darkTheme : lightTheme;
     const navTheme = useMemo(
@@ -58,6 +59,18 @@ export default function App() {
 
     const themeCtx = useMemo(() => ({ themeMode, setThemeMode }), [themeMode]);
     const navigationRef = useRef(createNavigationContainerRef());
+
+    // Initialize device tracking and log app open
+    useEffect(() => {
+        Analytics.initializeDeviceTracking();
+        Analytics.logAppOpen();
+
+        // Log app close on unmount
+        return () => {
+            const sessionDuration = Date.now() - sessionStartTime.current;
+            Analytics.logAppClose(sessionDuration);
+        };
+    }, []);
 
     // Check onboarding status on mount
     useEffect(() => {

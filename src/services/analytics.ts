@@ -4,6 +4,10 @@
  * Safely handles cases where Firebase native modules aren't available
  */
 
+import { Dimensions, Platform } from "react-native";
+import * as Device from "expo-device";
+import Constants from "expo-constants";
+
 let analytics: any = null;
 let crashlytics: any = null;
 
@@ -295,6 +299,170 @@ export const Analytics = {
             console.log("[Analytics] Drawer Opened:", source);
         } catch (error) {
             console.error("[Analytics] Failed to log drawer open:", error);
+        }
+    },
+
+    /**
+     * Initialize and track device/platform information
+     * Call this once when app starts
+     */
+    async initializeDeviceTracking(): Promise<void> {
+        try {
+            const { width, height } = Dimensions.get("window");
+            const deviceInfo = {
+                platform: Platform.OS,
+                platform_version: Platform.Version,
+                device_brand: Device.brand || "unknown",
+                device_model: Device.modelName || "unknown",
+                device_type: Device.deviceType || "unknown",
+                os_name: Device.osName || Platform.OS,
+                os_version: Device.osVersion || String(Platform.Version),
+                app_version: Constants.expoConfig?.version || "1.0.0",
+                screen_width: width,
+                screen_height: height,
+                is_tablet: Device.deviceType === Device.DeviceType.TABLET,
+            };
+
+            // Set as user properties for segmentation
+            if (analytics) {
+                await analytics().setUserProperty(
+                    "platform",
+                    deviceInfo.platform,
+                );
+                await analytics().setUserProperty(
+                    "device_model",
+                    deviceInfo.device_model,
+                );
+                await analytics().setUserProperty(
+                    "os_version",
+                    deviceInfo.os_version,
+                );
+                await analytics().setUserProperty(
+                    "app_version",
+                    deviceInfo.app_version,
+                );
+                await analytics().setUserProperty(
+                    "device_type",
+                    String(deviceInfo.device_type),
+                );
+            }
+
+            // Log device info event
+            await this.logDeviceInfo(deviceInfo);
+
+            console.log("[Analytics] Device Tracking Initialized:", deviceInfo);
+        } catch (error) {
+            console.error(
+                "[Analytics] Failed to initialize device tracking:",
+                error,
+            );
+        }
+    },
+
+    async logDeviceInfo(deviceInfo: Record<string, any>): Promise<void> {
+        try {
+            if (analytics) {
+                await analytics().logEvent("device_info", deviceInfo);
+            }
+            console.log("[Analytics] Device Info:", deviceInfo);
+        } catch (error) {
+            console.error("[Analytics] Failed to log device info:", error);
+        }
+    },
+
+    async logAppOpen(): Promise<void> {
+        try {
+            if (analytics) {
+                await analytics().logEvent("app_open", {
+                    platform: Platform.OS,
+                    timestamp: new Date().toISOString(),
+                });
+            }
+            console.log("[Analytics] App Opened:", Platform.OS);
+        } catch (error) {
+            console.error("[Analytics] Failed to log app open:", error);
+        }
+    },
+
+    async logAppClose(sessionDuration: number): Promise<void> {
+        try {
+            if (analytics) {
+                await analytics().logEvent("app_close", {
+                    session_duration: Math.round(sessionDuration / 1000),
+                    platform: Platform.OS,
+                });
+            }
+            console.log(
+                "[Analytics] App Closed. Session:",
+                sessionDuration,
+                "ms",
+            );
+        } catch (error) {
+            console.error("[Analytics] Failed to log app close:", error);
+        }
+    },
+
+    async logUIInteraction(
+        component: string,
+        action: string,
+        properties?: Record<string, any>,
+    ): Promise<void> {
+        try {
+            if (analytics) {
+                await analytics().logEvent("ui_interaction", {
+                    component,
+                    action,
+                    platform: Platform.OS,
+                    ...properties,
+                });
+            }
+            console.log(
+                "[Analytics] UI Interaction:",
+                component,
+                action,
+                properties,
+            );
+        } catch (error) {
+            console.error("[Analytics] Failed to log UI interaction:", error);
+        }
+    },
+
+    async logError(error: Error, context?: string): Promise<void> {
+        try {
+            if (analytics) {
+                await analytics().logEvent("app_error", {
+                    error_message: error.message,
+                    error_stack: error.stack?.substring(0, 500),
+                    context: context || "unknown",
+                    platform: Platform.OS,
+                });
+            }
+            console.error("[Analytics] Error Logged:", context, error);
+
+            // Also send to Crashlytics
+            Crashlytics.recordError(error, context);
+        } catch (err) {
+            console.error("[Analytics] Failed to log error:", err);
+        }
+    },
+
+    async logPerformanceMetric(
+        metric: string,
+        value: number,
+        unit?: string,
+    ): Promise<void> {
+        try {
+            if (analytics) {
+                await analytics().logEvent("performance_metric", {
+                    metric_name: metric,
+                    metric_value: value,
+                    metric_unit: unit || "ms",
+                    platform: Platform.OS,
+                });
+            }
+            console.log("[Analytics] Performance:", metric, value, unit);
+        } catch (error) {
+            console.error("[Analytics] Failed to log performance:", error);
         }
     },
 };

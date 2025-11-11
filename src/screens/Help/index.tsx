@@ -11,6 +11,7 @@ import FeedbackDialog from "./FeedbackDialog";
 import PrivacyModal from "./PrivacyModal";
 import TermsModal from "./TermsModal";
 import { OnboardingStorage } from "../../services/onboardingStorage";
+// import analytics from "@react-native-firebase/analytics";
 
 export default function HelpScreen() {
     const [feedbackVisible, setFeedbackVisible] = useState(false);
@@ -18,7 +19,6 @@ export default function HelpScreen() {
     const [snackbarVisible, setSnackbarVisible] = useState(false);
     const [privacyVisible, setPrivacyVisible] = useState(false);
     const [termsVisible, setTermsVisible] = useState(false);
-
     const openMailTo = (email: string, subject?: string, body?: string) => {
         const mailto = `mailto:${email}?subject=${encodeURIComponent(
             subject ?? "",
