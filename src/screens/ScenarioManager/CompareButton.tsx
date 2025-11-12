@@ -94,7 +94,12 @@ function CompareButton({
     );
 
     return (
-        <View style={styles.compareButtonContainer}>
+        <View
+            style={[
+                styles.compareButtonContainer,
+                { borderTopColor: theme.colors.outlineVariant },
+            ]}
+        >
             {comparisonMode ? (
                 <View style={styles.proceedButtonContainer}>
                     <Action
@@ -138,7 +143,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingTop: spacing.lg,
         borderTopWidth: 1,
-        borderTopColor: "rgba(0,0,0,0.1)",
     },
     proceedButtonContainer: {
         flexDirection: "row",

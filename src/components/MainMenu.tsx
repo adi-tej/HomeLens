@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useMemo } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, useColorScheme, View } from "react-native";
 import type { MD3Theme } from "react-native-paper";
 import { Button, Divider, List, Text, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -24,6 +24,7 @@ function MainMenu() {
     const activeRouteName = useActiveRoute();
     const { themeMode, setThemeMode } = useThemeMode();
     const insets = useSafeAreaInsets();
+    const systemScheme = useColorScheme();
 
     // Memoize menu configuration so it isn't recreated each render
     const menuItems = useMemo<MenuItem[]>(
@@ -65,7 +66,9 @@ function MainMenu() {
         [close, nav],
     );
 
-    const nextMode = (themeMode ?? "light") === "dark" ? "light" : "dark";
+    // Determine current theme considering system preference when themeMode is undefined
+    const currentTheme = themeMode ?? systemScheme ?? "light";
+    const nextMode = currentTheme === "dark" ? "light" : "dark";
     const iconColor = theme.colors.onSurfaceVariant;
     const activeColor = theme.colors.primary;
 

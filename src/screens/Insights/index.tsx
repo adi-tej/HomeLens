@@ -68,26 +68,12 @@ export default function Insights() {
                 { backgroundColor: theme.colors.surface },
             ]}
         >
-            <View
-                style={[
-                    styles.header,
-                    {
-                        backgroundColor: theme.colors.surfaceVariant,
-                        borderColor: theme.colors.outlineVariant,
-                    },
-                ]}
-            >
-                <View
-                    style={[
-                        styles.accent,
-                        { backgroundColor: theme.colors.primary },
-                    ]}
-                />
+            <View style={styles.header}>
                 <Text
-                    variant="titleMedium"
+                    variant="titleLarge"
                     style={[styles.title, { color: theme.colors.onSurface }]}
                 >
-                    Future Performance
+                    5 Year Performance
                 </Text>
             </View>
 
@@ -122,23 +108,11 @@ const styles = StyleSheet.create({
         padding: spacing.md,
     },
     header: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingVertical: spacing.xs,
-        paddingHorizontal: spacing.sm,
-        borderRadius: spacing.xs,
-        borderWidth: 1,
-        gap: spacing.sm,
-        marginBottom: spacing.md,
-    },
-    accent: {
-        width: 4,
-        alignSelf: "stretch",
-        borderRadius: 2,
+        marginBottom: spacing.xs,
     },
     title: {
         fontWeight: "600",
-        letterSpacing: 0.25,
+        letterSpacing: 0.15,
     },
     emptyState: {
         flex: 1,
