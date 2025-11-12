@@ -1,46 +1,50 @@
 {
-    "expo": {
-        "name": "Home Lens",
-        "slug": "homelens",
-        "jsEngine": "hermes",
-        "version": "1.0.0",
-        "orientation": "portrait",
-        "icon": "./assets/icon.png",
-        "userInterfaceStyle": "automatic",
-        "newArchEnabled": true,
-        "runtimeVersion": {
-            "policy": "appVersion"
-        },
-        "updates": {
-            "url": "https://u.expo.dev/3f70d590-b1b6-4988-90de-b0fc297eab9b"
-        },
-        "splash": {
-            "image": "./assets/splash-icon.png",
-            "resizeMode": "contain",
-            "backgroundColor": "#3C8D7A"
-        },
-        "ios": {
-            "supportsTablet": true,
-            "googleServicesFile": "./GoogleService-Info.plist"
-        },
-        "android": {
-            "adaptiveIcon": {
-                "foregroundImage": "./assets/adaptive-icon.png",
-                "backgroundColor": "#3C8D7A"
-            },
-            "softwareKeyboardLayoutMode": "resize",
-            "edgeToEdgeEnabled": true,
-            "googleServicesFile": "./google-services.json",
-            "package": "com.homelens.app"
-        },
-        "web": {
-            "favicon": "./assets/favicon.png"
-        },
-        "extra": {
-            "eas": {
-                "projectId": "3f70d590-b1b6-4988-90de-b0fc297eab9b"
-            },
-            "dev": false
-        }
+  "expo": {
+    "name": "Home Lens",
+    "slug": "homelens",
+    "jsEngine": "hermes",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3f70d590-b1b6-4988-90de-b0fc297eab9b"
+    },
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#3C8D7A"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "bundleIdentifier": "com.homelens.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#3C8D7A"
+      },
+      "softwareKeyboardLayoutMode": "resize",
+      "edgeToEdgeEnabled": true,
+      "googleServicesFile": "./google-services.json",
+      "package": "com.homelens.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3f70d590-b1b6-4988-90de-b0fc297eab9b"
+      },
+      "dev": false
     }
+  }
 }
