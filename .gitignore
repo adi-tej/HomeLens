@@ -45,5 +45,5 @@ yarn-error.*
 .vscode/
 
 # Config
-google-services.json
-GoogleService-Info.plist
+android/google-services.json
+ios/GoogleService-Info.plist
