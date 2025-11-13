@@ -3,6 +3,4 @@
 !android/app/google-services.json
 !ios/GoogleService-Info.plist
 
-# Ensure root-level Firebase config files are included (used by managed expo config)
-!google-services.json
-!GoogleService-Info.plist
+
