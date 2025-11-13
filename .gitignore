@@ -45,5 +45,8 @@ yarn-error.*
 .vscode/
 
 # Config
-android/google-services.json
-ios/GoogleService-Info.plist
+# (Firebase config files must be committed for EAS Build. Removed ignore rules.)
+# google-services.json
+# GoogleService-Info.plist
+!google-services.json
+!GoogleService-Info.plist
