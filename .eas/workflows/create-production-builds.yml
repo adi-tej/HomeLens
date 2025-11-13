@@ -1,11 +1,16 @@
 name: Create Production Builds
+id: create-production-builds
+on:
+  trigger: manual
 
 jobs:
   build_android:
     type: build # This job type creates a production build for Android
     params:
       platform: android
+      profile: production
   build_ios:
     type: build # This job type creates a production build for iOS
     params:
       platform: ios
+      profile: production
