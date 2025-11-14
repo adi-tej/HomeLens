@@ -109,17 +109,6 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                             features.
                         </Text>
 
-                        <Text
-                            variant="bodySmall"
-                            style={[
-                                styles.optional,
-                                { color: theme.colors.onSurfaceVariant },
-                            ]}
-                        >
-                            Email is optional - you can skip and use all
-                            features without providing one.
-                        </Text>
-
                         <TextInput
                             mode="outlined"
                             label="Email Address"
