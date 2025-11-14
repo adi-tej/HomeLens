@@ -17,7 +17,9 @@ export const OnboardingStorage = {
     async setCompleted(email: string): Promise<void> {
         try {
             await AsyncStorage.setItem(ONBOARDING_KEY, "true");
-            await AsyncStorage.setItem(USER_EMAIL_KEY, email);
+            if (email) {
+                await AsyncStorage.setItem(USER_EMAIL_KEY, email);
+            }
         } catch (error) {
             console.error("Error saving onboarding status:", error);
             throw error;
@@ -30,6 +32,22 @@ export const OnboardingStorage = {
         } catch (error) {
             console.error("Error getting user email:", error);
             return null;
+        }
+    },
+
+    async deleteUserEmail(): Promise<void> {
+        try {
+            await AsyncStorage.removeItem(USER_EMAIL_KEY);
+            await AsyncStorage.removeItem(ONBOARDING_KEY);
+            console.log(
+                "[OnboardingStorage] User email deleted and onboarding reset",
+            );
+        } catch (error) {
+            console.error(
+                "[OnboardingStorage] Error deleting user email:",
+                error,
+            );
+            throw error;
         }
     },
 

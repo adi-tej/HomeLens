@@ -76,6 +76,8 @@ export default function App() {
     useEffect(() => {
         const checkOnboarding = async () => {
             const completed = await OnboardingStorage.isCompleted();
+            const email = await OnboardingStorage.getUserEmail();
+            console.log("[App] Onboarding check:", { completed, email });
             setOnboardingCompleted(completed);
         };
         checkOnboarding();
@@ -83,13 +85,23 @@ export default function App() {
 
     const handleOnboardingComplete = async (email: string) => {
         try {
-            await OnboardingStorage.setCompleted(email);
+            if (email) {
+                // Only save onboarding as completed if email is provided
+                await OnboardingStorage.setCompleted(email);
 
-            // Track onboarding completion
-            await Analytics.logOnboardingComplete(email);
+                // Track onboarding completion
+                await Analytics.logOnboardingComplete(email);
 
-            console.log("User email:", email);
+                console.log("[App] User provided email:", email);
+            } else {
+                console.log(
+                    "[App] User skipped onboarding - NOT saving to storage",
+                );
+            }
+
+            // Show app regardless, but onboarding will show again if skipped
             setOnboardingCompleted(true);
+            console.log("[App] Showing main app (onboardingCompleted=true)");
         } catch (error) {
             console.error("Failed to complete onboarding:", error);
         }

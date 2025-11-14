@@ -6,6 +6,7 @@ import { spacing } from "../../theme/spacing";
 import ScreenContainer from "../../components/primitives/ScreenContainer";
 import FAQSection from "./FAQSection";
 import SupportSection from "./SupportSection";
+import DataSection from "./DataSection";
 import DeveloperSection from "./DeveloperSection";
 import FeedbackDialog from "./FeedbackDialog";
 import PrivacyModal from "./PrivacyModal";
@@ -19,6 +20,17 @@ export default function HelpScreen() {
     const [snackbarVisible, setSnackbarVisible] = useState(false);
     const [privacyVisible, setPrivacyVisible] = useState(false);
     const [termsVisible, setTermsVisible] = useState(false);
+    const [userEmail, setUserEmail] = useState<string | null>(null);
+
+    // Load user email on mount
+    React.useEffect(() => {
+        const loadEmail = async () => {
+            const email = await OnboardingStorage.getUserEmail();
+            setUserEmail(email);
+        };
+        loadEmail();
+    }, []);
+
     const openMailTo = (email: string, subject?: string, body?: string) => {
         const mailto = `mailto:${email}?subject=${encodeURIComponent(
             subject ?? "",
@@ -39,6 +51,47 @@ export default function HelpScreen() {
         setFeedbackVisible(false);
         setFeedbackText("");
         setSnackbarVisible(true);
+    };
+
+    const handleDeleteData = async () => {
+        if (!userEmail) {
+            Alert.alert(
+                "No Data",
+                "You don't have any email stored in the app. All your calculations are stored locally on your device.",
+            );
+            return;
+        }
+
+        Alert.alert(
+            "Delete My Data",
+            `This will remove your email (${userEmail}) from the app and our records. To fully delete from our marketing list, please contact support at hello.homelens@gmail.com`,
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel",
+                },
+                {
+                    text: "Delete Email",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await OnboardingStorage.deleteUserEmail();
+                            setUserEmail(null);
+                            Alert.alert(
+                                "Email Deleted",
+                                "Your email has been removed from this device. For complete removal from our marketing list, please contact hello.homelens@gmail.com",
+                            );
+                        } catch (error) {
+                            console.error("Failed to delete email:", error);
+                            Alert.alert(
+                                "Error",
+                                "Failed to delete email. Please try again or contact support.",
+                            );
+                        }
+                    },
+                },
+            ],
+        );
     };
 
     const handleResetOnboarding = async () => {
@@ -118,6 +171,11 @@ export default function HelpScreen() {
                     onSendFeedback={() => setFeedbackVisible(true)}
                     onOpenPrivacy={() => setPrivacyVisible(true)}
                     onOpenTerms={() => setTermsVisible(true)}
+                />
+
+                <DataSection
+                    userEmail={userEmail}
+                    onDeleteData={handleDeleteData}
                 />
 
                 {ENV.DEV && (
