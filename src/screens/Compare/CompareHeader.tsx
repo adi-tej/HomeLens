@@ -1,10 +1,10 @@
 import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Divider, IconButton, Text, useTheme } from "react-native-paper";
-import ShareButton from "../../components/ShareButton";
-import { spacing } from "../../theme/spacing";
-import type { ComparisonRow } from "../../hooks/useComparisonData";
-import type { Scenario } from "../../state/useScenarioStore";
+import ShareButton from "@components/ShareButton";
+import type { ComparisonRow } from "@hooks/useComparisonData";
+import type { Scenario } from "@state/useScenarioStore";
+import { spacing } from "@theme/spacing";
 
 interface CompareHeaderProps {
     onBack: () => void;

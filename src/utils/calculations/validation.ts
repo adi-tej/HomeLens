@@ -1,4 +1,4 @@
-import { PropertyData, PropertyDataErrors } from "../../types";
+import { PropertyData, PropertyDataErrors } from "@types";
 
 /**
  * Validates mortgage data and returns any validation errors

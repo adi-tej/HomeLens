@@ -6,15 +6,15 @@ import {
     DepositInput,
     SegmentedToggle,
     Select,
-} from "../../inputs";
+} from "@components/inputs";
 import type {
     LoanDetails,
     PropertyData,
     PropertyType,
     StateCode,
-} from "../../../types";
-import { DEFAULT_STATE, STATE_OPTIONS } from "../../../utils/defaults";
-import { spacing } from "../../../theme/spacing";
+} from "@types";
+import { DEFAULT_STATE, STATE_OPTIONS } from "@utils/defaults";
+import { spacing } from "@theme/spacing";
 
 interface BasicDetailsSectionProps {
     data: PropertyData;

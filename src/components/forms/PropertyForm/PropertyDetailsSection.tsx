@@ -1,9 +1,9 @@
 import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Divider, Text, useTheme } from "react-native-paper";
-import { CurrencySelect, ExpensesInput } from "../../inputs";
-import type { PropertyData } from "../../../types";
-import { spacing } from "../../../theme/spacing";
+import { CurrencySelect, ExpensesInput } from "@components/inputs";
+import type { PropertyData } from "@types";
+import { spacing } from "@theme/spacing";
 
 interface PropertyDetailsSectionProps {
     data: PropertyData;

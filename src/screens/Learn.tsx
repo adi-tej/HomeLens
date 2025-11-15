@@ -7,8 +7,8 @@ import {
     Text,
     useTheme,
 } from "react-native-paper";
-import ScreenContainer from "../components/primitives/ScreenContainer";
-import { spacing } from "../theme/spacing";
+import ScreenContainer from "@components/primitives/ScreenContainer";
+import { spacing } from "@theme/spacing";
 
 // Concise learning topics derived from calculations README (generic guidance about buying property)
 // Keep it app-agnostic and easy to skim

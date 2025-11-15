@@ -1,7 +1,7 @@
 import React from "react";
 import { List, Text } from "react-native-paper";
 import { StyleSheet } from "react-native";
-import { spacing } from "../../theme/spacing";
+import { spacing } from "@theme/spacing";
 
 function LeftIcon(icon: string) {
     return function IconRenderer(props: any) {

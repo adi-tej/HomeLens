@@ -27,7 +27,7 @@ import {
     DEFAULT_WEEKLY_RENT,
     getGovtFee,
 } from "../defaults";
-import type { PropertyData } from "../../types";
+import type { PropertyData } from "@types";
 
 /**
  * Calculate all property data values from input data

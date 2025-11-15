@@ -1,10 +1,10 @@
 import React, { memo, useMemo, useRef, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
-import { spacing } from "../../theme/spacing";
-import { formatCurrency, parseNumber } from "../../utils/parser";
+import { spacing } from "@theme/spacing";
+import { formatCurrency, parseNumber } from "@utils/parser";
+import { DEPOSIT_PERCENTAGE_PRESETS } from "@utils/defaults";
 import { PercentageInput } from "./PercentageInput";
-import { DEPOSIT_PERCENTAGE_PRESETS } from "../../utils/defaults";
 
 export type DepositInputProps = {
     propertyValue?: number;

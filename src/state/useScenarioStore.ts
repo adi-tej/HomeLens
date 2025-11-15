@@ -1,7 +1,9 @@
 import { create } from "zustand";
-import { type PropertyData } from "../types";
-import { calculatePropertyData } from "../utils/calculations";
-import { getDefaultPropertyData } from "../utils/defaults";
+
+import type { PropertyData } from "@types";
+
+import { calculatePropertyData } from "@utils/calculations";
+import { getDefaultPropertyData } from "@utils/defaults";
 
 export type ScenarioId = string;
 
@@ -107,35 +109,24 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => {
         },
 
         deleteScenario: (id: ScenarioId) => {
-            const { scenarios, currentScenarioId } = get();
-
-            // Prevent deletion if only one scenario left
-            if (scenarios.size <= 1) {
-                return;
-            }
+            const { currentScenarioId } = get();
 
             set((state) => {
                 const next = new Map(state.scenarios);
                 next.delete(id);
 
-                // If deleting current scenario, switch selection
+                const updatedArray = updateScenariosArray(next);
+
+                // If deleting current scenario, pick a new one or clear selection
                 let newCurrentId = state.currentScenarioId;
                 if (currentScenarioId === id) {
-                    const allScenarios = state.scenariosArray;
-                    const currentIndex = allScenarios.findIndex(
-                        (s) => s.id === id,
-                    );
-
-                    if (currentIndex > 0) {
-                        newCurrentId = allScenarios[currentIndex - 1].id;
-                    } else {
-                        newCurrentId = allScenarios[1].id;
-                    }
+                    newCurrentId =
+                        updatedArray.length > 0 ? updatedArray[0].id : null;
                 }
 
                 return {
                     scenarios: next,
-                    scenariosArray: updateScenariosArray(next),
+                    scenariosArray: updatedArray,
                     currentScenarioId: newCurrentId,
                 };
             });

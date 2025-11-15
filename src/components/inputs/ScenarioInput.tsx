@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
-import { spacing } from "../../theme/spacing";
+import { spacing } from "@theme/spacing";
 
 export type ScenarioInputProps = {
     value: string;

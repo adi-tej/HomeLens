@@ -5,7 +5,7 @@ import type {
     PropertyData,
     PropertyType,
     StateCode,
-} from "../types";
+} from "@types";
 
 /**
  * Conversion constants

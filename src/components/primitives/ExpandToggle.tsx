@@ -2,7 +2,7 @@ import React, { memo, useEffect, useRef } from "react";
 import { Animated, Pressable, StyleSheet } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { spacing } from "../../theme/spacing";
+import { spacing } from "@theme/spacing";
 
 interface ExpandToggleProps {
     label: string;

@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button, Text, TextInput, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { spacing } from "../theme/spacing";
-import { submitUserEmail } from "../services/backend";
-import ScreenContainer from "../components/primitives/ScreenContainer";
+import { spacing } from "@theme/spacing";
+import { submitUserEmail } from "@services/backend";
+import ScreenContainer from "@components/primitives/ScreenContainer";
 import PrivacyModal from "./Help/PrivacyModal";
 
 type OnboardingProps = {
@@ -127,7 +127,6 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                             disabled={isSubmitting}
                             returnKeyType="done"
                             onSubmitEditing={handleSubmit}
-                            blurOnSubmit={true}
                         />
 
                         {error ? (

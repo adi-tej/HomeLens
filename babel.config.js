@@ -3,10 +3,23 @@ module.exports = function (api) {
     return {
         presets: ["babel-preset-expo"],
         plugins: [
-            // React Native Paper tree-shaking plugin for smaller bundle size
+            [
+                "module-resolver",
+                {
+                    root: ["./"],
+                    alias: {
+                        "@components": "./src/components",
+                        "@screens": "./src/screens",
+                        "@hooks": "./src/hooks",
+                        "@state": "./src/state",
+                        "@services": "./src/services",
+                        "@theme": "./src/theme",
+                        "@utils": "./src/utils",
+                        "@types": "./src/types",
+                    },
+                },
+            ],
             ["react-native-paper/babel", { loose: true }],
-
-            // Reanimated plugin must be listed last
             "react-native-reanimated/plugin",
         ],
     };

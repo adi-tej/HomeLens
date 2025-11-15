@@ -2,10 +2,10 @@ import React, { useCallback, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAppActions } from "../../state/useAppStore";
-import { spacing } from "../../theme/spacing";
-import { useComparisonData } from "../../hooks/useComparisonData";
-import Table, { getCellWidth, TABLE_CONFIG } from "../../components/Table";
+import { useAppActions } from "@state/useAppStore";
+import { spacing } from "@theme/spacing";
+import { useComparisonData } from "@hooks/useComparisonData";
+import Table, { getCellWidth, TABLE_CONFIG } from "@components/Table";
 import CompareHeader from "./CompareHeader";
 import EmptyState from "./EmptyState";
 

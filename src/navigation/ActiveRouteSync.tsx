@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import type { NavigationContainerRef } from "@react-navigation/native";
-import { useAppActions } from "../state/useAppStore";
+import { useAppActions } from "@state/useAppStore";
+import { Analytics, ScreenName } from "@services/analytics";
 
 function getDeepActiveName(state: any): string | undefined {
     if (!state) return undefined;
@@ -29,6 +30,7 @@ export default function ActiveRouteSync({
             if (lastNameRef.current !== name) {
                 lastNameRef.current = name;
                 setActiveRouteName(name);
+                void Analytics.logScreenView(name as ScreenName);
             }
         };
 

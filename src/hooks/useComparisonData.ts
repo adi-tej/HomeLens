@@ -1,9 +1,6 @@
 import { useMemo } from "react";
-import {
-    useComparisonState,
-    useScenarioStore,
-} from "../state/useScenarioStore";
-import { formatCurrency } from "../utils/parser";
+import { useComparisonState, useScenarioStore } from "@state/useScenarioStore";
+import { formatCurrency } from "@utils/parser";
 
 export interface ComparisonRow {
     key: string;

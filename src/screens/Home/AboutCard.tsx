@@ -3,8 +3,8 @@ import { StyleSheet, View } from "react-native";
 import { Button, Card, Text, useTheme } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
-import { useScenarioActions } from "../../state/useScenarioStore";
-import { spacing } from "../../theme/spacing";
+import { useScenarioActions } from "@state/useScenarioStore";
+import { spacing } from "@theme/spacing";
 
 type Props = {
     onOpenDisclaimer?: () => void;

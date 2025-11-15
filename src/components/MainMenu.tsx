@@ -2,14 +2,14 @@ import React, { memo, useCallback, useMemo } from "react";
 import { StyleSheet, useColorScheme, View } from "react-native";
 import type { MD3Theme } from "react-native-paper";
 import { Button, Divider, List, Text, useTheme } from "react-native-paper";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useLeftDrawer } from "../hooks/useDrawer";
-import { useNavigation } from "@react-navigation/native";
-import { useThemeMode } from "../state/ThemeModeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { spacing } from "../theme/spacing";
-import { useActiveRoute } from "../state/useAppStore";
-import { Analytics } from "../services/analytics";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useLeftDrawer } from "@hooks/useDrawer";
+import { useNavigation } from "@react-navigation/native";
+import { useThemeMode } from "@state/ThemeModeContext";
+import { spacing } from "@theme/spacing";
+import { useActiveRoute } from "@state/useAppStore";
+import { Analytics, FeatureName } from "@services/analytics";
 
 interface MenuItem {
     title: string;
@@ -53,9 +53,9 @@ function MainMenu() {
 
     const navigateTo = useCallback(
         (name: string) => {
-            // Track main menu usage
-            Analytics.logMenuUsage("main_menu", name);
-
+            void Analytics.logFeatureUsed(FeatureName.USE_MAIN_MENU, {
+                destination: name,
+            });
             close();
             try {
                 nav.navigate(name as never);

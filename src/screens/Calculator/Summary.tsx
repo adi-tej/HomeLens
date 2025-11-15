@@ -3,11 +3,11 @@ import { View } from "react-native";
 import type {
     SummaryCardProps,
     SummaryCardRow,
-} from "../../components/cards/SummaryCard";
-import SummaryCard from "../../components/cards/SummaryCard";
-import type { PropertyData } from "../../types";
-import { formatCurrency } from "../../utils/parser";
-import { getGovtFee, QUARTERS_PER_YEAR } from "../../utils/defaults";
+} from "@components/cards/SummaryCard";
+import SummaryCard from "@components/cards/SummaryCard";
+import type { PropertyData } from "@types";
+import { formatCurrency } from "@utils/parser";
+import { getGovtFee, QUARTERS_PER_YEAR } from "@utils/defaults";
 
 /**
  * Props for the Summary component

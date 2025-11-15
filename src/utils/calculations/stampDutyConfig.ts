@@ -3,7 +3,7 @@
  * Contains duty brackets, rates, and first home buyer concessions
  */
 
-import type { StateCode } from "../../types";
+import type { StateCode } from "@types";
 
 /**
  * Duty bracket definition

@@ -7,15 +7,15 @@ import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Analytics } from "../services/analytics";
+import { Analytics, FeatureName } from "@services/analytics";
 
 // Lazy load screens for faster initial load and code splitting
 // Each screen is loaded only when user navigates to it
-const Calculator = lazy(() => import("../screens/Calculator/index"));
-const Insights = lazy(() => import("../screens/Insights/index"));
-const Learn = lazy(() => import("../screens/Learn"));
-const Help = lazy(() => import("../screens/Help"));
-const About = lazy(() => import("../screens/About"));
+const Calculator = lazy(() => import("@screens/Calculator/index"));
+const Insights = lazy(() => import("@screens/Insights/index"));
+const Learn = lazy(() => import("@screens/Learn"));
+const Help = lazy(() => import("@screens/Help"));
+const About = lazy(() => import("@screens/About"));
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -64,12 +64,16 @@ function BottomTabs() {
         <Tab.Navigator
             screenOptions={screenOptions}
             screenListeners={{
-                state: (e) => {
-                    // Track bottom tab navigation
-                    const state = e.data.state;
-                    if (state) {
-                        const currentRoute = state.routes[state.index];
-                        Analytics.logMenuUsage("bottom_tab", currentRoute.name);
+                state: ({ data }) => {
+                    const navState = data?.state;
+                    const routeName = navState?.routes?.[navState.index]?.name;
+                    if (routeName) {
+                        void Analytics.logFeatureUsed(
+                            FeatureName.USE_BOTTOM_TAB,
+                            {
+                                destination: routeName,
+                            },
+                        );
                     }
                 },
             }}

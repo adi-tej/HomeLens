@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { Pressable, StyleSheet, TextStyle, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Animated, {
     Easing,
     interpolateColor,
@@ -9,7 +8,8 @@ import Animated, {
     useSharedValue,
     withTiming,
 } from "react-native-reanimated";
-import { spacing } from "../../theme/spacing";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { spacing } from "@theme/spacing";
 
 /**
  * Row data for a summary card table

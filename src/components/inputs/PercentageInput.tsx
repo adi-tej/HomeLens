@@ -1,8 +1,8 @@
 import React, { memo, useState } from "react";
 import { Keyboard, Platform, View } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
+import { parseNumber } from "@utils/parser";
 import SelectModal, { Option } from "../primitives/SelectModal";
-import { parseNumber } from "../../utils/parser";
 
 export type PercentageInputProps = {
     label?: string;

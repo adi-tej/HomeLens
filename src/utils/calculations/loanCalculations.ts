@@ -3,7 +3,7 @@ import {
     DEFAULT_LOAN_TERM,
     MONTHS_PER_YEAR,
 } from "../defaults";
-import type { LoanDetails } from "../../types";
+import type { LoanDetails } from "@types";
 
 /**
  * Calculate monthly mortgage repayment

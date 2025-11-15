@@ -7,7 +7,7 @@
 import { Dimensions, Platform } from "react-native";
 import * as Device from "expo-device";
 import Constants from "expo-constants";
-import { ENV } from "../state/env";
+import { ENV } from "@state/env";
 
 let analytics: any = null;
 let crashlytics: any = null;
@@ -49,6 +49,8 @@ export enum FeatureName {
     USE_BOTTOM_TAB = "use_bottom_tab",
     USE_MAIN_MENU = "use_main_menu",
     OPEN_DRAWER = "open_drawer",
+    EMPTY_STATE_CREATE_SCENARIO = "empty_state_create_scenario",
+    SCENARIO_CREATE_MODE_ENTERED = "scenario_create_mode_entered",
 }
 
 // Property type enum

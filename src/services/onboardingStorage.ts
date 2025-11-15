@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Analytics, FeatureName } from "./analytics";
 
 const ONBOARDING_KEY = "@homelens:onboarding_completed";
 const USER_EMAIL_KEY = "@homelens:user_email";
@@ -39,9 +40,9 @@ export const OnboardingStorage = {
         try {
             await AsyncStorage.removeItem(USER_EMAIL_KEY);
             await AsyncStorage.removeItem(ONBOARDING_KEY);
-            console.log(
-                "[OnboardingStorage] User email deleted and onboarding reset",
-            );
+            void Analytics.logFeatureUsed(FeatureName.RESET_ONBOARDING, {
+                action: "delete_email",
+            });
         } catch (error) {
             console.error(
                 "[OnboardingStorage] Error deleting user email:",
@@ -53,10 +54,11 @@ export const OnboardingStorage = {
 
     async reset(): Promise<void> {
         try {
-            console.log("[OnboardingStorage] Resetting onboarding...");
             await AsyncStorage.removeItem(ONBOARDING_KEY);
             await AsyncStorage.removeItem(USER_EMAIL_KEY);
-            console.log("[OnboardingStorage] Reset complete");
+            void Analytics.logFeatureUsed(FeatureName.RESET_ONBOARDING, {
+                action: "full_reset",
+            });
         } catch (error) {
             console.error(
                 "[OnboardingStorage] Error resetting onboarding:",

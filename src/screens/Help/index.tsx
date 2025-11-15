@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { Alert, Linking, StyleSheet, View } from "react-native";
 import { Snackbar, Text } from "react-native-paper";
 import * as Updates from "expo-updates";
-import { spacing } from "../../theme/spacing";
-import ScreenContainer from "../../components/primitives/ScreenContainer";
+import ScreenContainer from "@components/primitives/ScreenContainer";
+import { spacing } from "@theme/spacing";
+import { OnboardingStorage } from "@services/onboardingStorage";
+import { ENV } from "@state/env";
 import FAQSection from "./FAQSection";
 import SupportSection from "./SupportSection";
 import DataSection from "./DataSection";
@@ -11,8 +13,6 @@ import DeveloperSection from "./DeveloperSection";
 import FeedbackDialog from "./FeedbackDialog";
 import PrivacyModal from "./PrivacyModal";
 import TermsModal from "./TermsModal";
-import { OnboardingStorage } from "../../services/onboardingStorage";
-import { ENV } from "../../state/env";
 
 export default function HelpScreen() {
     const [feedbackVisible, setFeedbackVisible] = useState(false);

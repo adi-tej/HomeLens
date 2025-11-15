@@ -3,8 +3,8 @@ import { StyleSheet, View } from "react-native";
 import { Avatar, Button, Text, useTheme } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
-import { useScenarioActions } from "../../state/useScenarioStore";
-import ScreenContainer from "../../components/primitives/ScreenContainer";
+import { useScenarioActions } from "@state/useScenarioStore";
+import ScreenContainer from "@components/primitives/ScreenContainer";
 
 import MarketSnapshot from "./MarketSnapshot";
 import AboutCard from "./AboutCard";

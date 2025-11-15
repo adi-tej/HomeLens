@@ -2,8 +2,8 @@ import React, { useMemo, useRef } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { useTheme } from "react-native-paper";
+import { spacing } from "@theme/spacing";
 import { TABLE_CONFIG } from "./TableConfig";
-import { spacing } from "../../theme/spacing";
 
 // Create Animated versions of gesture-handler ScrollView
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);

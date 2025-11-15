@@ -11,14 +11,14 @@ import Reanimated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "react-native-paper";
-import { SPRING_CONFIG, useDrawer } from "../hooks/useDrawer";
+import { SPRING_CONFIG, useDrawer } from "@hooks/useDrawer";
 import {
     useAppActions,
     useCompareScreenState,
     useDrawerState,
-} from "../state/useAppStore";
-import { useComparisonState } from "../state/useScenarioStore";
-import { Analytics } from "../services/analytics";
+} from "@state/useAppStore";
+import { useComparisonState } from "@state/useScenarioStore";
+import { Analytics, FeatureName } from "@services/analytics";
 
 type Side = "left" | "right";
 
@@ -53,7 +53,10 @@ export default function Drawer({ side, children }: Props) {
     // Track drawer open and close events
     useEffect(() => {
         if (isOpen) {
-            Analytics.logDrawerOpen(side);
+            void Analytics.logDrawerOpen(side);
+            void Analytics.logFeatureUsed(FeatureName.OPEN_DRAWER, {
+                drawer_side: side,
+            });
         }
     }, [isOpen, side]);
 

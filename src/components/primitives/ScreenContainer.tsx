@@ -2,7 +2,7 @@ import React, { PropsWithChildren } from "react";
 import { StyleSheet, View, ViewProps } from "react-native";
 import type { KeyboardAwareScrollViewProps } from "react-native-keyboard-controller";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { spacing } from "../../theme/spacing";
+import { spacing } from "@theme/spacing";
 
 export type ScreenContainerProps = PropsWithChildren<{
     scroll?: boolean;

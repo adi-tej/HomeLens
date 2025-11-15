@@ -3,6 +3,7 @@ import { Alert } from "react-native";
 import { IconButton, useTheme } from "react-native-paper";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
+import { Analytics, FeatureName } from "@services/analytics";
 
 interface ShareButtonProps {
     data: Array<{
@@ -105,6 +106,11 @@ export default function ShareButton({
                 mimeType: "text/csv",
                 dialogTitle: "Share Property Comparison",
                 UTI: "public.comma-separated-values-text",
+            });
+            void Analytics.logShare("comparison_csv");
+            void Analytics.logFeatureUsed(FeatureName.EXPORT_SHARE, {
+                scenario_count: scenarios.length,
+                metrics_count: data.length,
             });
         } catch (error) {
             console.error("Error sharing:", error);

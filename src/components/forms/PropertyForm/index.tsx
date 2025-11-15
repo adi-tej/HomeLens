@@ -7,19 +7,20 @@ import Animated, {
     useSharedValue,
     withTiming,
 } from "react-native-reanimated";
-import type { PropertyData } from "../../../types";
-import { spacing } from "../../../theme/spacing";
+import type { PropertyData } from "@types";
+import { spacing } from "@theme/spacing";
 import {
     useCurrentScenario,
     useScenarioActions,
-} from "../../../state/useScenarioStore";
-import { useDebouncedCallback } from "../../../hooks/useDebounce";
-import { analyzePropertyData } from "../../../services/userProfile";
+} from "@state/useScenarioStore";
+import { useDebouncedCallback } from "@hooks/useDebounce";
+import { analyzePropertyData } from "@services/userProfile";
+import ExpandToggle from "@components/primitives/ExpandToggle";
+import { Analytics, FeatureName } from "@services/analytics";
 import BasicDetailsSection from "./BasicDetailsSection";
 import LoanSettingsSection from "./LoanSettingsSection";
 import PropertyDetailsSection from "./PropertyDetailsSection";
 import AssumptionsSection from "./AssumptionsSection";
-import ExpandToggle from "../../primitives/ExpandToggle";
 
 // Animation constants
 const ANIMATION_DURATION_OPEN = 400;
@@ -59,7 +60,11 @@ export default function PropertyForm() {
             duration: next ? ANIMATION_DURATION_OPEN : ANIMATION_DURATION_CLOSE,
             easing: ANIMATION_EASING,
         });
-    }, [showAdvanced]);
+        void Analytics.logFeatureUsed(FeatureName.VIEW_PROJECTIONS, {
+            expanded: next,
+            scenario_id: currentScenarioId,
+        });
+    }, [showAdvanced, currentScenarioId]);
 
     useEffect(() => {
         if (pendingDepositRef.current != null && data?.deposit != null) {
@@ -99,6 +104,21 @@ export default function PropertyForm() {
             if (isSimpleUpdate) {
                 // Update immediately for simple changes
                 updateScenarioData(currentScenarioId, updates);
+                if (updates.propertyType) {
+                    void Analytics.logFeatureUsed(
+                        FeatureName.CALCULATE_STAMP_DUTY,
+                        {
+                            property_type: updates.propertyType,
+                            scenario_id: currentScenarioId,
+                        },
+                    );
+                }
+                if (updates.loan?.interest !== undefined) {
+                    void Analytics.logFeatureUsed(FeatureName.CALCULATE_LMI, {
+                        interest_rate: updates.loan.interest,
+                        scenario_id: currentScenarioId,
+                    });
+                }
 
                 // Track user profile data when key fields change
                 if (

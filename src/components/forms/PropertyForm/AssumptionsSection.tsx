@@ -1,14 +1,14 @@
 import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Divider, Text, useTheme } from "react-native-paper";
-import { CurrencySelect, PercentageInput } from "../../inputs";
-import type { PropertyData } from "../../../types";
-import { spacing } from "../../../theme/spacing";
+import { CurrencySelect, PercentageInput } from "@components/inputs";
+import type { PropertyData } from "@types";
+import { spacing } from "@theme/spacing";
 import {
     CAPITAL_GROWTH_PRESETS,
     DEFAULT_CAPITAL_GROWTH,
     DEFAULT_RENTAL_GROWTH,
-} from "../../../utils/defaults";
+} from "@utils/defaults";
 
 interface AssumptionsSectionProps {
     data: PropertyData;

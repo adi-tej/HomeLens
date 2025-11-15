@@ -1,4 +1,4 @@
-import type { Projection } from "../../types";
+import type { Projection } from "@types";
 import {
     MONTHS_PER_YEAR,
     QUARTERS_PER_YEAR,

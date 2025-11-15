@@ -1,8 +1,8 @@
 import React from "react";
 import { Text } from "react-native-paper";
 import { StyleSheet } from "react-native";
-import Modal from "../../components/primitives/Modal";
-import { spacing } from "../../theme/spacing";
+import Modal from "@components/primitives/Modal";
+import { spacing } from "@theme/spacing";
 
 type PrivacyModalProps = {
     visible: boolean;

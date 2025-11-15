@@ -1,8 +1,8 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Appbar, Text, useTheme } from "react-native-paper";
-import { spacing } from "../theme/spacing";
-import { useLeftDrawer, useRightDrawer } from "../hooks/useDrawer";
+import { spacing } from "@theme/spacing";
+import { useLeftDrawer, useRightDrawer } from "@hooks/useDrawer";
 import Logo from "./Logo";
 
 export default function AppHeader() {

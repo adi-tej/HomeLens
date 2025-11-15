@@ -8,8 +8,8 @@ import {
     Text,
     useTheme,
 } from "react-native-paper";
+import { formatCurrency } from "@utils/parser";
 import StatsTile from "./StatsTile";
-import { formatCurrency } from "../../utils/parser";
 
 type Props = {
     statsData: {

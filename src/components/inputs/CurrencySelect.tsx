@@ -2,7 +2,7 @@ import React, { memo, useEffect, useMemo, useState } from "react";
 import { Keyboard, Platform } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
 import SelectModal, { Option } from "../primitives/SelectModal";
-import { formatCurrency, parseNumber } from "../../utils/parser";
+import { formatCurrency, parseNumber } from "@utils/parser";
 
 export type CurrencySelectProps = {
     label?: string;

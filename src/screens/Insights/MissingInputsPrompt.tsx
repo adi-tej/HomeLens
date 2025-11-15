@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button, Text, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { spacing } from "../../theme/spacing";
+import { spacing } from "@theme/spacing";
 
 type Props = {
     onGoToCalculator: () => void;

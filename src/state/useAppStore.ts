@@ -11,11 +11,14 @@ interface AppStore {
     isDrawerOpen: boolean;
     isCompareScreenActive: boolean;
     activeRouteName: string | undefined;
+    shouldStartCreateScenario: boolean;
 
     // Actions
     setDrawerOpen: (isOpen: boolean) => void;
     setCompareScreenActive: (isActive: boolean) => void;
     setActiveRouteName: (name: string | undefined) => void;
+    triggerCreateScenario: () => void;
+    clearCreateScenarioTrigger: () => void;
 }
 
 export const useAppStore = create<AppStore>((set) => ({
@@ -23,6 +26,7 @@ export const useAppStore = create<AppStore>((set) => ({
     isDrawerOpen: false,
     isCompareScreenActive: false,
     activeRouteName: undefined,
+    shouldStartCreateScenario: false,
 
     // Actions
     setDrawerOpen: (isOpen: boolean) => {
@@ -35,6 +39,14 @@ export const useAppStore = create<AppStore>((set) => ({
 
     setActiveRouteName: (name: string | undefined) => {
         set({ activeRouteName: name });
+    },
+
+    triggerCreateScenario: () => {
+        set({ shouldStartCreateScenario: true });
+    },
+
+    clearCreateScenarioTrigger: () => {
+        set({ shouldStartCreateScenario: false });
     },
 }));
 
@@ -66,5 +78,11 @@ export function useAppActions() {
             (state) => state.setCompareScreenActive,
         ),
         setActiveRouteName: useAppStore((state) => state.setActiveRouteName),
+        triggerCreateScenario: useAppStore(
+            (state) => state.triggerCreateScenario,
+        ),
+        clearCreateScenarioTrigger: useAppStore(
+            (state) => state.clearCreateScenarioTrigger,
+        ),
     };
 }

@@ -1,8 +1,8 @@
 import React from "react";
-import { Divider, Text } from "react-native-paper";
-import Modal from "../../components/primitives/Modal";
 import { StyleSheet } from "react-native";
-import { spacing } from "../../theme/spacing";
+import { Divider, Text } from "react-native-paper";
+import Modal from "@components/primitives/Modal";
+import { spacing } from "@theme/spacing";
 
 type Props = {
     visible: boolean;

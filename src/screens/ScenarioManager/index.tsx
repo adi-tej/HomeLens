@@ -2,20 +2,20 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Divider, IconButton, Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import ScreenContainer from "../../components/primitives/ScreenContainer";
-import { useAppActions } from "../../state/useAppStore";
+import ScreenContainer from "@components/primitives/ScreenContainer";
+import { useAppActions, useAppStore } from "@state/useAppStore";
 import {
     useAllScenarios,
     useComparisonState,
     useCurrentScenario,
     useScenarioActions,
-} from "../../state/useScenarioStore";
-import { useRightDrawer } from "../../hooks/useDrawer";
+} from "@state/useScenarioStore";
+import { useRightDrawer } from "@hooks/useDrawer";
 import Scenario from "./Scenario";
-import ScenarioInput from "../../components/inputs/ScenarioInput";
+import ScenarioInput from "@components/inputs/ScenarioInput";
 import CompareButton from "./CompareButton";
-import { spacing } from "../../theme/spacing";
-import { Analytics, FeatureName } from "../../services/analytics";
+import { spacing } from "@theme/spacing";
+import { Analytics, FeatureName } from "@services/analytics";
 
 export default function ScenarioManager() {
     const theme = useTheme();
@@ -45,6 +45,8 @@ export default function ScenarioManager() {
         null,
     );
     const { isOpen: isDrawerOpen } = useRightDrawer();
+    const shouldStartCreate = useAppStore((s) => s.shouldStartCreateScenario);
+    const { clearCreateScenarioTrigger } = useAppActions();
 
     // Unified commit for both create and edit
     const commitEditing = useCallback(
@@ -55,13 +57,13 @@ export default function ScenarioManager() {
                     const newId = createScenario(trimmed);
                     setCurrentScenario(newId);
                     // Track scenario creation
-                    Analytics.logFeatureUsed(FeatureName.CREATE_SCENARIO, {
+                    void Analytics.logFeatureUsed(FeatureName.CREATE_SCENARIO, {
                         scenario_name: trimmed,
                     });
                 } else if (editingScenarioId) {
                     updateScenario(editingScenarioId, { name: trimmed });
                     // Track scenario edit
-                    Analytics.logFeatureUsed(FeatureName.EDIT_SCENARIO, {
+                    void Analytics.logFeatureUsed(FeatureName.EDIT_SCENARIO, {
                         scenario_id: editingScenarioId,
                     });
                 }
@@ -124,6 +126,37 @@ export default function ScenarioManager() {
         [comparisonMode, beginEditScenario],
     );
 
+    // Copy scenario: duplicate with " (Copy)" suffix
+    const handleCopyScenario = useCallback(
+        (scenarioId: string) => {
+            const scenario = scenarios.find((s) => s.id === scenarioId);
+            if (!scenario) return;
+
+            const copyName = `${scenario.name} (Copy)`;
+            const newId = createScenario(copyName);
+            // Copy the data from the original scenario
+            updateScenario(newId, { data: scenario.data });
+            setCurrentScenario(newId);
+
+            // Track scenario copy
+            void Analytics.logFeatureUsed(FeatureName.CREATE_SCENARIO, {
+                scenario_name: copyName,
+                copied_from: scenarioId,
+            });
+        },
+        [scenarios, createScenario, updateScenario, setCurrentScenario],
+    );
+
+    // Edit scenario: start editing mode
+    const handleEditScenario = useCallback(
+        (scenarioId: string) => {
+            const scenario = scenarios.find((s) => s.id === scenarioId);
+            if (!scenario) return;
+            beginEditScenario(scenarioId, scenario.name);
+        },
+        [scenarios, beginEditScenario],
+    );
+
     // Delete scenario: commit edit first, then delete
     const handleDeleteScenario = useCallback(
         (scenarioId: string) => {
@@ -133,7 +166,7 @@ export default function ScenarioManager() {
             }
             deleteScenario(scenarioId);
             // Track scenario deletion
-            Analytics.logFeatureUsed(FeatureName.DELETE_SCENARIO, {
+            void Analytics.logFeatureUsed(FeatureName.DELETE_SCENARIO, {
                 scenario_id: scenarioId,
             });
         },
@@ -156,6 +189,20 @@ export default function ScenarioManager() {
         [commitEditing],
     );
 
+    // Listen for create scenario trigger from EmptyState
+    useEffect(() => {
+        if (shouldStartCreate) {
+            void Analytics.logFeatureUsed(
+                FeatureName.SCENARIO_CREATE_MODE_ENTERED,
+                {
+                    trigger_source: "empty_state",
+                },
+            );
+            beginCreateScenario();
+            clearCreateScenarioTrigger();
+        }
+    }, [shouldStartCreate, clearCreateScenarioTrigger, beginCreateScenario]);
+
     // Comparison mode handlers
     const handleCompareToggle = useCallback(() => {
         setComparisonMode(!comparisonMode);
@@ -167,7 +214,7 @@ export default function ScenarioManager() {
     const handleProceed = useCallback(() => {
         setCompareScreenActive(true);
         // Track comparison
-        Analytics.logFeatureUsed(FeatureName.COMPARE_SCENARIOS, {
+        void Analytics.logFeatureUsed(FeatureName.COMPARE_SCENARIOS, {
             scenario_count: selectedScenarios.size,
         });
     }, [setCompareScreenActive, selectedScenarios.size]);
@@ -194,9 +241,11 @@ export default function ScenarioManager() {
                     key={`${scenario.id}-${theme.dark ? "dark" : "light"}`}
                     scenario={scenario}
                     isSelected={scenario.id === currentScenarioId}
-                    canDelete={scenarios.length > 1 && !comparisonMode}
+                    canDelete={!comparisonMode}
                     onPress={() => handleScenarioPress(scenario.id)}
                     onDelete={() => handleDeleteScenario(scenario.id)}
+                    onCopy={() => handleCopyScenario(scenario.id)}
+                    onEdit={() => handleEditScenario(scenario.id)}
                     onLongPress={() =>
                         handleLongPress(scenario.id, scenario.name)
                     }
@@ -214,11 +263,13 @@ export default function ScenarioManager() {
             editingScenarioId,
             editingName,
             currentScenarioId,
-            scenarios.length,
+            scenarios,
             comparisonMode,
             selectedScenarios,
             handleScenarioPress,
             handleDeleteScenario,
+            handleCopyScenario,
+            handleEditScenario,
             handleLongPress,
             toggleScenarioSelection,
             inputSubmit,

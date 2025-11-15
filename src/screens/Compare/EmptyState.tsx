@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
-import { spacing } from "../../theme/spacing";
+import { spacing } from "@theme/spacing";
 
 function EmptyState() {
     const theme = useTheme();

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import { useScenarioStore } from "../state/useScenarioStore";
-import { formatCurrency } from "../utils/parser";
-import type { Projection } from "../types";
+import { useScenarioStore } from "@state/useScenarioStore";
+import { formatCurrency } from "@utils/parser";
+import type { Projection } from "@types";
 
 export interface InsightsRow {
     key: string;

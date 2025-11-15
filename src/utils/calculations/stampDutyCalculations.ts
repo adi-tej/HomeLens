@@ -5,7 +5,7 @@
  * including first home buyer concessions
  */
 
-import type { StateCode } from "../../types";
+import type { StateCode } from "@types";
 import { STAMP_DUTY_CONFIGS } from "./stampDutyConfig";
 
 /**

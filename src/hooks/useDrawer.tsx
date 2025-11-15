@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { Dimensions } from "react-native";
 import type { SharedValue } from "react-native-reanimated";
-import { useAppActions } from "../state/useAppStore";
+import { useAppActions } from "@state/useAppStore";
 import {
     closeDrawer,
     drawerProgress,
@@ -11,7 +11,7 @@ import {
     SPRING_CONFIG,
     subscribeDrawer,
     toggleDrawer,
-} from "../state/useDrawerStore";
+} from "@state/useDrawerStore";
 
 export type DrawerState = {
     isOpen: boolean;

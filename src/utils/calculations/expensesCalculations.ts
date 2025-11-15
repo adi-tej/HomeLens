@@ -1,4 +1,4 @@
-import type { OngoingExpenses } from "../../types";
+import type { OngoingExpenses } from "@types";
 
 /**
  * Calculate ongoing annual expenses only

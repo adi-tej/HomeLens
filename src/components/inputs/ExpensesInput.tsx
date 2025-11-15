@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Portal, TextInput, useTheme } from "react-native-paper";
 import { Platform, StyleSheet } from "react-native";
-import { spacing } from "../../theme/spacing";
-import ExpensesForm from "../forms/ExpensesForm";
-import type { Expenses, OngoingExpenses } from "../../types";
-import { DEFAULT_ONGOING_EXPENSES } from "../../utils/defaults";
-import { formatCurrency, parseNumber } from "../../utils/parser";
+import { spacing } from "@theme/spacing";
+import type { Expenses, OngoingExpenses } from "@types";
+import { DEFAULT_ONGOING_EXPENSES } from "@utils/defaults";
+import { formatCurrency, parseNumber } from "@utils/parser";
+import { calculateOngoingExpenses } from "@utils/calculations";
 import Modal from "../primitives/Modal";
-import { calculateOngoingExpenses } from "../../utils/calculations";
+import ExpensesForm from "../forms/ExpensesForm";
 
 export type ExpensesInputProps = {
     label?: string;

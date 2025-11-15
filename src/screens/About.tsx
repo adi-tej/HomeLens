@@ -2,8 +2,8 @@ import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { Button, Card, Text, useTheme } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
-import ScreenContainer from "../components/primitives/ScreenContainer";
-import { spacing } from "../theme/spacing";
+import ScreenContainer from "@components/primitives/ScreenContainer";
+import { spacing } from "@theme/spacing";
 
 type SectionCardProps = {
     title: string;

@@ -1,14 +1,11 @@
 import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text, TextInput, useTheme } from "react-native-paper";
-import { CheckBox, PercentageInput, SegmentedToggle } from "../../inputs";
-import type { LoanDetails, PropertyData } from "../../../types";
-import { spacing } from "../../../theme/spacing";
-import {
-    DEFAULT_LOAN_TERM,
-    INTEREST_RATE_PRESETS,
-} from "../../../utils/defaults";
-import { calculateDepositFromLVR } from "../../../utils/calculations";
+import { CheckBox, PercentageInput, SegmentedToggle } from "@components/inputs";
+import type { LoanDetails, PropertyData } from "@types";
+import { spacing } from "@theme/spacing";
+import { DEFAULT_LOAN_TERM, INTEREST_RATE_PRESETS } from "@utils/defaults";
+import { calculateDepositFromLVR } from "@utils/calculations";
 
 interface LoanSettingsSectionProps {
     data: PropertyData;

@@ -8,9 +8,9 @@ import {
     TextInput,
     useTheme,
 } from "react-native-paper";
-import { spacing } from "../../theme/spacing";
-import type { OngoingExpenses } from "../../types";
-import { formatCurrency, parseNumber } from "../../utils/parser";
+import { spacing } from "@theme/spacing";
+import type { OngoingExpenses } from "@types";
+import { formatCurrency, parseNumber } from "@utils/parser";
 
 export type ExpensesFormProps = {
     isLand: boolean;

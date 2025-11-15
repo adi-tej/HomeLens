@@ -5,18 +5,18 @@ import Reanimated, {
     useAnimatedStyle,
     useDerivedValue,
 } from "react-native-reanimated";
-import { useLeftDrawer, useRightDrawer } from "../hooks/useDrawer";
-import Drawer from "../components/Drawer";
-import AppHeader from "../components/AppHeader";
+import { useLeftDrawer, useRightDrawer } from "@hooks/useDrawer";
+import Drawer from "@components/Drawer";
+import AppHeader from "@components/AppHeader";
+import MainMenu from "@components/MainMenu";
+import OverlayPanel from "@components/primitives/OverlayPanel";
+import LoadingScreen from "@components/primitives/LoadingScreen";
+import { useAppActions, useCompareScreenState } from "@state/useAppStore";
 import { BottomNavigator } from "./BottomNavigator";
-import MainMenu from "../components/MainMenu";
-import OverlayPanel from "../components/primitives/OverlayPanel";
-import LoadingScreen from "../components/primitives/LoadingScreen";
-import { useAppActions, useCompareScreenState } from "../state/useAppStore";
 
 // Lazy load heavy components for better initial load performance
-const ScenarioManager = lazy(() => import("../screens/ScenarioManager"));
-const Compare = lazy(() => import("../screens/Compare"));
+const ScenarioManager = lazy(() => import("@screens/ScenarioManager"));
+const Compare = lazy(() => import("@screens/Compare"));
 
 export function RootNavigator() {
     const { progress: progressRight } = useRightDrawer();

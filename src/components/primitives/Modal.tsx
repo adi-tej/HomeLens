@@ -9,7 +9,7 @@ import {
 } from "react-native-paper";
 import type { KeyboardAwareScrollViewProps } from "react-native-keyboard-controller";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { spacing } from "../../theme/spacing";
+import { spacing } from "@theme/spacing";
 
 type Props = {
     visible: boolean;

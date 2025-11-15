@@ -1,12 +1,13 @@
 import React, { useDeferredValue, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
-import ScreenContainer from "../../components/primitives/ScreenContainer";
-import PropertyForm from "../../components/forms/PropertyForm";
+import ScreenContainer from "@components/primitives/ScreenContainer";
+import PropertyForm from "@components/forms/PropertyForm";
 import Summary from "./Summary";
-import { validatePropertyData } from "../../utils/calculations";
-import { useCurrentScenario } from "../../state/useScenarioStore";
-import { spacing } from "../../theme/spacing";
+import EmptyState from "./EmptyState";
+import { validatePropertyData } from "@utils/calculations";
+import { useCurrentScenario } from "@state/useScenarioStore";
+import { spacing } from "@theme/spacing";
 
 export default function Calculator() {
     const theme = useTheme();
@@ -15,23 +16,17 @@ export default function Calculator() {
     const [touched] = useState(false);
     const scrollViewRef = useRef<any>(null);
 
-    if (!currentScenario || !currentScenarioId) {
-        return (
-            <ScreenContainer>
-                <Text>No scenario selected</Text>
-            </ScreenContainer>
-        );
-    }
-
-    const { data } = currentScenario;
-
-    // Use useDeferredValue to defer expensive Summary recalculations
-    // This keeps form inputs feeling instant while calculations happen in background
-    // React 19's useDeferredValue marks this as low-priority rendering
+    // Always call hooks in the same order across renders
+    const data = currentScenario?.data;
     const deferredData = useDeferredValue(data);
 
-    // Validate data
-    const errors = validatePropertyData(data);
+    // If no scenario, show overlay
+    if (!currentScenario || !currentScenarioId) {
+        return <EmptyState />;
+    }
+
+    // From here, currentScenario is defined
+    const errors = validatePropertyData(data!);
     const isInvalid = Object.keys(errors).length > 0;
 
     return (
@@ -54,7 +49,7 @@ export default function Calculator() {
                             errors.capitalGrowth && `• ${errors.capitalGrowth}`,
                             errors.rentalGrowth && `• ${errors.rentalGrowth}`,
                             errors.strataFees && `• ${errors.strataFees}`,
-                            !data.propertyValue &&
+                            !data?.propertyValue &&
                                 touched &&
                                 "• Enter property value to use deposit %",
                         ]
@@ -64,14 +59,17 @@ export default function Calculator() {
                 </View>
             )}
             {/* Summary Cards - Uses deferred data for smoother updates */}
-            <Summary data={deferredData} scrollViewRef={scrollViewRef} />
+            {deferredData && (
+                <Summary data={deferredData} scrollViewRef={scrollViewRef} />
+            )}
         </ScreenContainer>
     );
 }
 
 const styles = StyleSheet.create({
     errorContainer: {
-        padding: spacing.md,
-        marginBottom: spacing.sm,
+        marginHorizontal: spacing.md,
+        marginTop: spacing.sm,
+        marginBottom: spacing.md,
     },
 });
