@@ -25,7 +25,7 @@ export default function ScreenContainer({
                 style={styles.scroll}
                 contentContainerStyle={styles.content}
                 bottomOffset={40}
-                showsVerticalScrollIndicator={true}
+                showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
                 disableScrollOnKeyboardHide={false}
                 {...scrollProps}

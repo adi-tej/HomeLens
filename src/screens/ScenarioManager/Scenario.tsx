@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Checkbox, IconButton, Text, useTheme } from "react-native-paper";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import Animated, {
     Easing,
-    runOnJS,
     useAnimatedStyle,
     useSharedValue,
     withTiming,
@@ -12,6 +11,7 @@ import Animated, {
 import SelectModal, { Option } from "@components/primitives/SelectModal";
 import type { Scenario as ScenarioType } from "@state/useScenarioStore";
 import { spacing } from "@theme/spacing";
+import { Analytics } from "@services/analytics";
 
 const DELETE_WIDTH = 60;
 const CHECKBOX_SIZE = 24;
@@ -31,6 +31,14 @@ type Props = {
     onToggleCheckbox?: () => void;
 };
 
+type ScenarioAction = "copy" | "edit" | "delete";
+
+const menuOptions: Option[] = [
+    { label: "Copy", value: "copy" },
+    { label: "Edit", value: "edit" },
+    { label: "Delete", value: "delete" },
+];
+
 export default function Scenario({
     scenario,
     isSelected,
@@ -47,38 +55,23 @@ export default function Scenario({
     const theme = useTheme();
     const swipeableRef = React.useRef<Swipeable>(null);
     const checkboxScale = useSharedValue(showCheckbox ? 1 : 0);
-    const [shouldRenderCheckbox, setShouldRenderCheckbox] =
-        React.useState(showCheckbox);
     const [menuVisible, setMenuVisible] = useState(false);
 
-    // Menu options
-    const menuOptions: Option[] = [
-        { label: "Copy", value: "copy" },
-        { label: "Edit", value: "edit" },
-        { label: "Delete", value: "delete" },
-    ];
+    // Map actions to callbacks (stable references assumed from parent)
+    const actionMap: Record<ScenarioAction, () => void> = {
+        copy: onCopy,
+        edit: onEdit,
+        delete: onDelete,
+    };
 
     // Compute derived values once
     const canSwipe = canDelete && !showCheckbox;
 
     useEffect(() => {
-        if (showCheckbox) {
-            setShouldRenderCheckbox(true);
-        }
-
-        checkboxScale.value = withTiming(
-            showCheckbox ? 1 : 0,
-            {
-                duration: ANIMATION_DURATION,
-                easing: Easing.inOut(Easing.ease),
-            },
-            (finished) => {
-                "worklet";
-                if (finished && !showCheckbox) {
-                    runOnJS(setShouldRenderCheckbox)(false);
-                }
-            },
-        );
+        checkboxScale.value = withTiming(showCheckbox ? 1 : 0, {
+            duration: ANIMATION_DURATION,
+            easing: Easing.inOut(Easing.ease),
+        });
     }, [showCheckbox, checkboxScale]);
 
     const checkboxAnimatedStyle = useAnimatedStyle(() => ({
@@ -94,20 +87,26 @@ export default function Scenario({
         }
     };
 
-    const handleMenuSelect = (option: Option) => {
-        setMenuVisible(false);
-        switch (option.value) {
-            case "copy":
-                onCopy();
-                break;
-            case "edit":
-                onEdit();
-                break;
-            case "delete":
-                onDelete();
-                break;
-        }
-    };
+    const handleMenuSelect = useCallback(
+        (option: Option) => {
+            setMenuVisible(false);
+            const value = option.value as ScenarioAction;
+            const action = actionMap[value];
+            if (action) {
+                action();
+            } else {
+                // Send to analytics instead of console
+                void Analytics.logUIInteraction(
+                    "ScenarioMenu",
+                    "unhandled_action",
+                    {
+                        value: option.value,
+                    },
+                );
+            }
+        },
+        [actionMap],
+    );
 
     const handleDelete = React.useCallback(() => {
         swipeableRef.current?.close();
@@ -164,21 +163,20 @@ export default function Scenario({
                     }}
                 >
                     <View style={styles.scenarioContent}>
-                        {shouldRenderCheckbox && (
-                            <Animated.View
-                                style={[
-                                    styles.checkboxContainer,
-                                    checkboxAnimatedStyle,
-                                ]}
-                            >
-                                <Checkbox.Android
-                                    status={isChecked ? "checked" : "unchecked"}
-                                    onPress={onToggleCheckbox}
-                                    color={theme.colors.primary}
-                                    uncheckedColor={theme.colors.outline}
-                                />
-                            </Animated.View>
-                        )}
+                        <Animated.View
+                            pointerEvents={showCheckbox ? "auto" : "none"}
+                            style={[
+                                styles.checkboxContainer,
+                                checkboxAnimatedStyle,
+                            ]}
+                        >
+                            <Checkbox.Android
+                                status={isChecked ? "checked" : "unchecked"}
+                                onPress={onToggleCheckbox}
+                                color={theme.colors.primary}
+                                uncheckedColor={theme.colors.outline}
+                            />
+                        </Animated.View>
                         <Text
                             variant="bodyLarge"
                             style={[
