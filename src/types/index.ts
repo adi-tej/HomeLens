@@ -60,7 +60,9 @@ export type Projection = {
     propertyValue: number;
     netCashFlow: number;
     rentalIncome: number;
+    weeklyRent: number;
     taxReturn: number;
+    taxableAmount: number; // taxable cost used for negative gearing calculation
     equity: number;
     spent: number;
     returns: number;

@@ -45,6 +45,19 @@ function LabelCell({
         );
     }
 
+    // Decide highlight colors based on theme mode
+    const isDark = !!theme.dark;
+    const highlightBgColor = highlight
+        ? isDark
+            ? theme.colors.onSecondary
+            : theme.colors.secondary
+        : "transparent";
+    const highlightTextColor = highlight
+        ? isDark
+            ? theme.colors.secondary
+            : theme.colors.onSecondary
+        : theme.colors.onSurfaceVariant;
+
     return (
         <View
             style={[
@@ -52,9 +65,7 @@ function LabelCell({
                 {
                     borderBottomWidth: isLast ? 0 : 1,
                     borderBottomColor: theme.colors.outline,
-                    backgroundColor: highlight
-                        ? theme.colors.secondaryContainer
-                        : "transparent",
+                    backgroundColor: highlightBgColor,
                 },
             ]}
         >
@@ -62,9 +73,7 @@ function LabelCell({
                 style={[
                     styles.text,
                     {
-                        color: highlight
-                            ? theme.colors.onSecondaryContainer
-                            : theme.colors.onSurfaceVariant,
+                        color: highlightTextColor,
                     },
                 ]}
             >

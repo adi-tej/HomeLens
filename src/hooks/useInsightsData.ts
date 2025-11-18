@@ -35,9 +35,19 @@ export function useInsightsData() {
                 },
             },
             {
+                key: "weeklyRent",
+                label: "Rent (pw)",
+                accessor: (p: Projection) => formatCurrency(p.weeklyRent),
+            },
+            {
                 key: "rentalIncome",
-                label: "Rental Income",
+                label: "Rental Income (Annual)",
                 accessor: (p: Projection) => formatCurrency(p.rentalIncome),
+            },
+            {
+                key: "taxableAmount",
+                label: "Tax Deductions",
+                accessor: (p: Projection) => formatCurrency(p.taxableAmount),
             },
             {
                 key: "taxReturn",

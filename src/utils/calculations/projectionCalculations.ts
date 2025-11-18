@@ -105,12 +105,6 @@ export function calculateMultiYearProjections(params: {
         ? Math.round(weeklyRent * WEEKS_PER_YEAR_AFTER_VACANCY)
         : 0;
 
-    // Calculate annual rental growth amount ($/week growth × 50 weeks)
-    // Only for investment properties - owner-occupied has no rental growth
-    const annualRentalGrowth = isInvestment
-        ? rentalGrowthPerWeek * WEEKS_PER_YEAR_AFTER_VACANCY
-        : 0;
-
     // ===================================================================
     // STEP 2: Calculate fixed costs
     // ===================================================================
@@ -137,6 +131,9 @@ export function calculateMultiYearProjections(params: {
     // Track rental income as it grows year-over-year (0 for owner-occupied)
     let currentAnnualRent = annualRentalIncomeInitial;
 
+    // Track weekly rent as it grows year-over-year (0 for owner-occupied)
+    let currentWeeklyRent = isInvestment ? weeklyRent : 0;
+
     // Track total rental income received to date (0 for owner-occupied)
     let cumulativeRentalIncome = 0;
 
@@ -148,6 +145,18 @@ export function calculateMultiYearProjections(params: {
     // ===================================================================
 
     for (let yearIndex = 0; yearIndex < years; yearIndex++) {
+        // --- Rental Income Growth ---
+        // Apply rental growth at the START of each year (except Year 0)
+        // Only for investment properties - owner-occupied stays at 0
+        if (isInvestment && yearIndex > 0) {
+            currentWeeklyRent = Math.round(
+                currentWeeklyRent + rentalGrowthPerWeek,
+            );
+            currentAnnualRent = Math.round(
+                currentWeeklyRent * WEEKS_PER_YEAR_AFTER_VACANCY,
+            );
+        }
+
         // --- Property Value Growth ---
         // Apply capital growth to property value
         // Note: Growth is applied even in Year 0 (first projected year)
@@ -155,15 +164,6 @@ export function calculateMultiYearProjections(params: {
             currentPropertyValue,
             capitalGrowthRate,
         );
-
-        // --- Rental Income Growth ---
-        // Apply rental growth from Year 1 onwards (Year 0 uses initial rent)
-        // Only for investment properties - owner-occupied stays at 0
-        if (isInvestment && yearIndex > 0) {
-            currentAnnualRent = Math.round(
-                currentAnnualRent + annualRentalGrowth,
-            );
-        }
 
         // --- Loan Calculations ---
         // Calculate accurate principal & interest for this specific year
@@ -184,6 +184,7 @@ export function calculateMultiYearProjections(params: {
         // --- Tax Calculations ---
         // Only for investment properties (no tax deductions for owner-occupied)
         let currentTaxReturn = 0;
+        let taxableCostForYear = 0;
 
         if (isInvestment) {
             // Calculate taxable cost (negative gearing calculation)
@@ -197,6 +198,8 @@ export function calculateMultiYearProjections(params: {
                 strataAnnual +
                 depreciation -
                 currentAnnualRent;
+
+            taxableCostForYear = taxableCost;
 
             // Calculate tax return (37% of taxable cost if negative gearing)
             currentTaxReturn = calculateTaxReturn(taxableCost);
@@ -243,7 +246,9 @@ export function calculateMultiYearProjections(params: {
             propertyValue: currentPropertyValue,
             netCashFlow,
             rentalIncome: currentAnnualRent,
+            weeklyRent: currentWeeklyRent,
             taxReturn: currentTaxReturn,
+            taxableAmount: taxableCostForYear,
             equity,
             spent,
             returns,
