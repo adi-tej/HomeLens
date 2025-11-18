@@ -70,10 +70,10 @@ const neutralDark = {
     onTertiaryContainer: "#D7EAD8",
 
     // Error
-    error: "#F2B8B5",
-    onError: "#601410",
-    errorContainer: "#8C1D18",
-    onErrorContainer: "#F9DEDC",
+    error: "#E07563",
+    onError: "#270906",
+    errorContainer: "#5C2A23",
+    onErrorContainer: "#FFEDE7",
 
     inverseSurface: "#F3F4F6",
     inverseOnSurface: "#121A1E",

@@ -39,6 +39,12 @@ const menuOptions: Option[] = [
     { label: "Delete", value: "delete" },
 ];
 
+// Helper to check if scenario has incomplete data
+function hasIncompleteData(scenario: ScenarioType): boolean {
+    const { propertyValue, deposit } = scenario.data;
+    return !propertyValue || propertyValue === 0 || !deposit || deposit === 0;
+}
+
 export default function Scenario({
     scenario,
     isSelected,
@@ -66,6 +72,7 @@ export default function Scenario({
 
     // Compute derived values once
     const canSwipe = canDelete && !showCheckbox;
+    const isIncomplete = hasIncompleteData(scenario);
 
     useEffect(() => {
         checkboxScale.value = withTiming(showCheckbox ? 1 : 0, {
@@ -154,7 +161,9 @@ export default function Scenario({
                             backgroundColor: isSelected
                                 ? theme.colors.primaryContainer
                                 : theme.colors.surfaceVariant,
-                            borderLeftColor: theme.colors.primary,
+                            borderLeftColor: isIncomplete
+                                ? theme.colors.error
+                                : theme.colors.primary,
                         },
                     ]}
                     android_ripple={{
