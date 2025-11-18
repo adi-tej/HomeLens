@@ -39,6 +39,47 @@ const menuOptions: Option[] = [
     { label: "Delete", value: "delete" },
 ];
 
+type TagInfo = {
+    label: string;
+    color: string;
+    bgColor: string;
+};
+
+// Helper to get tags for a scenario
+function getScenarioTags(scenario: ScenarioType, theme: any): TagInfo[] {
+    const tags: TagInfo[] = [];
+
+    // Investment tag (when not living in property)
+    if (!scenario.data.isLivingHere) {
+        tags.push({
+            label: "Investment",
+            color: theme.colors.onSecondaryContainer,
+            bgColor: theme.colors.secondaryContainer,
+        });
+    }
+
+    // Interest Only tag
+    if (scenario.data.loan.isInterestOnly) {
+        tags.push({
+            label: "Interest Only",
+            color: theme.colors.onTertiaryContainer,
+            bgColor: theme.colors.tertiaryContainer,
+        });
+    }
+
+    // Positive cashflow tag
+    const firstProjection = scenario.data.projections?.[0];
+    if (firstProjection && firstProjection.netCashFlow > 0) {
+        tags.push({
+            label: "Positive",
+            color: "#1b5e20", // Dark green text
+            bgColor: "#c8e6c9", // Light green background
+        });
+    }
+
+    return tags;
+}
+
 export default function Scenario({
     scenario,
     isSelected,
@@ -66,6 +107,7 @@ export default function Scenario({
 
     // Compute derived values once
     const canSwipe = canDelete && !showCheckbox;
+    const tags = getScenarioTags(scenario, theme);
 
     useEffect(() => {
         checkboxScale.value = withTiming(showCheckbox ? 1 : 0, {
@@ -77,6 +119,12 @@ export default function Scenario({
     const checkboxAnimatedStyle = useAnimatedStyle(() => ({
         width: CHECKBOX_SIZE * checkboxScale.value,
         opacity: checkboxScale.value,
+    }));
+
+    const iconAnimatedStyle = useAnimatedStyle(() => ({
+        width: 32 * (1 - checkboxScale.value),
+        opacity: 1 - checkboxScale.value,
+        transform: [{ scale: 1 - checkboxScale.value }],
     }));
 
     const handlePress = () => {
@@ -177,19 +225,59 @@ export default function Scenario({
                                 uncheckedColor={theme.colors.outline}
                             />
                         </Animated.View>
-                        <Text
-                            variant="bodyLarge"
+                        <View
                             style={[
-                                styles.scenarioText,
+                                styles.textContainer,
                                 {
-                                    fontWeight: isSelected ? "600" : "400",
                                     marginLeft: showCheckbox ? spacing.sm : 0,
                                 },
                             ]}
                         >
-                            {scenario.name}
-                        </Text>
-                        {!showCheckbox && (
+                            <Text
+                                variant="bodyLarge"
+                                style={[
+                                    styles.scenarioText,
+                                    {
+                                        fontWeight: isSelected ? "600" : "400",
+                                    },
+                                ]}
+                            >
+                                {scenario.name}
+                            </Text>
+                            {tags.length > 0 && (
+                                <View style={styles.tagsContainer}>
+                                    {tags.map((tag, index) => (
+                                        <View
+                                            key={index}
+                                            style={[
+                                                styles.tag,
+                                                {
+                                                    backgroundColor:
+                                                        tag.bgColor,
+                                                },
+                                            ]}
+                                        >
+                                            <Text
+                                                variant="labelSmall"
+                                                style={[
+                                                    styles.tagText,
+                                                    { color: tag.color },
+                                                ]}
+                                            >
+                                                {tag.label}
+                                            </Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            )}
+                        </View>
+                        <Animated.View
+                            pointerEvents={showCheckbox ? "none" : "auto"}
+                            style={[
+                                styles.iconButtonContainer,
+                                iconAnimatedStyle,
+                            ]}
+                        >
                             <IconButton
                                 icon="dots-vertical"
                                 size={20}
@@ -197,7 +285,7 @@ export default function Scenario({
                                 style={styles.menuButton}
                                 iconColor={theme.colors.onSurfaceVariant}
                             />
-                        )}
+                        </Animated.View>
                     </View>
                 </Pressable>
             </Swipeable>
@@ -226,8 +314,8 @@ const styles = StyleSheet.create({
     },
     scenarioContent: {
         flexDirection: "row",
-        alignItems: "center",
-        height: 28,
+        alignItems: "flex-start",
+        minHeight: 28,
     },
     checkboxContainer: {
         width: 24,
@@ -235,14 +323,40 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         overflow: "hidden",
+        marginTop: 2,
+    },
+    textContainer: {
+        flex: 1,
+        flexDirection: "column",
     },
     scenarioText: {
         fontWeight: "500",
-        flex: 1,
+    },
+    tagsContainer: {
+        flexDirection: "row",
+        flexWrap: "nowrap",
+        gap: 4,
+        marginTop: spacing.xs,
+    },
+    tag: {
+        paddingHorizontal: 5,
+        paddingVertical: 2,
+        borderRadius: 8,
+        flexShrink: 1,
+    },
+    tagText: {
+        fontSize: 9,
+        fontWeight: "500",
+    },
+    iconButtonContainer: {
+        overflow: "hidden",
+        justifyContent: "center",
+        alignItems: "center",
     },
     menuButton: {
         margin: 0,
-        marginLeft: -8,
+        marginLeft: -12,
+        marginRight: -12,
     },
     deleteActionContainer: {
         width: DELETE_WIDTH,
