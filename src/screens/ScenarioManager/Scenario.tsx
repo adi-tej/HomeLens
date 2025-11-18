@@ -141,7 +141,7 @@ export default function Scenario({
             <Swipeable
                 ref={swipeableRef}
                 renderRightActions={canSwipe ? renderRightActions : undefined}
-                enabled={canSwipe}
+                enabled={canSwipe && !menuVisible}
                 overshootRight={false}
                 rightThreshold={40}
             >

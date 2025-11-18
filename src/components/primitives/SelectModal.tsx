@@ -1,16 +1,22 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect } from "react";
 import {
-    Animated,
-    Easing,
     Modal,
     Pressable,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
+    useWindowDimensions,
     View,
 } from "react-native";
 import { useTheme } from "react-native-paper";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+    runOnJS,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from "react-native-reanimated";
 
 export type Option = { label?: string | number; value: string | number };
 
@@ -32,104 +38,111 @@ export default function SelectModal({
     const theme = useTheme();
     const isDark = theme.dark as unknown as boolean | undefined;
     const backdropColor = isDark ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.3)";
+    const { height: screenHeight } = useWindowDimensions();
+    const translateY = useSharedValue(screenHeight);
 
-    // Internal mount state to allow exit animation before unmounting Modal
-    const [showModal, setShowModal] = useState<boolean>(visible);
-
-    // Animated translateY for the sheet (slide up/down)
-    const translateY = useRef(new Animated.Value(300)).current;
-
-    // Ensure Modal mounts when `visible` becomes true
     useEffect(() => {
         if (visible) {
-            setShowModal(true);
-            // run entrance animation
-            Animated.timing(translateY, {
-                toValue: 0,
-                duration: 260,
-                easing: Easing.out(Easing.cubic),
-                useNativeDriver: true,
-            }).start();
-        } else if (showModal) {
-            // run exit animation then unmount
-            Animated.timing(translateY, {
-                toValue: 300,
-                duration: 200,
-                easing: Easing.in(Easing.cubic),
-                useNativeDriver: true,
-            }).start(() => {
-                setShowModal(false);
-            });
+            translateY.value = withTiming(0, { duration: 250 });
+        } else {
+            translateY.value = screenHeight;
         }
-    }, [visible]);
+    }, [visible, screenHeight]);
 
-    // Style applied to the animated sheet
-    const sheetStyle = {
-        transform: [{ translateY }],
-    } as const;
+    const handleClose = () => {
+        translateY.value = withTiming(screenHeight, { duration: 200 }, () => {
+            runOnJS(onCancel)();
+        });
+    };
+
+    const panGesture = Gesture.Pan()
+        .onUpdate((event) => {
+            translateY.value = Math.max(0, event.translationY);
+        })
+        .onEnd((event) => {
+            if (translateY.value > 100 || event.velocityY > 500) {
+                const target = Math.max(translateY.value, screenHeight);
+                translateY.value = withTiming(target, { duration: 200 }, () => {
+                    runOnJS(onCancel)();
+                });
+            } else {
+                translateY.value = withTiming(0, { duration: 200 });
+            }
+        });
+
+    // Animated style for the sheet
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ translateY: translateY.value }],
+    }));
+
+    if (!visible) return null;
 
     return (
         <Modal
-            visible={showModal}
-            animationType="fade"
+            visible={visible}
+            animationType="none"
             transparent
-            onRequestClose={onCancel}
+            onRequestClose={handleClose}
         >
             <Pressable
                 style={[styles.backdrop, { backgroundColor: backdropColor }]}
-                onPress={onCancel}
+                onPress={handleClose}
             >
-                {/* Animated sheet stays anchored to bottom while backdrop is fixed */}
-                <Animated.View
-                    style={[
-                        styles.container,
-                        sheetStyle,
-                        { backgroundColor: theme.colors.surfaceVariant },
-                    ]}
-                >
-                    <View
+                <GestureDetector gesture={panGesture}>
+                    <Animated.View
                         style={[
-                            styles.handle,
-                            { backgroundColor: theme.colors.outline },
+                            styles.container,
+                            animatedStyle,
+                            { backgroundColor: theme.colors.surfaceVariant },
                         ]}
-                    />
-                    <ScrollView contentContainerStyle={styles.list}>
-                        {options.map((o) => (
-                            <TouchableOpacity
-                                key={String(o.value)}
-                                style={[
-                                    styles.option,
-                                    { borderBottomColor: theme.colors.outline },
-                                ]}
-                                onPress={() => onSelect(o)}
-                            >
-                                <Text
-                                    style={[
-                                        styles.optionText,
-                                        { color: theme.colors.onSurface },
-                                    ]}
-                                >
-                                    {renderLabel
-                                        ? renderLabel(o)
-                                        : String(o.label ?? o.value)}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                    <TouchableOpacity
-                        style={styles.cancelButton}
-                        onPress={onCancel}
                     >
-                        <Text
+                        <View
                             style={[
-                                styles.cancelText,
-                                { color: theme.colors.primary },
+                                styles.handle,
+                                { backgroundColor: theme.colors.outline },
                             ]}
+                        />
+                        <ScrollView contentContainerStyle={styles.list}>
+                            {options.map((o) => (
+                                <TouchableOpacity
+                                    key={String(o.value)}
+                                    style={[
+                                        styles.option,
+                                        {
+                                            borderBottomColor:
+                                                theme.colors.outline,
+                                        },
+                                    ]}
+                                    onPress={() => onSelect(o)}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.optionText,
+                                            { color: theme.colors.onSurface },
+                                        ]}
+                                    >
+                                        {renderLabel
+                                            ? renderLabel(o)
+                                            : String(o.label ?? o.value)}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                        <TouchableOpacity
+                            style={styles.cancelButton}
+                            onPress={handleClose}
                         >
-                            Cancel
-                        </Text>
-                    </TouchableOpacity>
-                </Animated.View>
+                            <Text
+                                style={[
+                                    styles.cancelText,
+                                    { color: theme.colors.primary },
+                                ]}
+                            >
+                                Cancel
+                            </Text>
+                        </TouchableOpacity>
+                    </Animated.View>
+                </GestureDetector>
             </Pressable>
         </Modal>
     );
