@@ -22,7 +22,7 @@ interface Row<T> {
     section?: string; // Optional section property for grouping rows
 }
 
-interface ProjectionTableProps<T> {
+interface TableProps<T> {
     columns: Column<T>[];
     rows: Row<T>[];
     data: T[];
@@ -48,7 +48,7 @@ interface ProjectionTableProps<T> {
  * Generic projection table component for displaying data in a grid format
  * with sticky header and label columns, optimized for scrolling
  */
-export default function Grid<T>({
+export default function CustomTable<T>({
     columns,
     rows,
     data,
@@ -58,7 +58,7 @@ export default function Grid<T>({
     cornerIcon,
     getRowHeight,
     cellWidth = TABLE_CONFIG.cellWidth,
-}: ProjectionTableProps<T>) {
+}: TableProps<T>) {
     const theme = useTheme();
     const mainScrollRef = useRef<any>(null);
     const verticalScrollRef = useRef<any>(null);

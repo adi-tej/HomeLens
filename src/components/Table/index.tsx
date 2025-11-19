@@ -1,10 +1,9 @@
 import React from "react";
 import { View } from "react-native";
-import { useTheme } from "react-native-paper";
 import DataCell from "./DataCell";
 import HeaderCell from "./HeaderCell";
 import LabelCell from "./LabelCell";
-import Grid from "./Grid";
+import CustomTable from "./CustomTable";
 import { getCellWidth, TABLE_CONFIG } from "./TableConfig";
 import Logo from "../Logo";
 
@@ -46,23 +45,21 @@ export default function Table<T>({
     cornerCell,
     cellWidth = TABLE_CONFIG.cellWidth,
 }: TableProps<T>) {
-    const theme = useTheme();
-
     return (
-        <Grid
+        <CustomTable
             columns={columns}
             rows={rows}
             data={data}
             getRowHeight={getRowHeight}
             cellWidth={cellWidth}
-            renderHeaderCell={(column) => (
+            renderHeaderCell={(column, th) => (
                 <HeaderCell
                     name={column.label}
-                    theme={theme}
+                    theme={th}
                     cellWidth={cellWidth}
                 />
             )}
-            renderDataCell={(row, item) => {
+            renderDataCell={(row, item, th) => {
                 // Section headers render empty cells
                 if (row.section === "header") {
                     return (
@@ -74,21 +71,28 @@ export default function Table<T>({
                         />
                     );
                 }
+                let value: string; // remove redundant initializer
+                try {
+                    value = row.accessor(item);
+                } catch (e) {
+                    console.error("[Table] accessor error for row", row.key, e);
+                    value = "-"; // graceful fallback
+                }
                 return (
                     <DataCell
-                        value={row.accessor(item)}
+                        value={value}
                         highlight={row.highlight}
-                        theme={theme}
+                        theme={th}
                         cellWidth={cellWidth}
                     />
                 );
             }}
-            renderLabelCell={(row, isLast) => (
+            renderLabelCell={(row, isLast, th) => (
                 <LabelCell
                     label={row.label}
                     highlight={row.highlight}
                     isLast={isLast}
-                    theme={theme}
+                    theme={th}
                     isSection={row.section === "header"}
                 />
             )}

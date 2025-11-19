@@ -19,6 +19,7 @@ import LoadingScreen from "@components/primitives/LoadingScreen";
 import { Analytics } from "@services/analytics";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import ActiveRouteSync from "./src/navigation/ActiveRouteSync";
+import ErrorBoundary from "@components/primitives/ErrorBoundary";
 
 function toNavigationTheme(
     paper: MD3Theme,
@@ -158,37 +159,17 @@ export default function App() {
                 <PaperProvider theme={paperTheme}>
                     <ThemeModeContext.Provider value={themeCtx}>
                         <GestureHandlerRootView style={styles.flex}>
-                            <NavigationContainer
-                                ref={navigationRef}
-                                theme={navTheme}
-                                // onReady={() => {
-                                //     // Track initial screen
-                                //     const route =
-                                //         navigationRef.current?.getCurrentRoute();
-                                //     if (route?.name) {
-                                //         analytics().logScreenView({
-                                //             screen_name: route.name,
-                                //             screen_class: route.name,
-                                //         });
-                                //     }
-                                // }}
-                                // onStateChange={async () => {
-                                //     // Track screen changes
-                                //     const route =
-                                //         navigationRef.current?.getCurrentRoute();
-                                //     if (route?.name) {
-                                //         await analytics().logScreenView({
-                                //             screen_name: route.name,
-                                //             screen_class: route.name,
-                                //         });
-                                //     }
-                                // }}
-                            >
-                                <ActiveRouteSync
-                                    navigationRef={navigationRef}
-                                />
-                                <RootNavigator />
-                            </NavigationContainer>
+                            <ErrorBoundary>
+                                <NavigationContainer
+                                    ref={navigationRef}
+                                    theme={navTheme}
+                                >
+                                    <ActiveRouteSync
+                                        navigationRef={navigationRef}
+                                    />
+                                    <RootNavigator />
+                                </NavigationContainer>
+                            </ErrorBoundary>
                         </GestureHandlerRootView>
                     </ThemeModeContext.Provider>
                 </PaperProvider>
