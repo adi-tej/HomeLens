@@ -41,3 +41,59 @@ export function parseNumber(input: string): number | undefined {
     const num = Number(s);
     return Number.isFinite(num) ? num : undefined;
 }
+
+/**
+ * Round percentage to 2 decimal places
+ * @param percent - The percentage value to round
+ * @returns Rounded percentage value
+ */
+export function roundPercentage(percent: number): number {
+    return Math.round(percent * 100) / 100;
+}
+
+/**
+ * Format percentage only if it has more than 2 decimals
+ * @param percent - The percentage value to format
+ * @returns Formatted percentage as string
+ */
+export function formatPercentText(percent: number): string {
+    const str = percent.toString();
+    const decimalIndex = str.indexOf(".");
+
+    // If no decimal or 2 or fewer decimal places, return as-is
+    if (decimalIndex === -1 || str.length - decimalIndex - 1 <= 2) {
+        return str;
+    }
+
+    // More than 2 decimals, round to 2
+    return percent.toFixed(2);
+}
+
+/**
+ * Calculate percentage from currency value relative to a property value
+ * @param currencyValue - The currency amount
+ * @param propertyValue - The total property value
+ * @returns Percentage (rounded to 2 decimals) or null if invalid
+ */
+export function calculatePercentFromCurrency(
+    currencyValue: number,
+    propertyValue: number,
+): number | null {
+    if (!propertyValue || propertyValue <= 0) return null;
+    const percent = (currencyValue / propertyValue) * 100;
+    return Number.isFinite(percent) ? roundPercentage(percent) : null;
+}
+
+/**
+ * Calculate currency value from percentage of a property value
+ * @param percent - The percentage value
+ * @param propertyValue - The total property value
+ * @returns Currency amount (rounded to nearest integer) or null if invalid
+ */
+export function calculateCurrencyFromPercent(
+    percent: number,
+    propertyValue: number,
+): number | null {
+    if (!propertyValue || propertyValue <= 0) return null;
+    return Math.round((percent / 100) * propertyValue);
+}

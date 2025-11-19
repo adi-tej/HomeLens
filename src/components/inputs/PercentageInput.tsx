@@ -1,7 +1,7 @@
 import React, { memo, useState } from "react";
 import { Keyboard, Platform, View } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
-import { parseNumber } from "@utils/parser";
+import { formatPercentText, parseNumber } from "@utils/parser";
 import SelectModal, { Option } from "../primitives/SelectModal";
 
 export type PercentageInputProps = {
@@ -31,7 +31,9 @@ function PercentageInputComponent({
     const [focused, setFocused] = useState(false);
     const [text, setText] = useState(
         displayValue ||
-            (value !== undefined && value !== null ? value.toFixed(2) : ""),
+            (value !== undefined && value !== null
+                ? formatPercentText(value)
+                : ""),
     );
     const theme = useTheme();
 
@@ -39,7 +41,9 @@ function PercentageInputComponent({
         if (!focused) {
             const formattedValue =
                 displayValue ||
-                (value !== undefined && value !== null ? value.toFixed(2) : "");
+                (value !== undefined && value !== null
+                    ? formatPercentText(value)
+                    : "");
             setText(formattedValue);
         }
     }, [value, displayValue, focused]);
@@ -63,7 +67,7 @@ function PercentageInputComponent({
     const handleBlur = () => {
         setFocused(false);
         if (value !== undefined && value !== null && !displayValue) {
-            setText(value.toFixed(2));
+            setText(formatPercentText(value));
         }
         if (onBlurCallback) {
             onBlurCallback();
@@ -72,12 +76,12 @@ function PercentageInputComponent({
 
     const handleSelect = (selected: number) => {
         onChange(selected);
-        setText(selected.toFixed(2));
+        setText(formatPercentText(selected));
         setOpen(false);
     };
 
     const options: Option[] = presets.map((p) => ({
-        label: `${p.toFixed(2)}%`,
+        label: `${formatPercentText(p)}%`,
         value: p,
     }));
 

@@ -6,6 +6,7 @@ import type { LoanDetails, PropertyData } from "@types";
 import { spacing } from "@theme/spacing";
 import { DEFAULT_LOAN_TERM, INTEREST_RATE_PRESETS } from "@utils/defaults";
 import { calculateDepositFromLVR } from "@utils/calculations";
+import { formatPercentText } from "@utils/parser";
 
 interface LoanSettingsSectionProps {
     data: PropertyData;
@@ -101,7 +102,7 @@ function LoanSettingsSection({
                         label="LVR (%)"
                         displayValue={
                             loan.lvr != null
-                                ? Number(loan.lvr).toFixed(2)
+                                ? formatPercentText(Number(loan.lvr))
                                 : lvrText
                         }
                         value={undefined}
@@ -128,7 +129,7 @@ function LoanSettingsSection({
                         onChange={(v: number | undefined) => {
                             if (v && data.propertyValue) {
                                 setIsEditingLVR(true);
-                                setLvrText(v.toFixed(2));
+                                setLvrText(formatPercentText(v));
                                 const newDeposit = calculateDepositFromLVR(
                                     data.propertyValue,
                                     v,

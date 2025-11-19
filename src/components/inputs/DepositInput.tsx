@@ -1,10 +1,17 @@
-import React, { memo, useMemo, useRef, useState } from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import React, { memo, useEffect, useRef, useState } from "react";
+import { Keyboard, Platform, StyleSheet, View } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
 import { spacing } from "@theme/spacing";
-import { formatCurrency, parseNumber } from "@utils/parser";
+import {
+    calculateCurrencyFromPercent,
+    calculatePercentFromCurrency,
+    formatCurrency,
+    formatPercentText,
+    parseNumber,
+    roundPercentage,
+} from "@utils/parser";
 import { DEPOSIT_PERCENTAGE_PRESETS } from "@utils/defaults";
-import { PercentageInput } from "./PercentageInput";
+import SelectModal, { Option } from "../primitives/SelectModal";
 
 export type DepositInputProps = {
     propertyValue?: number;
@@ -21,100 +28,168 @@ function DepositInputComponent({
 
     // Local UI state
     const [percentText, setPercentText] = useState<string>("");
-    const [currencyText, setCurrencyText] = useState<string>(
-        deposit != null ? formatCurrency(deposit) : "",
-    );
+    const [currencyText, setCurrencyText] = useState<string>("");
     const [inputMode, setInputMode] = useState<"currency" | "percent" | null>(
         null,
     );
 
-    // Refs to help avoid needless deps and detect external changes
+    // Local UI state for inline percent input
+    const [percentOpen, setPercentOpen] = useState(false);
+    const [percentFocused, setPercentFocused] = useState(false);
+
+    // Use refs to track values without causing re-renders
+    const lastDepositSetRef = useRef<number | undefined>(deposit);
     const onChangeRef = useRef(onChange);
-    React.useEffect(() => {
+
+    // Keep onChange ref updated
+    useEffect(() => {
         onChangeRef.current = onChange;
     }, [onChange]);
 
-    const lastDepositSetRef = useRef<number | undefined>(deposit);
+    // Helper: Update deposit value and sync state
+    const updateDeposit = (value: number | undefined) => {
+        lastDepositSetRef.current = value;
+        onChange(value);
+    };
 
-    // Percent derived from current deposit/property value (2 decimals)
-    const derivedPercent = useMemo(() => {
-        if (propertyValue == null || propertyValue <= 0) return "";
-        if (deposit == null) return "";
-        const p = (deposit / propertyValue) * 100;
-        if (!Number.isFinite(p)) return "";
-        return p.toFixed(2);
-    }, [propertyValue, deposit]);
+    // Helper: Sync percentage text from currency value
+    const syncPercentFromCurrency = (currencyValue: number) => {
+        if (!propertyValue) return;
+        const percent = calculatePercentFromCurrency(
+            currencyValue,
+            propertyValue,
+        );
+        if (percent !== null) {
+            setPercentText(formatPercentText(percent));
+        }
+    };
 
-    // Edge case: percent entered first, then property value provided → compute deposit
-    React.useEffect(() => {
-        if (propertyValue == null || propertyValue <= 0) return;
-        if (inputMode === "percent" && percentText.trim() !== "") {
+    const handleCurrencyChange = (t: string) => {
+        setCurrencyText(t);
+        const parsed = parseNumber(t);
+        if (parsed != null) {
+            syncPercentFromCurrency(parsed);
+            updateDeposit(parsed);
+        } else if (t === "") {
+            updateDeposit(undefined);
+            setPercentText("");
+        }
+    };
+
+    const applyPercent = (p: number) => {
+        if (!propertyValue || propertyValue <= 0) return;
+        const val = calculateCurrencyFromPercent(p, propertyValue);
+        if (val !== null) {
+            updateDeposit(val);
+            setCurrencyText(formatCurrency(val));
+        }
+    };
+
+    const handlePercentTextChange = (input: string) => {
+        setPercentText(input);
+
+        if (input === "") {
+            updateDeposit(undefined);
+            setCurrencyText("");
+            return;
+        }
+
+        const parsed = parseNumber(input);
+        if (parsed != null) {
+            applyPercent(parsed);
+        }
+    };
+
+    const handlePercentSelectChange = (option: Option) => {
+        const p = option.value as number;
+        const rounded = roundPercentage(p);
+        setPercentText(formatPercentText(rounded));
+        applyPercent(p);
+        setPercentOpen(false);
+    };
+
+    useEffect(() => {
+        if (!propertyValue || propertyValue <= 0) return;
+
+        // Case 1: Only percent entered, calculate currency from percent
+        if (currencyText === "" && percentText !== "") {
             const parsed = parseNumber(percentText);
             if (parsed != null) {
-                const val = Math.round((parsed / 100) * propertyValue);
-                if (val !== deposit) {
+                const val = calculateCurrencyFromPercent(parsed, propertyValue);
+                if (val !== null) {
+                    setCurrencyText(formatCurrency(val));
                     lastDepositSetRef.current = val;
                     onChangeRef.current(val);
                 }
             }
         }
-    }, [propertyValue, inputMode, percentText, deposit]);
-
-    // Always sync currency text with deposit prop
-    React.useEffect(() => {
-        setCurrencyText(deposit != null ? formatCurrency(deposit) : "");
-    }, [deposit]);
-
-    // Detect external deposit changes (e.g. from LVR) and update percentage display when not editing %
-    React.useEffect(() => {
-        if (deposit !== lastDepositSetRef.current) {
-            // External change
-            if (inputMode === "percent") {
-                setInputMode(null);
+        // Case 2: Only currency entered, calculate percent from currency
+        else if (percentText === "" && currencyText !== "") {
+            const parsed = parseNumber(currencyText);
+            if (parsed != null) {
+                const percent = calculatePercentFromCurrency(
+                    parsed,
+                    propertyValue,
+                );
+                if (percent !== null) {
+                    setPercentText(formatPercentText(percent));
+                }
+                lastDepositSetRef.current = parsed;
+                onChangeRef.current(parsed);
             }
-            lastDepositSetRef.current = deposit;
         }
-
-        // Keep percentage display in sync when not editing percentage
-        if (inputMode !== "percent") {
-            if (derivedPercent !== "" && derivedPercent !== percentText) {
-                setPercentText(derivedPercent);
+        // Case 3: Both entered, sync based on which was edited last
+        else if (currencyText !== "" && percentText !== "") {
+            if (inputMode === "currency") {
+                const parsed = parseNumber(currencyText);
+                if (parsed != null) {
+                    const percent = calculatePercentFromCurrency(
+                        parsed,
+                        propertyValue,
+                    );
+                    if (percent !== null) {
+                        setPercentText(formatPercentText(percent));
+                    }
+                    lastDepositSetRef.current = parsed;
+                    onChangeRef.current(parsed);
+                }
+            } else if (inputMode === "percent") {
+                const parsed = parseNumber(percentText);
+                if (parsed != null) {
+                    const val = calculateCurrencyFromPercent(
+                        parsed,
+                        propertyValue,
+                    );
+                    if (val !== null) {
+                        setCurrencyText(formatCurrency(val));
+                        lastDepositSetRef.current = val;
+                        onChangeRef.current(val);
+                    }
+                }
             }
-            if (derivedPercent === "" && percentText !== "") {
+        }
+    }, [propertyValue, currencyText, percentText, inputMode]);
+
+    // Detect external deposit changes (e.g. from LVR slider) and sync UI
+    useEffect(() => {
+        if (deposit !== lastDepositSetRef.current) {
+            lastDepositSetRef.current = deposit;
+
+            setCurrencyText(deposit != null ? formatCurrency(deposit) : "");
+
+            if (propertyValue && deposit != null) {
+                const percent = calculatePercentFromCurrency(
+                    deposit,
+                    propertyValue,
+                );
+                if (percent !== null) {
+                    setPercentText(formatPercentText(percent));
+                }
+            } else if (deposit == null) {
                 setPercentText("");
             }
         }
-    }, [deposit, derivedPercent, inputMode, percentText]);
-
-    const handleCurrencyChange = (t: string) => {
-        setCurrencyText(t);
-        if (inputMode !== "currency") setInputMode("currency");
-        const parsed = parseNumber(t);
-        if (parsed != null) {
-            lastDepositSetRef.current = parsed;
-            onChangeRef.current(parsed);
-        } else if (t === "") {
-            lastDepositSetRef.current = undefined;
-            onChangeRef.current(undefined);
-        }
-    };
-
-    const applyPercent = (p: number | undefined) => {
-        if (p == null || !Number.isFinite(p)) return; // allow 0
-        if (propertyValue == null || propertyValue <= 0) return;
-        const val = Math.round((p / 100) * propertyValue);
-        lastDepositSetRef.current = val;
-        onChangeRef.current(val);
-    };
-
-    const handlePercentChangeRaw = (t: string) => {
-        setPercentText(t);
-        if (inputMode !== "percent") setInputMode("percent");
-        const parsed = parseNumber(t);
-        if (parsed != null) {
-            applyPercent(parsed);
-        }
-    };
+    }, [deposit]);
 
     return (
         <View>
@@ -125,6 +200,19 @@ function DepositInputComponent({
                     placeholder="Deposit"
                     value={currencyText}
                     onChangeText={handleCurrencyChange}
+                    onFocus={() => {
+                        setInputMode("currency");
+                        const parsed = parseNumber(currencyText);
+                        if (parsed != null) {
+                            setCurrencyText(String(parsed));
+                        }
+                    }}
+                    onBlur={() => {
+                        const parsed = parseNumber(currencyText);
+                        if (parsed != null) {
+                            setCurrencyText(formatCurrency(parsed));
+                        }
+                    }}
                     keyboardType={Platform.select({
                         ios: "number-pad",
                         android: "numeric",
@@ -137,21 +225,57 @@ function DepositInputComponent({
                 <View style={styles.gap} />
 
                 <View style={styles.percent}>
-                    <PercentageInput
+                    <TextInput
+                        mode="outlined"
                         label="%"
-                        value={undefined}
-                        displayValue={percentText}
-                        onChange={(v: number | undefined) => {
-                            if (v !== undefined) {
-                                if (inputMode !== "percent")
-                                    setInputMode("percent");
-                                const s = v.toString();
-                                if (s !== percentText) setPercentText(s);
-                                applyPercent(v);
+                        value={percentText}
+                        onChangeText={handlePercentTextChange}
+                        onFocus={() => {
+                            setInputMode("percent");
+                            setPercentFocused(true);
+                        }}
+                        onBlur={() => {
+                            setPercentFocused(false);
+                            const parsed = parseNumber(percentText);
+                            if (parsed != null) {
+                                setPercentText(formatPercentText(parsed));
                             }
                         }}
-                        onChangeRaw={handlePercentChangeRaw}
-                        presets={DEPOSIT_PERCENTAGE_PRESETS}
+                        keyboardType={Platform.select({
+                            ios: "decimal-pad",
+                            android: "numeric",
+                        })}
+                        right={
+                            <TextInput.Icon
+                                icon="chevron-down"
+                                onPress={() => {
+                                    if (!DEPOSIT_PERCENTAGE_PRESETS.length)
+                                        return;
+                                    Keyboard.dismiss();
+                                    setPercentOpen(true);
+                                }}
+                                forceTextInputFocus={false}
+                            />
+                        }
+                        outlineColor={
+                            percentOpen || percentFocused
+                                ? theme.colors.primary
+                                : theme.colors.outline
+                        }
+                        activeOutlineColor={theme.colors.primary}
+                        outlineStyle={{
+                            borderWidth: percentOpen || percentFocused ? 2 : 1,
+                        }}
+                    />
+
+                    <SelectModal
+                        visible={percentOpen}
+                        onCancel={() => setPercentOpen(false)}
+                        options={DEPOSIT_PERCENTAGE_PRESETS.map((p) => ({
+                            label: `${p}%`,
+                            value: p,
+                        }))}
+                        onSelect={handlePercentSelectChange}
                     />
                 </View>
             </View>
