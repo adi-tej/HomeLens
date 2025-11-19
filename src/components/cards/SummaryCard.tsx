@@ -417,14 +417,17 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         flex: 1,
+        marginRight: spacing.sm,
     },
     label: {
-        flex: 0.5,
+        flex: 0.65,
+        flexShrink: 1,
     },
     value: {
         fontVariant: ["tabular-nums"],
         textAlign: "right",
         marginLeft: spacing.md,
+        flexShrink: 0,
     },
     footnote: {
         letterSpacing: 0,

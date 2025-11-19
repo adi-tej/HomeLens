@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useMemo, useState } from "react";
 import { Keyboard, Platform } from "react-native";
-import { TextInput, useTheme } from "react-native-paper";
+import { HelperText, TextInput, useTheme } from "react-native-paper";
 import SelectModal, { Option } from "../primitives/SelectModal";
 import { formatCurrency, parseNumber } from "@utils/parser";
 
@@ -10,6 +10,9 @@ export type CurrencySelectProps = {
     onChange: (v: number | undefined) => void;
     presets?: number[]; // optional overrides
     allowPresets?: boolean;
+    error?: string;
+    onBlur?: () => void;
+    showError?: boolean;
 };
 
 const DEFAULT_PRESETS = [400000, 600000, 800000, 1000000, 1200000];
@@ -20,6 +23,9 @@ function CurrencySelectComponent({
     onChange,
     presets,
     allowPresets = true,
+    error,
+    onBlur,
+    showError = true,
 }: CurrencySelectProps) {
     const [open, setOpen] = useState(false);
     const [focused, setFocused] = useState(false);
@@ -75,6 +81,11 @@ function CurrencySelectComponent({
             // Invalid input, revert to last valid value
             setText(value != null ? formatCurrency(value) : "");
         }
+
+        // Trigger parent onBlur if provided
+        if (onBlur) {
+            onBlur();
+        }
     };
 
     const handleSelect = (o: Option) => {
@@ -85,7 +96,14 @@ function CurrencySelectComponent({
     };
 
     const isActive = open || focused;
-    const outlineColor = isActive ? theme.colors.primary : theme.colors.outline;
+    const outlineColor = error
+        ? theme.colors.error
+        : isActive
+          ? theme.colors.primary
+          : theme.colors.outline;
+    const activeOutlineColor = error
+        ? theme.colors.error
+        : theme.colors.primary;
 
     return (
         <>
@@ -101,8 +119,9 @@ function CurrencySelectComponent({
                     ios: "number-pad",
                     android: "numeric",
                 })}
+                error={Boolean(error)}
                 outlineColor={outlineColor}
-                activeOutlineColor={theme.colors.primary}
+                activeOutlineColor={activeOutlineColor}
                 outlineStyle={{
                     borderWidth: isActive ? 2 : 1,
                 }}
@@ -120,6 +139,11 @@ function CurrencySelectComponent({
                     ) : undefined
                 }
             />
+            {showError && error ? (
+                <HelperText type="error" visible>
+                    {error}
+                </HelperText>
+            ) : null}
 
             <SelectModal
                 visible={open}

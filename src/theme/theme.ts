@@ -13,7 +13,7 @@ const neutralLight = {
 
     // Primary – HomeLens sage green (trust + balance)
     primary: "#729387",
-    onPrimary: "#FFFFFF",
+    onPrimary: "#EEF4F1",
     primaryContainer: "#DAE7E1",
     onPrimaryContainer: "#0F1F1A",
 
@@ -34,6 +34,12 @@ const neutralLight = {
     onError: "#FFFFFF",
     errorContainer: "#F9DEDC",
     onErrorContainer: "#410E0B",
+
+    // Warning – soft amber for non-blocking attention
+    warning: "#F59E0B",
+    onWarning: "#FFFAEB",
+    warningContainer: "#FFF4D5",
+    onWarningContainer: "#3F2A00",
 
     // Inverse / elevation
     inverseSurface: "#141A1E",
@@ -68,6 +74,12 @@ const neutralDark = {
     onTertiary: "#00210F",
     tertiaryContainer: "#1F4A2B",
     onTertiaryContainer: "#D7EAD8",
+
+    // Warning – warm amber for soft attention in dark mode
+    warning: "#F59E0B",
+    onWarning: "#FFF9E6", // light warm tone, close to white for dark mode
+    warningContainer: "#4A3000",
+    onWarningContainer: "#FFE4B3",
 
     // Error
     error: "#E07563",

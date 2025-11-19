@@ -41,7 +41,7 @@ export function useInsightsData() {
             },
             {
                 key: "rentalIncome",
-                label: "Rental Income (Annual)",
+                label: "Rental Income",
                 accessor: (p: Projection) => formatCurrency(p.rentalIncome),
             },
             {

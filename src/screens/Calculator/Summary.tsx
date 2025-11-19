@@ -215,7 +215,7 @@ function Summary({ data, scrollViewRef }: SummaryProps) {
                     },
                     {
                         key: "mm",
-                        label: "Monthly mortgage",
+                        label: "Monthly repayment",
                         value: formatCurrency(monthlyMortgage),
                         highlight: true,
                     },

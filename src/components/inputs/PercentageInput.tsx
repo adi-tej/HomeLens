@@ -1,8 +1,9 @@
-import React, { memo, useState } from "react";
-import { Keyboard, Platform, View } from "react-native";
-import { TextInput, useTheme } from "react-native-paper";
+import React, { memo, useEffect, useState } from "react";
+import { Keyboard, View } from "react-native";
+import { TextInput as NativeTextInput } from "react-native-paper";
 import { formatPercentText, parseNumber } from "@utils/parser";
 import SelectModal, { Option } from "../primitives/SelectModal";
+import { TextInput } from "./TextInput";
 
 export type PercentageInputProps = {
     label?: string;
@@ -12,7 +13,9 @@ export type PercentageInputProps = {
     onBlurCallback?: () => void;
     presets?: readonly number[];
     displayValue?: string;
-    allowPresets?: boolean; // Control whether to show dropdown and presets
+    allowPresets?: boolean;
+    error?: string;
+    showError?: boolean;
 };
 
 const DEFAULT_PRESETS = [2, 3, 5, 8, 10];
@@ -26,6 +29,8 @@ function PercentageInputComponent({
     presets = DEFAULT_PRESETS,
     displayValue,
     allowPresets = true,
+    error,
+    showError = true,
 }: PercentageInputProps) {
     const [open, setOpen] = useState(false);
     const [focused, setFocused] = useState(false);
@@ -35,9 +40,8 @@ function PercentageInputComponent({
                 ? formatPercentText(value)
                 : ""),
     );
-    const theme = useTheme();
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!focused) {
             const formattedValue =
                 displayValue ||
@@ -85,25 +89,20 @@ function PercentageInputComponent({
         value: p,
     }));
 
-    const active = open || focused;
-    const outlineColor = active ? theme.colors.primary : theme.colors.outline;
-
     return (
         <View>
             <TextInput
-                mode="outlined"
                 label={label}
                 value={text}
                 onChangeText={handleTextChange}
                 onFocus={() => setFocused(true)}
                 onBlur={handleBlur}
-                keyboardType={Platform.select({
-                    ios: "decimal-pad",
-                    android: "numeric",
-                })}
+                keyboardType="decimal-pad"
+                error={error}
+                showError={showError}
                 right={
                     allowPresets ? (
-                        <TextInput.Icon
+                        <NativeTextInput.Icon
                             icon="chevron-down"
                             onPress={() => {
                                 if (!options.length) return;
@@ -114,9 +113,6 @@ function PercentageInputComponent({
                         />
                     ) : undefined
                 }
-                outlineColor={outlineColor}
-                activeOutlineColor={theme.colors.primary}
-                outlineStyle={{ borderWidth: active ? 2 : 1 }}
             />
 
             {allowPresets && (

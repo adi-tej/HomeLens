@@ -11,14 +11,14 @@ import { MD3Theme, PaperProvider } from "react-native-paper";
 import { StyleSheet, useColorScheme, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { ThemeMode, ThemeModeContext } from "@state/ThemeModeContext";
+import { darkTheme, lightTheme } from "@theme/theme";
+import Onboarding from "@screens/Onboarding";
+import { OnboardingStorage } from "@services/onboardingStorage";
+import LoadingScreen from "@components/primitives/LoadingScreen";
+import { Analytics } from "@services/analytics";
 import { RootNavigator } from "./src/navigation/RootNavigator";
-import { ThemeMode, ThemeModeContext } from "./src/state/ThemeModeContext";
-import { darkTheme, lightTheme } from "./src/theme/theme";
 import ActiveRouteSync from "./src/navigation/ActiveRouteSync";
-import Onboarding from "./src/screens/Onboarding";
-import { OnboardingStorage } from "./src/services/onboardingStorage";
-import LoadingScreen from "./src/components/primitives/LoadingScreen";
-import { Analytics } from "./src/services/analytics";
 
 function toNavigationTheme(
     paper: MD3Theme,
@@ -40,11 +40,18 @@ function toNavigationTheme(
 
 export default function App() {
     const systemScheme = useColorScheme();
-    const [themeMode, setThemeMode] = useState<ThemeMode>(undefined);
+
+    // Default app theme to dark if no explicit preference is set
+    const [themeMode, setThemeMode] = useState<ThemeMode | undefined>("dark");
+
     const [onboardingCompleted, setOnboardingCompleted] = useState<
         boolean | null
     >(null);
-    const isDark = (themeMode ?? systemScheme) === "dark";
+
+    const effectiveMode: ThemeMode =
+        themeMode ?? (systemScheme as ThemeMode) ?? "dark";
+    const isDark = effectiveMode === "dark";
+
     const sessionStartTime = useRef<number>(Date.now());
 
     const paperTheme = isDark ? darkTheme : lightTheme;
@@ -57,18 +64,22 @@ export default function App() {
         [paperTheme, isDark],
     );
 
-    const themeCtx = useMemo(() => ({ themeMode, setThemeMode }), [themeMode]);
+    const themeCtx = useMemo(
+        () => ({ themeMode: effectiveMode, setThemeMode }),
+        [effectiveMode],
+    );
+
     const navigationRef = useRef(createNavigationContainerRef());
 
     // Initialize device tracking and log app open
     useEffect(() => {
-        Analytics.initializeDeviceTracking();
-        Analytics.logAppOpen();
+        void Analytics.initializeDeviceTracking();
+        void Analytics.logAppOpen();
 
         // Log app close on unmount
         return () => {
             const sessionDuration = Date.now() - sessionStartTime.current;
-            Analytics.logAppClose(sessionDuration);
+            void Analytics.logAppClose(sessionDuration);
         };
     }, []);
 
@@ -80,7 +91,7 @@ export default function App() {
             console.log("[App] Onboarding check:", { completed, email });
             setOnboardingCompleted(completed);
         };
-        checkOnboarding();
+        void checkOnboarding();
     }, []);
 
     const handleOnboardingComplete = async (email: string) => {

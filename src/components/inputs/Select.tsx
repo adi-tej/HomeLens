@@ -1,6 +1,6 @@
 import React, { memo, useMemo, useState } from "react";
 import { Keyboard, Pressable, View } from "react-native";
-import { TextInput, useTheme } from "react-native-paper";
+import { HelperText, TextInput, useTheme } from "react-native-paper";
 import SelectModal, { Option } from "../primitives/SelectModal";
 
 export type SelectProps = {
@@ -9,6 +9,7 @@ export type SelectProps = {
     onChange: (v: string | undefined) => void;
     options: Option[];
     disabled?: boolean;
+    error?: string;
 };
 
 function SelectComponent({
@@ -17,6 +18,7 @@ function SelectComponent({
     onChange,
     options,
     disabled = false,
+    error,
 }: SelectProps) {
     const [open, setOpen] = useState(false);
     const theme = useTheme();
@@ -32,7 +34,14 @@ function SelectComponent({
         setOpen(true);
     };
 
-    const outlineColor = open ? theme.colors.primary : theme.colors.outline;
+    const outlineColor = error
+        ? theme.colors.error
+        : open
+          ? theme.colors.primary
+          : theme.colors.outline;
+    const activeOutlineColor = error
+        ? theme.colors.error
+        : theme.colors.primary;
 
     return (
         <>
@@ -43,10 +52,11 @@ function SelectComponent({
                         label={label}
                         placeholder={label}
                         value={display}
+                        error={Boolean(error)}
                         editable={false}
                         disabled={disabled}
                         outlineColor={outlineColor}
-                        activeOutlineColor={theme.colors.primary}
+                        activeOutlineColor={activeOutlineColor}
                         outlineStyle={{ borderWidth: open ? 2 : 1 }}
                         right={
                             <TextInput.Icon
@@ -57,6 +67,11 @@ function SelectComponent({
                     />
                 </View>
             </Pressable>
+            {error ? (
+                <HelperText type="error" visible>
+                    {error}
+                </HelperText>
+            ) : null}
 
             <SelectModal
                 visible={open}

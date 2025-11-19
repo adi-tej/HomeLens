@@ -50,7 +50,7 @@ function LabelCell({
     const highlightBgColor = highlight
         ? isDark
             ? theme.colors.onSecondary
-            : theme.colors.secondary
+            : theme.colors.onWarning
         : "transparent";
     const highlightTextColor = highlight
         ? isDark

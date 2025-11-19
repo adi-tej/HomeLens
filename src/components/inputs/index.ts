@@ -6,3 +6,4 @@ export { Select } from "./Select";
 export { CheckBox } from "./CheckBox";
 export { ExpensesInput } from "./ExpensesInput";
 export { SegmentedToggle } from "./SegmentedToggle";
+export { TextInput } from "./TextInput";
