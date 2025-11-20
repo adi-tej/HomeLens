@@ -48,7 +48,8 @@
     "plugins": [
       "@react-native-firebase/app",
       "./plugins/firebase-modular-headers",
-      "./plugins/android-proguard-config"
+      "./plugins/android-proguard-config",
+      "./plugins/crashlytics-gradle"
     ]
   }
 }
