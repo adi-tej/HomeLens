@@ -124,7 +124,7 @@ module.exports = function withAndroidProguardConfig(config) {
         },
     ]);
 
-    // Step 3: Configure build.gradle for Crashlytics mapping upload
+    // Step 3: Configure build.gradle for Crashlytics mapping upload (refactored for safety)
     config = withDangerousMod(config, [
         "android",
         async (config) => {
@@ -137,8 +137,13 @@ module.exports = function withAndroidProguardConfig(config) {
             if (fs.existsSync(buildGradlePath)) {
                 let buildGradle = fs.readFileSync(buildGradlePath, "utf-8");
 
-                // Add Crashlytics plugin if not present
-                if (!buildGradle.includes("com.google.firebase.crashlytics")) {
+                // 3a. Inject Crashlytics plugin after RN plugin (idempotent)
+                if (
+                    !buildGradle.includes(
+                        'apply plugin: "com.google.firebase.crashlytics"',
+                    ) &&
+                    buildGradle.includes('apply plugin: "com.facebook.react"')
+                ) {
                     buildGradle = buildGradle.replace(
                         /apply plugin: "com\.facebook\.react"/,
                         'apply plugin: "com.facebook.react"\napply plugin: "com.google.firebase.crashlytics"',
@@ -148,32 +153,53 @@ module.exports = function withAndroidProguardConfig(config) {
                     );
                 }
 
-                // Add Crashlytics mapping file upload to release buildType
-                if (!buildGradle.includes("firebaseCrashlytics")) {
-                    buildGradle = buildGradle.replace(
-                        /(buildTypes\s*\{[^}]*release\s*\{[^}]*)(}\s*})/,
-                        (match, releaseBlock, closingBraces) => {
-                            return (
-                                releaseBlock +
-                                `
-            // Enable Firebase Crashlytics mapping file upload
-            firebaseCrashlytics {
-                mappingFileUploadEnabled true
-            }
-` +
-                                closingBraces
+                // 3b. Insert firebaseCrashlytics block inside release { ... } if missing
+                if (!buildGradle.includes("firebaseCrashlytics {")) {
+                    const lines = buildGradle.split(/\r?\n/);
+                    let releaseStartIndex = -1;
+                    let braceDepth = 0;
+                    let inserted = false;
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        // track brace depth very roughly (not full parser but adequate for build.gradle structure)
+                        if (line.includes("{")) braceDepth++;
+                        if (line.includes("}")) braceDepth--;
+
+                        if (/^\s*release\s*\{/.test(line)) {
+                            releaseStartIndex = i;
+                            // Insert right after this line
+                            lines.splice(
+                                i + 1,
+                                0,
+                                "        // Enable Firebase Crashlytics mapping file upload",
+                                "        firebaseCrashlytics {",
+                                "            mappingFileUploadEnabled true",
+                                "        }",
                             );
-                        },
-                    );
+                            inserted = true;
+                            break;
+                        }
+                    }
+                    if (inserted) {
+                        buildGradle = lines.join("\n");
+                        console.log(
+                            "[android-proguard] Inserted firebaseCrashlytics block into release buildType",
+                        );
+                    } else {
+                        console.warn(
+                            "[android-proguard] Could not locate 'release {' block for Crashlytics insertion",
+                        );
+                    }
+                } else {
                     console.log(
-                        "[android-proguard] Enabled Crashlytics mapping file upload",
+                        "[android-proguard] firebaseCrashlytics block already present (skipping)",
                     );
                 }
 
-                // Use optimized ProGuard config
+                // 3c. Upgrade proguard config (keep rules file) - only if using non-optimized default
                 buildGradle = buildGradle.replace(
-                    /proguardFiles.*"proguard-android\.txt"/,
-                    'proguardFiles getDefaultProguardFile("proguard-android-optimize.txt")',
+                    /proguardFiles\s+getDefaultProguardFile\("proguard-android\.txt"\)\s*,\s*"proguard-rules\.pro"/,
+                    'proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"',
                 );
 
                 fs.writeFileSync(buildGradlePath, buildGradle, "utf-8");
