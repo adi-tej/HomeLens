@@ -29,8 +29,10 @@ interface TableProps<T> {
     rows: Row<T>[];
     data: T[];
     getRowHeight?: (row: Row<T>) => number;
-    cornerCell?: React.ReactNode; // Optional custom corner cell content
-    cellWidth?: number; // Optional cell width override
+    cornerCell?: React.ReactNode;
+    cellWidth?: number;
+    autoFit?: boolean;
+    minCellWidth?: number;
 }
 
 /**
@@ -44,59 +46,97 @@ export default function Table<T>({
     getRowHeight,
     cornerCell,
     cellWidth = TABLE_CONFIG.cellWidth,
+    autoFit = false,
+    minCellWidth = TABLE_CONFIG.cellWidth,
 }: TableProps<T>) {
+    // Initialize with minCellWidth when autoFit is enabled to prevent flash
+    const [calculatedWidth, setCalculatedWidth] = React.useState<number>(
+        autoFit ? minCellWidth : cellWidth,
+    );
+    const [layoutReady, setLayoutReady] = React.useState(!autoFit);
+
+    const effectiveCellWidth = autoFit ? calculatedWidth : cellWidth;
+
+    const handleLayout = React.useCallback(
+        (e: any) => {
+            if (!autoFit) return;
+            const totalWidth = e.nativeEvent.layout.width;
+            if (!totalWidth || totalWidth <= 0) return;
+            // Subtract label column width and a small border allowance
+            const available = totalWidth - TABLE_CONFIG.labelWidth - 2; // 2px border allowance
+            const raw = available / columns.length;
+            const newWidth = Math.max(minCellWidth, Math.floor(raw));
+            if (newWidth !== calculatedWidth) {
+                setCalculatedWidth(newWidth);
+            }
+            if (!layoutReady) {
+                setLayoutReady(true);
+            }
+        },
+        [autoFit, columns.length, minCellWidth, calculatedWidth, layoutReady],
+    );
+
     return (
-        <CustomTable
-            columns={columns}
-            rows={rows}
-            data={data}
-            getRowHeight={getRowHeight}
-            cellWidth={cellWidth}
-            renderHeaderCell={(column, th) => (
-                <HeaderCell
-                    name={column.label}
-                    theme={th}
-                    cellWidth={cellWidth}
-                />
-            )}
-            renderDataCell={(row, item, th) => {
-                // Section headers render empty cells
-                if (row.section === "header") {
+        <View
+            onLayout={handleLayout}
+            style={{ flex: 1, opacity: layoutReady ? 1 : 0 }}
+        >
+            <CustomTable
+                columns={columns}
+                rows={rows}
+                data={data}
+                getRowHeight={getRowHeight}
+                cellWidth={effectiveCellWidth}
+                renderHeaderCell={(column, th) => (
+                    <HeaderCell
+                        name={column.label}
+                        theme={th}
+                        cellWidth={effectiveCellWidth}
+                    />
+                )}
+                renderDataCell={(row, item, th) => {
+                    // Section headers render empty cells
+                    if (row.section === "header") {
+                        return (
+                            <View
+                                style={{
+                                    width: effectiveCellWidth,
+                                    height: TABLE_CONFIG.headerHeight,
+                                }}
+                            />
+                        );
+                    }
+                    let value: string; // remove redundant initializer
+                    try {
+                        value = row.accessor(item);
+                    } catch (e) {
+                        console.error(
+                            "[Table] accessor error for row",
+                            row.key,
+                            e,
+                        );
+                        value = "-"; // graceful fallback
+                    }
                     return (
-                        <View
-                            style={{
-                                width: cellWidth,
-                                height: TABLE_CONFIG.headerHeight,
-                            }}
+                        <DataCell
+                            value={value}
+                            highlight={row.highlight}
+                            theme={th}
+                            cellWidth={effectiveCellWidth}
                         />
                     );
-                }
-                let value: string; // remove redundant initializer
-                try {
-                    value = row.accessor(item);
-                } catch (e) {
-                    console.error("[Table] accessor error for row", row.key, e);
-                    value = "-"; // graceful fallback
-                }
-                return (
-                    <DataCell
-                        value={value}
+                }}
+                renderLabelCell={(row, isLast, th) => (
+                    <LabelCell
+                        label={row.label}
                         highlight={row.highlight}
+                        isLast={isLast}
                         theme={th}
-                        cellWidth={cellWidth}
+                        isSection={row.section === "header"}
                     />
-                );
-            }}
-            renderLabelCell={(row, isLast, th) => (
-                <LabelCell
-                    label={row.label}
-                    highlight={row.highlight}
-                    isLast={isLast}
-                    theme={th}
-                    isSection={row.section === "header"}
-                />
-            )}
-            cornerIcon={cornerCell || <Logo width={28} height={28} />}
-        />
+                )}
+                cornerIcon={cornerCell || <Logo width={18} height={18} />}
+            />
+        </View>
     );
 }

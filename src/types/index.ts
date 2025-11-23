@@ -25,7 +25,7 @@ export interface PropertyData {
     capitalGrowth: number;
     stampDuty?: number;
     expenses: Expenses;
-    projections?: Projection[];
+    projections: Projection[];
     state?: StateCode; // Australian state for state-based fees (defaults to NSW)
 }
 export type LoanDetails = {

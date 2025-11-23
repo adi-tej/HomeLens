@@ -1,26 +1,36 @@
 import React from "react";
 import { Alert } from "react-native";
 import { IconButton, useTheme } from "react-native-paper";
-import { File, Paths } from "expo-file-system";
-import * as Sharing from "expo-sharing";
 import { Analytics, FeatureName } from "@services/analytics";
+import {
+    exportAndShare,
+    ShareFormat,
+    ShareRow,
+    ShareScenarioLike,
+} from "@utils/share/exporters";
 
 interface ShareButtonProps {
-    data: Array<{
-        key: string;
-        label: string;
-        accessor: (scenario: any) => string;
-        highlight?: boolean;
-        section?: string;
-    }>;
-    scenarios: any[];
+    data: ShareRow[];
+    scenarios: ShareScenarioLike[];
+    format?: ShareFormat;
     iconSize?: number;
+    buttonStyle?: any;
+    buttonMode?: "outlined" | "contained" | "contained-tonal";
+    iconColor?: string;
+    containerColor?: string;
+    filenameBase?: string;
 }
 
 export default function ShareButton({
     data,
     scenarios,
+    format = "csv",
     iconSize = 24,
+    buttonStyle,
+    buttonMode,
+    iconColor,
+    containerColor,
+    filenameBase = "property-comparison",
 }: ShareButtonProps) {
     const theme = useTheme();
 
@@ -32,101 +42,39 @@ export default function ShareButton({
             );
             return;
         }
-
         try {
-            // Helper function to escape CSV values
-            const escapeCSV = (value: string): string => {
-                // If value contains comma, quote, or newline, wrap in quotes and escape quotes
-                if (
-                    value.includes(",") ||
-                    value.includes('"') ||
-                    value.includes("\n")
-                ) {
-                    return `"${value.replace(/"/g, '""')}"`;
-                }
-                return value;
-            };
-
-            // Build CSV content
-            let csvContent = "";
-
-            // Header row with scenario names
-            csvContent += "Metric";
-            scenarios.forEach((scenario) => {
-                csvContent += `,${escapeCSV(scenario.name)}`;
-            });
-            csvContent += "\n";
-
-            // Data rows
-            data.forEach((row) => {
-                // Section header row
-                if (row.section === "header") {
-                    csvContent += "\n"; // Empty line before section
-                    csvContent += `${escapeCSV(row.label)}`;
-                    // Empty cells for scenario columns
-                    scenarios.forEach(() => {
-                        csvContent += ",";
-                    });
-                    csvContent += "\n";
-                    return;
-                }
-
-                // Regular data row
-                csvContent += escapeCSV(row.label);
-                scenarios.forEach((scenario) => {
-                    const value = row.accessor(scenario);
-                    csvContent += `,${escapeCSV(value)}`;
+            const success = await exportAndShare(
+                format,
+                data,
+                scenarios,
+                filenameBase,
+            );
+            if (success) {
+                void Analytics.logShare(`comparison_${format}`);
+                void Analytics.logFeatureUsed(FeatureName.EXPORT_SHARE, {
+                    scenario_count: scenarios.length,
+                    metrics_count: data.length,
+                    format,
                 });
-                csvContent += "\n";
-            });
-
-            // Create file with timestamp
-            const timestamp = new Date()
-                .toISOString()
-                .replace(/[:.]/g, "-")
-                .slice(0, -5);
-            const fileName = `property-comparison-${timestamp}.csv`;
-            const file = new File(Paths.cache, fileName);
-
-            // Write CSV content to file
-            await file.write(csvContent);
-
-            // Check if sharing is available
-            const isAvailable = await Sharing.isAvailableAsync();
-            if (!isAvailable) {
-                Alert.alert(
-                    "Sharing not available",
-                    "File sharing is not available on this device.",
-                );
-                return;
             }
-
-            // Share the file
-            await Sharing.shareAsync(file.uri, {
-                mimeType: "text/csv",
-                dialogTitle: "Share Property Comparison",
-                UTI: "public.comma-separated-values-text",
-            });
-            void Analytics.logShare("comparison_csv");
-            void Analytics.logFeatureUsed(FeatureName.EXPORT_SHARE, {
-                scenario_count: scenarios.length,
-                metrics_count: data.length,
-            });
         } catch (error) {
             console.error("Error sharing:", error);
             Alert.alert(
                 "Export Failed",
-                "Could not export comparison data. Please try again.",
+                `Could not export comparison data (${format}). Please try again.`,
             );
         }
     };
 
     return (
         <IconButton
-            icon="share-variant"
+            icon={format === "pdf" ? "file-pdf-box" : "share-variant"}
             size={iconSize}
             onPress={handleShare}
-            iconColor={theme.colors.onSurface}
+            iconColor={iconColor ?? theme.colors.onSurface}
+            mode={buttonMode}
+            style={buttonStyle}
+            {...(containerColor ? { containerColor } : {})}
         />
     );
 }

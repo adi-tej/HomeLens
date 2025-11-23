@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Divider, IconButton, Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -44,6 +44,8 @@ export default function ScenarioManager() {
     const [editingScenarioId, setEditingScenarioId] = useState<string | null>(
         null,
     );
+    // Replace submitting guard with a blur suppression ref
+    const suppressNextBlurRef = useRef(false);
     const { isOpen: isDrawerOpen } = useRightDrawer();
     const shouldStartCreate = useAppStore((s) => s.shouldStartCreateScenario);
     const { clearCreateScenarioTrigger } = useAppActions();
@@ -56,19 +58,16 @@ export default function ScenarioManager() {
                 if (isAddingNew) {
                     const newId = createScenario(trimmed);
                     setCurrentScenario(newId);
-                    // Track scenario creation
                     void Analytics.logFeatureUsed(FeatureName.CREATE_SCENARIO, {
                         scenario_name: trimmed,
                     });
                 } else if (editingScenarioId) {
                     updateScenario(editingScenarioId, { name: trimmed });
-                    // Track scenario edit
                     void Analytics.logFeatureUsed(FeatureName.EDIT_SCENARIO, {
                         scenario_id: editingScenarioId,
                     });
                 }
             }
-            // Reset editing state
             setEditingScenarioId(null);
             setEditingName("");
             setIsAddingNew(false);
@@ -175,19 +174,31 @@ export default function ScenarioManager() {
 
     // Background tap: commit (save if valid)
     const handleBackgroundTap = useCallback(() => {
+        // Tapping background will blur input; avoid double commit
+        suppressNextBlurRef.current = true;
         commitEditing(true);
     }, [commitEditing]);
 
     // Input handlers (shared)
-    const inputSubmit = useCallback(() => commitEditing(true), [commitEditing]);
-    const inputBlur = useCallback(
-        () => commitEditing(!!editingName.trim()),
-        [commitEditing, editingName],
-    );
-    const inputCancel = useCallback(
-        () => commitEditing(false),
-        [commitEditing],
-    );
+    const inputSubmit = useCallback(() => {
+        // Suppress the blur that immediately follows submit
+        suppressNextBlurRef.current = true;
+        commitEditing(true);
+    }, [commitEditing]);
+
+    const inputBlur = useCallback(() => {
+        if (suppressNextBlurRef.current) {
+            // Consume suppression and ignore this blur (already handled by submit)
+            suppressNextBlurRef.current = false;
+            return;
+        }
+        commitEditing(!!editingName.trim());
+    }, [commitEditing, editingName]);
+
+    const inputCancel = useCallback(() => {
+        suppressNextBlurRef.current = true; // cancel also triggers blur
+        commitEditing(false);
+    }, [commitEditing]);
 
     // Listen for create scenario trigger from EmptyState
     useEffect(() => {

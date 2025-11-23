@@ -191,6 +191,7 @@ export function getDefaultPropertyData(): PropertyData {
             ongoing: DEFAULT_ONGOING_EXPENSES,
             ongoingTotal: getDefaultOngoingTotal(),
         },
+        projections: [],
     };
 }
 

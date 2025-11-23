@@ -2,7 +2,6 @@ import React, { useMemo, useRef } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { useTheme } from "react-native-paper";
-import { spacing } from "@theme/spacing";
 import { TABLE_CONFIG } from "./TableConfig";
 
 // Create Animated versions of gesture-handler ScrollView
@@ -77,7 +76,11 @@ export default function CustomTable<T>({
     const rowHeights = useMemo(
         () =>
             rows.map((row) =>
-                getRowHeight ? getRowHeight(row) : TABLE_CONFIG.rowHeight,
+                getRowHeight
+                    ? getRowHeight(row)
+                    : row.section === "header"
+                      ? TABLE_CONFIG.headerHeight
+                      : TABLE_CONFIG.rowHeight,
             ),
         [rows, getRowHeight],
     );
@@ -196,7 +199,7 @@ export default function CustomTable<T>({
                         scrollEventThrottle={16}
                         onScroll={verticalScrollHandler}
                         contentContainerStyle={{
-                            paddingBottom: spacing.lg,
+                            paddingBottom: 0,
                         }}
                         nestedScrollEnabled={true}
                         overScrollMode="always"
