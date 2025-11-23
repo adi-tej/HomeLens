@@ -10,7 +10,7 @@ export * from "./loanCalculations";
 export * from "./taxCalculations";
 export * from "./expensesCalculations";
 export * from "./projectionCalculations";
-export * from "./validation";
+export * from "../validation";
 export * from "./stampDutyCalculations";
 
 // Import what we need for the main orchestrator
