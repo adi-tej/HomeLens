@@ -80,6 +80,7 @@ export default function Calculator() {
                     </Button>
                     <ShareButton
                         data={shareData}
+                        format="pdf"
                         scenarios={currentScenario ? [currentScenario] : []}
                         iconSize={24}
                         buttonMode="outlined"
@@ -87,6 +88,7 @@ export default function Calculator() {
                             styles.shareButton,
                             { borderColor: theme.colors.outline },
                         ]}
+                        filenameBase={`Property Analysis - ${currentScenario.name}`}
                     />
                 </View>
             )}

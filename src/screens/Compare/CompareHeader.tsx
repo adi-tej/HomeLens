@@ -34,6 +34,8 @@ function CompareHeader({
                 <ShareButton
                     data={comparisonRows}
                     scenarios={selectedScenarioList}
+                    format="pdf"
+                    filenameBase="Property Comparison"
                 />
             </View>
             <Divider style={{ marginBottom: spacing.md }} />

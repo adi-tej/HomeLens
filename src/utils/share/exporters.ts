@@ -1,8 +1,7 @@
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { Alert } from "react-native";
-// NOTE: For real PDF generation, install and use `expo-print` or another lib.
-// import * as Print from 'expo-print';
+import * as Print from "expo-print";
 
 export type ShareFormat = "csv" | "pdf";
 
@@ -34,18 +33,10 @@ function escapeCSV(value: string): string {
     return value;
 }
 
-function buildTimestampedName(base: string, ext: string): string {
-    const timestamp = new Date()
-        .toISOString()
-        .replace(/[:.]/g, "-")
-        .slice(0, -5);
-    return `${base}-${timestamp}.${ext}`;
-}
-
 export async function buildCsvFile(
     rows: ShareRow[],
     scenarios: ShareScenarioLike[],
-    filenameBase = "property-comparison",
+    filenameBase: string,
 ): Promise<BuildFileResult> {
     let csvContent = "Metric";
     scenarios.forEach((s) => {
@@ -55,10 +46,10 @@ export async function buildCsvFile(
 
     rows.forEach((row) => {
         if (row.section === "header") {
-            csvContent += "\n"; // blank line before a section header for readability
+            csvContent += "\n";
             csvContent += escapeCSV(row.label);
             scenarios.forEach(() => {
-                csvContent += ","; // maintain column count
+                csvContent += ",";
             });
             csvContent += "\n";
             return;
@@ -71,13 +62,13 @@ export async function buildCsvFile(
         csvContent += "\n";
     });
 
-    const fileName = buildTimestampedName(filenameBase, "csv");
-    const file = new File(Paths.cache, fileName);
-    await file.write(csvContent);
+    const fileName = `${filenameBase}.csv`;
+    const file = new File(Paths.document, fileName);
+    file.write(csvContent);
     return {
         file,
         mimeType: "text/csv",
-        displayName: "Share Property Comparison",
+        displayName: filenameBase,
         utType: "public.comma-separated-values-text",
     };
 }
@@ -85,29 +76,74 @@ export async function buildCsvFile(
 export async function buildPdfFile(
     rows: ShareRow[],
     scenarios: ShareScenarioLike[],
-    filenameBase = "property-comparison",
+    filenameBase: string,
 ): Promise<BuildFileResult> {
-    // Placeholder implementation: builds a simple text representation and saves with .pdf extension.
-    // Replace with real PDF logic using expo-print or a PDF lib later.
-    let content = `Property Comparison (PDF placeholder)\n\n`;
-    content += `Scenarios: ${scenarios.map((s) => s.name).join(", ")}\n\n`;
+    const fileName = `${filenameBase}.pdf`;
+
+    const scenarioNames = scenarios.map((s) => s.name);
+
+    let tableRows = "";
     rows.forEach((row) => {
         if (row.section === "header") {
-            content += `\n## ${row.label}\n`;
+            tableRows += `
+                <tr style="background-color: #f0f0f0;">
+                    <td colspan="${scenarioNames.length + 1}" style="padding: 12px 8px; font-weight: bold; font-size: 14px; border-bottom: 2px solid #333;">
+                        ${row.label}
+                    </td>
+                </tr>`;
             return;
         }
-        content += `${row.label}: ${scenarios
-            .map((s) => row.accessor(s))
-            .join(" | ")}\n`;
+        const rowStyle = row.highlight
+            ? "background-color: #fff9e6; font-weight: 600;"
+            : "";
+        tableRows += `
+            <tr style="${rowStyle}">
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">${row.label}</td>`;
+        scenarios.forEach((scenario) => {
+            const value = row.accessor(scenario);
+            tableRows += `
+                <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">${value}</td>`;
+        });
+        tableRows += `</tr>`;
     });
 
-    const fileName = buildTimestampedName(filenameBase, "pdf");
-    const file = new File(Paths.cache, fileName);
-    await file.write(content);
+    const html = `<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+<title>Property Analysis Report</title>
+<meta charset=\"utf-8\">
+<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+<style>
+ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 20px 1in; font-size: 12px; }
+ h1 { font-size: 20px; margin-bottom: 10px; color: #333; }
+ .meta { color: #666; font-size: 10px; margin-bottom: 20px; }
+ table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+ th { background-color: #333; color: white; padding: 10px 8px; text-align: left; font-weight: 600; font-size: 12px; }
+ th:not(:first-child) { text-align: right; }
+ td { font-size: 11px; }
+</style>
+</head>
+<body>
+<h1>Property Comparison Report</h1>
+<div class=\"meta\">Filename: ${fileName}<br>Scenarios: ${scenarioNames.join(", ")}</div>
+<table>
+<thead><tr><th>Metric</th>${scenarioNames.map((n) => `<th>${n}</th>`).join("")}</tr></thead>
+<tbody>${tableRows}</tbody>
+</table>
+</body>
+</html>`;
+
+    const { uri } = await Print.printToFileAsync({ html });
+
+    const sourceFile = new File(uri);
+    const targetFile = new File(Paths.document, fileName);
+    const pdfBytes = await sourceFile.bytes();
+    targetFile.write(pdfBytes);
+
     return {
-        file,
+        file: targetFile,
         mimeType: "application/pdf",
-        displayName: "Share Property Comparison (PDF)",
+        displayName: filenameBase,
         utType: "com.adobe.pdf",
     };
 }
@@ -121,6 +157,7 @@ export async function shareFile(result: BuildFileResult) {
         );
         return false;
     }
+
     await Sharing.shareAsync(result.file.uri, {
         mimeType: result.mimeType,
         dialogTitle: result.displayName,
@@ -133,7 +170,7 @@ export async function exportAndShare(
     format: ShareFormat,
     rows: ShareRow[],
     scenarios: ShareScenarioLike[],
-    filenameBase?: string,
+    filenameBase: string,
 ): Promise<boolean> {
     switch (format) {
         case "csv": {

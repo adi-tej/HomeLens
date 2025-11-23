@@ -68,7 +68,7 @@ export default function ShareButton({
 
     return (
         <IconButton
-            icon={format === "pdf" ? "file-pdf-box" : "share-variant"}
+            icon={"share-variant"}
             size={iconSize}
             onPress={handleShare}
             iconColor={iconColor ?? theme.colors.onSurface}

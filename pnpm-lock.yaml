@@ -53,6 +53,9 @@ importers:
       expo-haptics:
         specifier: ~15.0.7
         version: 15.0.7(expo@54.0.25(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))
+      expo-print:
+        specifier: ^15.0.7
+        version: 15.0.7(expo@54.0.25(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))
       expo-sharing:
         specifier: ^14.0.7
         version: 14.0.7(expo@54.0.25(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))
@@ -2145,6 +2148,12 @@ packages:
     resolution: {integrity: sha512-WWjficXz32VmQ+xDoO+c0+jwDME0n/47wONrJkRvtm32H9W8n3MXkOMGemDl95HyPKYsaYKhjFGUOVOxIF3hcQ==}
     peerDependencies:
       react: '*'
+      react-native: '*'
+
+  expo-print@15.0.7:
+    resolution: {integrity: sha512-DLjURmu4D2sfJrT7a/x4l4Hb0mlJSeu3OKCa2iIilO/AATddekTzgJejEV2QkMFMSX6CiU5g+h3PuyNq2I3rfQ==}
+    peerDependencies:
+      expo: '*'
       react-native: '*'
 
   expo-server@1.0.4:
@@ -6910,6 +6919,11 @@ snapshots:
     dependencies:
       invariant: 2.2.4
       react: 19.1.0
+      react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0)
+
+  expo-print@15.0.7(expo@54.0.25(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0)):
+    dependencies:
+      expo: 54.0.25(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0)
 
   expo-server@1.0.4: {}
