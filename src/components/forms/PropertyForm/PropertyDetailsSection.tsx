@@ -1,9 +1,14 @@
 import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Divider, Text, useTheme } from "react-native-paper";
-import { CurrencySelect, ExpensesInput } from "@components/inputs";
+import {
+    CurrencyPercentageInput,
+    CurrencySelect,
+    ExpensesInput,
+} from "@components/inputs";
 import type { PropertyData } from "@types";
 import { spacing } from "@theme/spacing";
+import { REBATE_PERCENTAGE_PRESETS } from "@utils/defaults";
 
 interface PropertyDetailsSectionProps {
     data: PropertyData;
@@ -118,6 +123,17 @@ function PropertyDetailsSection({
                     />
                 </View>
             </View>
+
+            {/* Rebate Input */}
+            <CurrencyPercentageInput
+                label="Rebate"
+                percentPresets={REBATE_PERCENTAGE_PRESETS}
+                propertyValue={data.propertyValue}
+                value={data.rebate}
+                onChange={(v) => {
+                    onUpdate({ rebate: v });
+                }}
+            />
 
             {/* Government charges note */}
             <Text

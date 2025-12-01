@@ -26,7 +26,8 @@ export interface PropertyData {
     stampDuty?: number;
     expenses: Expenses;
     projections: Projection[];
-    state?: StateCode; // Australian state for state-based fees (defaults to NSW)
+    state?: StateCode;
+    rebate?: number;
 }
 export type LoanDetails = {
     isInterestOnly: boolean;

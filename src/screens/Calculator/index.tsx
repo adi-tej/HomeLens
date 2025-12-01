@@ -5,7 +5,7 @@ import ScreenContainer from "@components/primitives/ScreenContainer";
 import PropertyForm from "@components/forms/PropertyForm";
 import Summary from "./Summary";
 import EmptyState from "./EmptyState";
-import Index from "./DetailedDataModal";
+import DetailedDataModal from "./DetailedDataModal";
 import ShareButton from "@components/ShareButton";
 import { useCurrentScenario } from "@state/useScenarioStore";
 import { spacing } from "@theme/spacing";
@@ -95,7 +95,7 @@ export default function Calculator() {
 
             {/* Detailed Data Modal */}
             {data && (
-                <Index
+                <DetailedDataModal
                     visible={modalVisible}
                     onDismiss={() => setModalVisible(false)}
                     data={data}
@@ -128,7 +128,5 @@ const styles = StyleSheet.create({
         margin: 0,
         width: 48,
         height: 48,
-        justifyContent: "center",
-        alignItems: "center",
     },
 });

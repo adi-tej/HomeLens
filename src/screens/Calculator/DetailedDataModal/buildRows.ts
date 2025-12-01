@@ -35,6 +35,7 @@ export function buildDetailedRows(data: PropertyData): DetailedRow[] {
         loan,
         expenses,
         projections,
+        rebate,
     } = data;
 
     // Nested destructuring with safe fallbacks
@@ -135,6 +136,12 @@ export function buildDetailedRows(data: PropertyData): DetailedRow[] {
             accessor: () => (stampDuty ? formatCurrency(stampDuty) : "-"),
             section: "property",
         },
+        {
+            key: "rebate",
+            label: "Rebate",
+            accessor: () => (rebate ? formatCurrency(rebate) : "-"),
+            section: "property",
+        },
         // LOAN DETAILS header
         {
             key: "loan-header",
@@ -200,12 +207,6 @@ export function buildDetailedRows(data: PropertyData): DetailedRow[] {
             section: "expenses",
         },
         {
-            key: "ongoingTotal",
-            label: "Ongoing Total",
-            accessor: () => formatCurrency(ongoingTotal),
-            section: "expenses",
-        },
-        {
             key: "council",
             label: "Council Rates",
             accessor: () => formatCurrency(council),
@@ -239,6 +240,12 @@ export function buildDetailedRows(data: PropertyData): DetailedRow[] {
             key: "maintenance",
             label: "Maintenance",
             accessor: () => formatCurrency(maintenance),
+            section: "expenses",
+        },
+        {
+            key: "ongoingTotal",
+            label: "Ongoing Total",
+            accessor: () => formatCurrency(ongoingTotal),
             section: "expenses",
         },
         {

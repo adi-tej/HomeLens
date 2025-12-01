@@ -186,9 +186,9 @@ export function calculateLoanDetails(
 ): LoanDetails {
     // === Loan Calculations ===
     const includeStampDuty = Boolean(inputLoan.includeStampDuty);
-    const loanWithoutLMI = includeStampDuty
-        ? propertyValue - deposit + stampDuty
-        : propertyValue - deposit;
+
+    const loanWithoutLMI =
+        propertyValue - deposit + (includeStampDuty ? stampDuty : 0);
 
     const lvr =
         propertyValue > 0 && loanWithoutLMI > 0

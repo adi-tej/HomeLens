@@ -3,8 +3,8 @@ import { StyleSheet, View } from "react-native";
 import { HelperText } from "react-native-paper";
 import {
     CheckBox,
+    CurrencyPercentageInput,
     CurrencySelect,
-    DepositInput,
     SegmentedToggle,
     Select,
 } from "@components/inputs";
@@ -14,7 +14,11 @@ import type {
     PropertyType,
     StateCode,
 } from "@types";
-import { DEFAULT_STATE, STATE_OPTIONS } from "@utils/defaults";
+import {
+    DEFAULT_STATE,
+    DEPOSIT_PERCENTAGE_PRESETS,
+    STATE_OPTIONS,
+} from "@utils/defaults";
 import { validatePropertyData } from "@utils/calculations";
 import { spacing } from "@theme/spacing";
 
@@ -159,10 +163,12 @@ function BasicDetailsSection({
                 ) : null}
             </View>
             {/* Deposit */}
-            <DepositInput
+            <CurrencyPercentageInput
                 key={scenarioId}
+                label="Deposit"
+                percentPresets={DEPOSIT_PERCENTAGE_PRESETS}
                 propertyValue={data.propertyValue}
-                deposit={data.deposit}
+                value={data.deposit}
                 error={
                     touchedFields.deposit
                         ? errors.deposit || errors.depositTooBig

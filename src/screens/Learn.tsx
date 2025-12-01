@@ -115,9 +115,9 @@ const TOPICS: Topic[] = [
         summary:
             "Equity builds as you contribute deposit and pay down principal; ROI relates returns to what you've spent.",
         points: [
-            "Equity = Deposit + Principal repaid to date.",
-            "Returns may include rent received, tax returns (investors), and capital growth.",
-            "ROI = (Total Returns ÷ Total Spent) × 100, provided total spent > 0.",
+            "Equity = Deposit + Principal repaid to date + Capital growth.",
+            "Returns may include rent received and tax returns (investors)",
+            "ROI = ((Total Returns + Capital growth) ÷ Total Spent) × 100, provided total spent > 0.",
         ],
     },
     {

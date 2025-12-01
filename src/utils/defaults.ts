@@ -98,6 +98,11 @@ export const DEFAULT_PROPERTY_TYPE: PropertyType = "house";
 export const DEPOSIT_PERCENTAGE_PRESETS = [5, 10, 15, 20] as const;
 
 /**
+ * Rebate percentage presets
+ */
+export const REBATE_PERCENTAGE_PRESETS = [0, 5, 10, 15, 20] as const;
+
+/**
  * Default tax bracket for investment property calculations
  * 0.3 = 30% marginal tax rate
  */

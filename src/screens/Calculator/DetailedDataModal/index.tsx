@@ -21,7 +21,7 @@ interface DataItem {
     id: string;
 }
 
-export default function Index({
+export default function DetailedDataModal({
     visible,
     onDismiss,
     data,
@@ -112,7 +112,6 @@ export default function Index({
 
 const styles = StyleSheet.create({
     modalContent: {
-        maxHeight: "85%",
         height: "85%",
         padding: 0,
         borderWidth: 0,

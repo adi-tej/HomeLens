@@ -44,6 +44,7 @@ export function calculatePropertyData(inputData: PropertyData): PropertyData {
     const deposit = Number(inputData.deposit) || 0;
     const isLand = inputData.propertyType === "land";
     const isInvestment = !(inputData.isLivingHere ?? false);
+    const rebate = inputData.rebate || 0;
 
     // === Stamp Duty ===
     const stampDuty = calculateStampDuty(
@@ -82,23 +83,25 @@ export function calculatePropertyData(inputData: PropertyData): PropertyData {
         propertyValue: propertyValue,
         deposit,
         capitalGrowthRate,
+        rebate,
         loan: {
             total: loan.amount ?? 0,
             interestRate: loan.interest ?? 0,
             isInterestOnly: loan.isInterestOnly ?? false,
             termYears: loan.term ?? DEFAULT_LOAN_TERM,
             monthlyMortgage: loan.monthlyMortgage ?? 0,
+            lmi: loan.lmi ?? 0,
         },
         weeklyRent: inputData.weeklyRent ?? DEFAULT_WEEKLY_RENT,
         rentalGrowthPerWeek,
-        strataQuarterly,
         expenses: {
             oneTimeTotal: expenses.oneTimeTotal + getGovtFee(state),
             ongoingAnnualTotal: expenses.ongoingTotal,
+            strataQuarterly,
+            stampDuty,
         },
-        stampDuty,
-        lmi: loan.lmi ?? 0,
-        isInvestment, // Pass investment status for tax calculations
+        isInvestment,
+        includeStampDuty: loan.includeStampDuty,
     });
 
     // === Return Complete Property Data ===
@@ -118,5 +121,6 @@ export function calculatePropertyData(inputData: PropertyData): PropertyData {
         expenses,
         projections,
         state,
+        rebate,
     };
 }
