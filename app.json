@@ -3,12 +3,12 @@
     "name": "Home Lens",
     "slug": "homelens",
     "jsEngine": "hermes",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "runtimeVersion": "1.0.1",
+    "runtimeVersion": "1.0.2",
     "updates": {
       "url": "https://u.expo.dev/3f70d590-b1b6-4988-90de-b0fc297eab9b"
     },
@@ -19,7 +19,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "2",
+      "buildNumber": "3",
       "googleServicesFile": "./firebase/GoogleService-Info.plist",
       "bundleIdentifier": "com.homelens.app",
       "infoPlist": {
