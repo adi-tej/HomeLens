@@ -22,6 +22,7 @@ interface ScenarioStore {
     currentScenarioId: ScenarioId | null;
     comparisonMode: boolean;
     selectedScenarios: Set<ScenarioId>;
+    hydrated?: boolean; // set true after persistence hydration
 
     // Computed/Derived (getters)
     getCurrentScenario: () => Scenario | null;
@@ -72,6 +73,7 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => {
         currentScenarioId: defaultId,
         comparisonMode: false,
         selectedScenarios: new Set(),
+        hydrated: false,
 
         // Getters
         getCurrentScenario: () => {

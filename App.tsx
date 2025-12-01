@@ -20,6 +20,9 @@ import { Analytics } from "@services/analytics";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import ActiveRouteSync from "./src/navigation/ActiveRouteSync";
 import ErrorBoundary from "@components/primitives/ErrorBoundary";
+// Added persistence imports
+import { useScenarioStore } from "@state/useScenarioStore";
+import { ScenarioPersistence } from "@services/scenarioPersistence";
 
 function toNavigationTheme(
     paper: MD3Theme,
@@ -48,6 +51,9 @@ export default function App() {
     const [onboardingCompleted, setOnboardingCompleted] = useState<
         boolean | null
     >(null);
+
+    // Hydration flag for scenarios
+    const hydrated = useScenarioStore((s) => s.hydrated);
 
     const effectiveMode: ThemeMode =
         themeMode ?? (systemScheme as ThemeMode) ?? "dark";
@@ -82,6 +88,14 @@ export default function App() {
             const sessionDuration = Date.now() - sessionStartTime.current;
             void Analytics.logAppClose(sessionDuration);
         };
+    }, []);
+
+    // Hydrate scenario store and set up persistence subscription once
+    useEffect(() => {
+        void (async () => {
+            await ScenarioPersistence.hydrateScenarios();
+            ScenarioPersistence.setupScenarioPersistence();
+        })();
     }, []);
 
     // Check onboarding status on mount
@@ -119,8 +133,8 @@ export default function App() {
         }
     };
 
-    // Show loading screen while checking onboarding status
-    if (onboardingCompleted === null) {
+    // Show loading screen while checking onboarding status or waiting for scenario hydration
+    if (onboardingCompleted === null || !hydrated) {
         return (
             <SafeAreaProvider>
                 <PaperProvider theme={paperTheme}>
@@ -152,7 +166,7 @@ export default function App() {
         );
     }
 
-    // Main app - only shown after onboarding is completed
+    // Main app - only shown after onboarding is completed & scenarios hydrated
     return (
         <SafeAreaProvider>
             <KeyboardProvider>

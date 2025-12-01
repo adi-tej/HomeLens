@@ -25,7 +25,8 @@ export function useCurrencyPercentSync({
 
     const onChangeRef = useRef(onChange);
     const onBlurRef = useRef(onBlur);
-    const lastValueRef = useRef<number | undefined>(value);
+    // Initialize to undefined so first non-undefined value triggers sync
+    const lastValueRef = useRef<number | undefined>(undefined);
 
     useEffect(() => {
         onChangeRef.current = onChange;
@@ -96,6 +97,7 @@ export function useCurrencyPercentSync({
     // -------------------------
 
     useEffect(() => {
+        // Always update when value changes OR on first mount
         if (value === lastValueRef.current) return;
 
         lastValueRef.current = value;
@@ -109,6 +111,9 @@ export function useCurrencyPercentSync({
                 );
                 if (percent !== null)
                     setPercentText(formatPercentText(percent));
+            } else {
+                // Clear percent if property value missing
+                setPercentText("");
             }
         } else {
             setCurrencyText("");

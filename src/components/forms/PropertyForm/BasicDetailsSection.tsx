@@ -1,4 +1,4 @@
-import React, { memo, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { HelperText } from "react-native-paper";
 import {
@@ -37,6 +37,12 @@ function BasicDetailsSection({
     const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>(
         {},
     );
+
+    // Reset touched fields when scenario changes (create/select)
+    useEffect(() => {
+        setTouchedFields({});
+    }, [scenarioId]);
+
     const errors = validatePropertyData(data);
 
     // Handler: Toggle first home buyer

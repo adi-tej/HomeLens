@@ -1,4 +1,4 @@
-import React, { memo, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { HelperText, Text, useTheme } from "react-native-paper";
 import {
@@ -18,6 +18,7 @@ import { formatPercentText } from "@utils/parser";
 
 interface LoanSettingsSectionProps {
     data: PropertyData;
+    scenarioId: string;
     onUpdate: (updates: Partial<PropertyData>) => void;
     lvrText: string;
     setIsEditingLVR: (editing: boolean) => void;
@@ -27,6 +28,7 @@ interface LoanSettingsSectionProps {
 
 function LoanSettingsSection({
     data,
+    scenarioId,
     onUpdate,
     lvrText,
     setIsEditingLVR,
@@ -41,6 +43,12 @@ function LoanSettingsSection({
     const [termText, setTermText] = useState<string>(
         loan.term?.toString() || "",
     );
+
+    // Reset touched fields when scenario changes
+    useEffect(() => {
+        setTouchedFields({});
+    }, [scenarioId]);
+
     const errors = validatePropertyData(data);
 
     // Handler: Toggle repayment type

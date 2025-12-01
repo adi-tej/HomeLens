@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Alert, Linking, StyleSheet, View } from "react-native";
 import { Snackbar, Text } from "react-native-paper";
-import * as Updates from "expo-updates";
 import ScreenContainer from "@components/primitives/ScreenContainer";
 import { spacing } from "@theme/spacing";
 import { OnboardingStorage } from "@services/onboardingStorage";
@@ -94,50 +93,6 @@ export default function HelpScreen() {
         );
     };
 
-    const handleResetOnboarding = async () => {
-        Alert.alert(
-            "Reset Onboarding",
-            "This will clear your onboarding status and restart the app. You'll see the welcome screen again. Continue?",
-            [
-                {
-                    text: "Cancel",
-                    style: "cancel",
-                },
-                {
-                    text: "Reset",
-                    style: "destructive",
-                    onPress: async () => {
-                        try {
-                            console.log("[Reset] Starting onboarding reset...");
-                            await OnboardingStorage.reset();
-                            console.log("[Reset] Storage cleared successfully");
-                            if (Updates.reloadAsync) {
-                                await Updates.reloadAsync();
-                            } else {
-                                console.warn(
-                                    "[Reset] Updates.reloadAsync not available",
-                                );
-                                Alert.alert(
-                                    "Reset Complete",
-                                    "Please close and restart the app manually to see the onboarding screen.",
-                                );
-                            }
-                        } catch (error) {
-                            console.error(
-                                "[Reset] Failed to reset onboarding:",
-                                error,
-                            );
-                            Alert.alert(
-                                "Error",
-                                `Failed to reset onboarding: ${error instanceof Error ? error.message : String(error)}`,
-                            );
-                        }
-                    },
-                },
-            ],
-        );
-    };
-
     return (
         <View style={styles.container}>
             <ScreenContainer>
@@ -178,11 +133,7 @@ export default function HelpScreen() {
                     onDeleteData={handleDeleteData}
                 />
 
-                {ENV.DEV && (
-                    <DeveloperSection
-                        onResetOnboarding={handleResetOnboarding}
-                    />
-                )}
+                {ENV.DEV && <DeveloperSection />}
 
                 <FeedbackDialog
                     visible={feedbackVisible}

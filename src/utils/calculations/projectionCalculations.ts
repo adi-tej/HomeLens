@@ -120,13 +120,7 @@ export function calculateMultiYearProjections(params: {
     // Includes: mortgage, strata, ongoing expenses (rates, insurance, etc.)
     const recurringCosts =
         annualMortgage + strataAnnual + expenses.ongoingAnnualTotal;
-    console.log(
-        "recurringCosts",
-        recurringCosts,
-        annualMortgage,
-        strataAnnual,
-        expenses.ongoingAnnualTotal,
-    );
+
     // ===================================================================
     // STEP 3: Initialize cumulative trackers
     // ===================================================================

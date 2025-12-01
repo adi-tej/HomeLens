@@ -225,6 +225,7 @@ export default function PropertyForm() {
                     >
                         <LoanSettingsSection
                             data={data}
+                            scenarioId={currentScenarioId}
                             onUpdate={onUpdate}
                             lvrText={lvrText}
                             setIsEditingLVR={setIsEditingLVR}
